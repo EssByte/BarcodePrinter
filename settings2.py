@@ -198,25 +198,21 @@ class SettingsWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
             self.logger.exception(error_message)
             QMessageBox.critical(self, 'Error', error_message)
-            sys.exit(1)
 
     def save_printer(self):
         try:
@@ -247,25 +243,21 @@ class SettingsWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
             self.logger.exception(error_message)
             QMessageBox.critical(self, 'Error', error_message)
-            sys.exit(1)
 
     def save_other_settings(self):
         try:
@@ -294,25 +286,21 @@ class SettingsWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
         
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
             self.logger.exception(error_message)
             QMessageBox.critical(self, 'Error', error_message)
-            sys.exit(1)
 
     def save_zpl(self):
         try:
@@ -340,25 +328,21 @@ class SettingsWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
             self.logger.exception(error_message)
             QMessageBox.critical(self, 'Error', error_message)
-            sys.exit(1)
 
 
     def save_tpsl(self):
@@ -387,25 +371,21 @@ class SettingsWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
             self.logger.exception(error_message)
             QMessageBox.critical(self, 'Error', error_message)
-            sys.exit(1)
 
     def reload_data(self):
         try:
@@ -611,17 +591,14 @@ class SettingsWindow(QMainWindow):
         except FileNotFoundError:
             self.logger.error(f"Configuration file not found at {self.config_path}")
             QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-            sys.exit(1)
 
         except json.JSONDecodeError:
             self.logger.error('Error parsing the configuration file.')
             QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-            sys.exit(1)
 
         except KeyError as e:
             self.logger.error(f'Missing key in configuration file: {e}')
             QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
-            sys.exit(1)
 
     def update_data(self):
         try:
@@ -664,17 +641,14 @@ class SettingsWindow(QMainWindow):
         except FileNotFoundError:
             self.logger.error(f"Configuration file not found at {self.config_path}")
             QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-            sys.exit(1)
 
         except json.JSONDecodeError:
             self.logger.error('Error parsing the configuration file.')
             QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-            sys.exit(1)
 
         except KeyError as e:
             self.logger.error(f'Missing key in configuration file: {e}')
             QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
-            sys.exit(1)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

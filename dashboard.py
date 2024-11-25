@@ -176,15 +176,15 @@ class DashboardWindow(QMainWindow):
         except FileNotFoundError:
             self.logger.error(f"Configuration file not found at {self.config_path}")
             QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-            sys.exit(1)
+
         except json.JSONDecodeError:
             self.logger.error("Error parsing the configuration file.")
             QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-            sys.exit(1)
+
         except KeyError as e:
             self.logger.error(f"Missing key in configuration file: {e}")
             QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
-            sys.exit(1)
+            
         except pyodbc.Error as e:
             self.logger.error(f"Database connection failed: {e}")
             print(f"Connection failed: {e}")
@@ -337,19 +337,16 @@ class DashboardWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}"
             self.logger.error(error_message)  # Log the error
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)  # Log the error
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)  # Log the error
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
     def reload_current_printer_info(self):
         self.logger.info("Reloading current printer information from the configuration file.")
@@ -368,19 +365,16 @@ class DashboardWindow(QMainWindow):
             error_message = f"Configuration file not found at {self.config_path}"
             self.logger.error(error_message)  # Log the error
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except json.JSONDecodeError:
             error_message = "Error parsing the configuration file."
             self.logger.error(error_message)  # Log the error
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
 
         except KeyError as e:
             error_message = f"Missing key in configuration file: {e}"
             self.logger.error(error_message)  # Log the error
             QMessageBox.critical(self, 'Config Error', error_message)
-            sys.exit(1)
     
     def load_data(self):
         self.logger.info("Loading data... Starting to perform various checks and reload UI components.")

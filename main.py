@@ -185,17 +185,14 @@ class BarcodeApp(QMainWindow):
         except FileNotFoundError:
             self.logger.error(f"Configuration file not found at {self.config_path}")
             QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-            sys.exit(1)
             
         except json.JSONDecodeError:
             self.logger.error("Error parsing the configuration file.")
             QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-            sys.exit(1)
             
         except KeyError as e:
             self.logger.error(f"Missing key in configuration file: {e}")
             QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
-            sys.exit(1)
 
 
     def resource_path(self, relative_path):
@@ -346,9 +343,10 @@ class BarcodeApp(QMainWindow):
         try:
             # Define the stylesheet for the application
             stylesheet = """
+            QMainWindow { background: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(47, 141, 255, 255), stop:1 rgba(22, 79, 149, 255)); }
             QLabel { font-size: 20px; font-weight: bold; }
             QLineEdit { font-size: 18px; padding: 8px; border: 2px solid rgb(53, 132, 228);border-radius: 10px; }
-            QTableWidget { font-size: 16px; padding: 4px; border: 1px solid black; }
+            QTableWidget { background: transparent; font-size: 16px; padding: 4px; border-radius: 12px; }
             QPushButton { padding: 10px 20px; font-size: 20px; margin: 10px; }
             QPushButton:hover { background-color: rgb(0, 106, 255); }
             QPushButton:pressed { background-color: #000099; }
