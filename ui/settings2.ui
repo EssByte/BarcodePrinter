@@ -1104,6 +1104,13 @@
        <height>25</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <family>Roboto Slab</family>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
 	background: rgba(255, 255, 255, 130);
@@ -1120,6 +1127,13 @@
        <width>161</width>
        <height>25</height>
       </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Roboto Slab</family>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
      </property>
      <property name="styleSheet">
       <string notr="true">QLineEdit {
