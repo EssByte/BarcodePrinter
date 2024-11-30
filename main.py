@@ -17,6 +17,7 @@ from dashboard import DashboardWindow
 import socket
 import subprocess
 from logger_config import setup_logger
+import win32print
 
 class FilterItemsBinaryThread(QThread):
     items_filtered = pyqtSignal(list)  # Signal to emit filtered items
@@ -689,6 +690,27 @@ class BarcodeApp(QMainWindow):
         
         # Display the filtered items
         self.display_items(filtered_items)
+    
+    def send_to_printer(printer_name, raw_data):
+        # Open the printer
+        printer = win32print.OpenPrinter(printer_name)
+        try:
+            # Start a print job
+            job_info = ("Print Job", None, "RAW")
+            job_id = win32print.StartDocPrinter(printer, 1, job_info)
+            
+            # Start a new page
+            win32print.StartPagePrinter(printer)
+            
+            # Send raw data to the printer
+            win32print.WritePrinter(printer, raw_data.encode())
+            
+            # End the page and the job
+            win32print.EndPagePrinter(printer)
+            win32print.EndDocPrinter(printer)
+        finally:
+            # Close the printer connection
+            win32print.ClosePrinter(printer)
 
     def print_barcode(self):
         selected_rows = []
