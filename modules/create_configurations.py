@@ -45,7 +45,7 @@ values = {
     "logging": True,
     "itemCount": 100,
     "enterToSearch": True,
-    "printerDriverType": "generic",
+    "useGenericDriver": True,
 }
 
 create_json_file(file_path, values)
