@@ -690,27 +690,6 @@ class BarcodeApp(QMainWindow):
         
         # Display the filtered items
         self.display_items(filtered_items)
-    
-    def send_to_printer(printer_name, raw_data):
-        # Open the printer
-        printer = win32print.OpenPrinter(printer_name)
-        try:
-            # Start a print job
-            job_info = ("Print Job", None, "RAW")
-            job_id = win32print.StartDocPrinter(printer, 1, job_info)
-            
-            # Start a new page
-            win32print.StartPagePrinter(printer)
-            
-            # Send raw data to the printer
-            win32print.WritePrinter(printer, raw_data.encode())
-            
-            # End the page and the job
-            win32print.EndPagePrinter(printer)
-            win32print.EndDocPrinter(printer)
-        finally:
-            # Close the printer connection
-            win32print.ClosePrinter(printer)
 
     def print_barcode(self):
         selected_rows = []
@@ -744,24 +723,8 @@ class BarcodeApp(QMainWindow):
             self.logger.info("Wireless mode selected. Validating IP and port...")
             try:
                 ip, port = self.ip_address.split(":")
-                socket.inet_aton(ip)  # Validate IP address
-                self.logger.info(f"Pinging {ip} to check connectivity...")
-                ping_command = ["ping", "-n", "1", ip] if os.name == "nt" else ["ping", "-c", "1", ip]
-                ping_result = subprocess.run(ping_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                if ping_result.returncode != 0:
-                    self.logger.error(f"Ping failed for {ip}. Device may be unreachable.")
-                    QMessageBox.warning(self, 'Printer Error', f"Ping failed for {ip}. Device may be unreachable.")
-                    return
 
-                # Check port connectivity
-                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                    sock.settimeout(3)
-                    if sock.connect_ex((ip, int(port))) != 0:
-                        self.logger.error(f"Port {port} on {ip} is not open.")
-                        QMessageBox.warning(self, 'Printer Error', f"Port {port} on {ip} is not open.")
-                        return
-                self.logger.info(f"Wireless printer at {ip}:{port} is reachable.")
-            except (ValueError, socket.error) as e:
+            except (ValueError) as e:
                 self.logger.error(f"Invalid IP or port: {e}")
                 QMessageBox.warning(self, 'Printer Error', f"Invalid IP or port: {e}")
                 return
