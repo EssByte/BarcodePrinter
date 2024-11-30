@@ -6,25 +6,40 @@ class CheckDrivers:
         self.logger = setup_logger("CheckDrivers")
         self.logger.info("Initializing CheckDrivers")
 
-    def check_printer_driver(self, printer_name):
-        self.logger.info(f"Checking if printer driver is installed for '{printer_name}'")
+    def check_printer_driver(self):
+        """
+        Check for installed printer drivers and return status and printer list.
+
+        Returns:
+            tuple: (bool, list)
+                - bool: True if printers are found, False otherwise.
+                - list: List of printer names if available, empty list otherwise.
+        """
+        self.logger.info("Checking for installed printer drivers.")
+        printers = []
         try:
             reg_path = r"SYSTEM\CurrentControlSet\Control\Print\Printers"
             with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path) as key:
-                for i in range(0, winreg.QueryInfoKey(key)[0]):  # Enumerate installed printers
+                # Enumerate installed printers
+                for i in range(0, winreg.QueryInfoKey(key)[0]):
                     installed_printer = winreg.EnumKey(key, i)
+                    printers.append(installed_printer)
                     self.logger.debug(f"Found installed printer: {installed_printer}")
-                    if printer_name.lower() == installed_printer.lower():
-                        self.logger.info(f"Printer '{printer_name}' driver is installed.")
-                        return True
-            self.logger.warning(f"Printer '{printer_name}' driver is not installed.")
-            return False
+
+            if printers:
+                self.logger.info(f"Printers found: {printers}")
+                return True, printers
+            else:
+                self.logger.warning("No printers found in the registry.")
+                return False, []
+
         except FileNotFoundError:
-            self.logger.error("No printers found in the registry.")
-            return False
+            self.logger.error("No printers found in the registry path.")
+            return False, []
+
         except Exception as e:
-            self.logger.exception(f"Error checking printer driver: {e}")
-            return False
+            self.logger.exception(f"Error checking printer drivers: {e}")
+            return False, []
 
     def check_odbc_driver(self, driver_name):
         self.logger.info(f"Checking for ODBC driver '{driver_name}'")
