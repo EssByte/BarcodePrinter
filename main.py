@@ -14,10 +14,8 @@ import json
 from bisect import bisect_left
 from check_password import PasswordCheck
 from dashboard import DashboardWindow
-import socket
-import subprocess
 from logger_config import setup_logger
-import win32print
+from modules.SendCommand import SendCommand
 
 class FilterItemsBinaryThread(QThread):
     items_filtered = pyqtSignal(list)  # Signal to emit filtered items
@@ -579,56 +577,6 @@ class BarcodeApp(QMainWindow):
             self.logger.error(f"Error during binary search: {e}")
             return None
 
-    def send_command(self, ip_address, port, command):
-        try:
-            # Validate IP address
-            self.logger.info(f"Validating IP address: {ip_address}")
-            try:
-                socket.inet_aton(ip_address)
-            except socket.error:
-                self.logger.error(f"Invalid IP address: {ip_address}")
-                QMessageBox.critical(self, 'Error', f"Invalid IP address: {ip_address}")
-                return
-
-            # Ping the IP address to check if it's reachable
-            self.logger.info(f"Pinging {ip_address} to check connectivity...")
-            ping_command = ["ping", "-n", "1", ip_address] if os.name == "nt" else ["ping", "-c", "1", ip_address]
-            ping_result = subprocess.run(ping_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if ping_result.returncode != 0:
-                self.logger.error(f"Ping failed for {ip_address}. Device may be unreachable.")
-                QMessageBox.critical(self, 'Error', f"Ping failed for {ip_address}. Device may be unreachable.")
-                return
-
-            # Log connection attempt
-            self.logger.info(f"Attempting to connect to {ip_address}:{port}")
-
-            # Check if the port is open
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(3)  # Set a timeout for the connection attempt
-                if sock.connect_ex((ip_address, int(port))) != 0:
-                    self.logger.error(f"Port {port} on {ip_address} is not open.")
-                    QMessageBox.critical(self, 'Error', f"Port {port} on {ip_address} is not open.")
-                    return
-
-            # Create a socket and connect
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
-                client_socket.connect((ip_address, int(port)))
-                self.logger.info(f"Connected to {ip_address}:{port}")
-
-                # Send the command
-                client_socket.sendall(command.encode('utf-8'))
-                self.logger.info(f"Command sent successfully: {command}")
-
-                # No need to explicitly close as `with` context handles it
-                self.logger.info("Connection closed.")
-
-        except Exception as e:
-            # Log the error
-            self.logger.error(f"Error while sending command to {ip_address}:{port}: {e}")
-
-            # Show error message to the user
-            QMessageBox.critical(self, 'Error', f"Error: {e}")
-
     def filter_items_binary(self):
         if not self.db_connected or not hasattr(self, 'all_items'):
             if not self.warning_shown:
@@ -754,8 +702,8 @@ class BarcodeApp(QMainWindow):
                         printer.write(self.endpoint, print_data.encode('utf-8'))
                         self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
                     else:
-                        self.send_command(ip_address=ip, port=port, command=printer_clear)
-                        self.send_command(ip_address=ip, port=port, command=print_data)
+                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=printer_clear)
+                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=print_data)
                         self.logger.info(f"Wireless print command sent to {ip}:{port} for item: {barcode_value}")
                 else:
                     printer_clear = "^XA^CLS^XZ"
@@ -771,8 +719,8 @@ class BarcodeApp(QMainWindow):
                         printer.write(self.endpoint, print_data.encode('utf-8'))
                         self.logger.info(f"ZPL print command sent successfully for item: {barcode_value}")
                     else:
-                        self.send_command(ip_address=ip, port=port, command=printer_clear)
-                        self.send_command(ip_address=ip, port=port, command=print_data)
+                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=printer_clear)
+                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=print_data)
                         self.logger.info(f"Wireless ZPL print command sent to {ip}:{port} for item: {barcode_value}")
 
         except usb.core.USBError as e:
