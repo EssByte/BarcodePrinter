@@ -4,11 +4,13 @@ import subprocess
 import os
 from logger_config import setup_logger
 import win32print
+import usb
 
 class SendCommand:
     def __init__(self):
         self.logger = setup_logger('SendCommand')
         self.logger.info("Initializing SendCommand class...")
+        self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
 
     def send_wireless_command(self, ip_address, port, command):
         try:
@@ -55,6 +57,33 @@ class SendCommand:
             self.logger.error(f"Error while sending command to {ip_address}:{port}: {e}")
             QMessageBox.critical(None, 'Error', f"Error: {e}")
 
+    def get_win32_printer_status(self, printer_name):
+        """
+        Get the status of a specific printer.
+
+        Args:
+            printer_name (str): The name of the printer to check.
+
+        Returns:
+            str: 'Online', 'Offline', or 'Unknown'.
+        """
+        try:
+            printer_info = win32print.OpenPrinter(printer_name)
+            printer_status = win32print.GetPrinter(printer_info, 2)  # Level 2 contains status info
+            win32print.ClosePrinter(printer_info)
+
+            status = printer_status['Status']
+
+            if status == 0:
+                self.logger.info(f"Printer '{printer_name}' is Online.")
+                return "Online"
+            else:
+                self.logger.info(f"Printer '{printer_name}' is Offline. Status code: {status}")
+                return "Offline"
+        except Exception as e:
+            self.logger.error(f"Error checking status of printer '{printer_name}': {e}")
+            return "Unknown"
+
     def send_win32print(self, printer_name, raw_data):
         self.logger.info(f"Attempting to send raw data to printer '{printer_name}' using win32print.")
         try:
@@ -89,3 +118,29 @@ class SendCommand:
             # Close the printer connection
             win32print.ClosePrinter(printer)
             self.logger.info(f"Printer connection closed for '{printer_name}'.")
+
+    def send_pyusb_command(self, vid, pid, endpoint, command):
+        """
+        Send a command to a USB printer.
+
+        :param vid: Vendor ID of the printer
+        :param pid: Product ID of the printer
+        :param endpoint: OUT endpoint address of the printer
+        :param command: Command string to send to the printer
+        """
+        try:
+            # Find the USB device
+            device = usb.core.find(idVendor=vid, idProduct=pid, backend=self.backend)
+            if device is None:
+                raise ValueError("Printer not found. Check the Vendor ID and Product ID.")
+
+            # Set the active configuration
+            device.set_configuration()
+
+            # Send the command
+            device.write(endpoint, command.encode('utf-8'))
+            print("Command sent successfully.")
+        except usb.core.USBError as e:
+            print(f"USB Error: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
