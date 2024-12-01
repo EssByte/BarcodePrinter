@@ -1,7 +1,7 @@
 import json
 import os
 
-def create_json_file(file_path, values):
+def create_json_file():
     """
     Creates a JSON file with the provided values.
 
@@ -12,6 +12,28 @@ def create_json_file(file_path, values):
     Returns:
         None
     """
+    file_path = r"C:\barcode\barcode.json"
+    values = {
+        "server": "localhost",
+        "database": "example_db",
+        "username": "admin",
+        "password": "admin123",
+        "vid": "0x1234",
+        "pid": "0x5678",
+        "endpoint": "0x01",
+        "companyName": "Example Corp",
+        "location": "HQ",
+        "useZPL": True,
+        "ip_address": "192.168.1.100",
+        "wireless_mode": False,
+        "zplTemplate": "^XA \n^LH0,-7\n^C128\n^PR3\n^PW280 \n^FO10,0,^A0N,20,20^FD{{companyName}}^FS ^FO10,25^A0N,15,20^FD{{barcode_value}}^FS ^FO10,40^BY1,1.5,0^BCN,50,N,Y,N,N^FD{{barcode_value}}^FS \n^A0N,50,50\n^FO10,94^A0N,15,20^FB280,3,0,L,0 ^FD{{description}}^FS ^FO10,130^A0N,25,30^FD{{unit_price_integer}}^FS \n^PQ{{copies}} \n^XZ",
+        "tpslTemplate": "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 35MM,25MM \nOFFSET 0.000 \nREFERENCE 0,0 \nCLS \nTEXT 320,5,\"2\",0,1,1,\"{{companyName}}\" \nTEXT 310,40,\"2\",0,1,1,\"{{barcode_value}}\" \nBLOCK 310,120,\"0\",0,1,1,\"{{description}}\" \nBARCODE 310,60,\"128\",50,0,0,2,10,\"{{barcode_value}}\" \nTEXT 310,160,\"4\",0,1,1,\"{{unit_price_integer}}\" \nPRINT {{copies}} \nEOP",
+        "logging": True,
+        "itemCount": 100,
+        "enterToSearch": True,
+        "useGenericDriver": True,
+        "printerName": "TSC_TA200",
+    }
     try:
         # Ensure the directory exists
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
@@ -24,28 +46,3 @@ def create_json_file(file_path, values):
 
     except Exception as e:
         print(f"Error creating JSON file: {e}")
-
-# Example Usage
-file_path = r"C:\barcode\barcode.json"
-values = {
-    "server": "localhost",
-    "database": "example_db",
-    "username": "admin",
-    "password": "admin123",
-    "vid": "0x1234",
-    "pid": "0x5678",
-    "endpoint": "0x01",
-    "companyName": "Example Corp",
-    "location": "HQ",
-    "useZPL": True,
-    "ip_address": "192.168.1.100",
-    "wireless_mode": False,
-    "zplTemplate": "^XA \n^LH0,-7\n^C128\n^PR3\n^PW280 \n^FO10,0,^A0N,20,20^FD{{companyName}}^FS ^FO10,25^A0N,15,20^FD{{barcode_value}}^FS ^FO10,40^BY1,1.5,0^BCN,50,N,Y,N,N^FD{{barcode_value}}^FS \n^A0N,50,50\n^FO10,94^A0N,15,20^FB280,3,0,L,0 ^FD{{description}}^FS ^FO10,130^A0N,25,30^FD{{unit_price_integer}}^FS \n^PQ{{copies}} \n^XZ",
-    "tpslTemplate": "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 35MM,25MM \nOFFSET 0.000 \nREFERENCE 0,0 \nCLS \nTEXT 320,5,\"2\",0,1,1,\"{{companyName}}\" \nTEXT 310,40,\"2\",0,1,1,\"{{barcode_value}}\" \nBLOCK 310,120,\"0\",0,1,1,\"{{description}}\" \nBARCODE 310,60,\"128\",50,0,0,2,10,\"{{barcode_value}}\" \nTEXT 310,160,\"4\",0,1,1,\"{{unit_price_integer}}\" \nPRINT {{copies}} \nEOP",
-    "logging": True,
-    "itemCount": 100,
-    "enterToSearch": True,
-    "useGenericDriver": True,
-}
-
-create_json_file(file_path, values)
