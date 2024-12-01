@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QMessageBox
 import socket
 import subprocess
 import os
-from logger_config import setup_logger
+from modules.logger_config import setup_logger
 import win32print
 import usb
 

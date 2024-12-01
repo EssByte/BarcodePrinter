@@ -1,5 +1,5 @@
 import winreg
-from logger_config import setup_logger
+from modules.logger_config import setup_logger
 
 class CheckDrivers:
     def __init__(self):

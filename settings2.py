@@ -9,7 +9,7 @@ import json
 from usb.core import find as find_usb
 import usb
 import os
-from logger_config import setup_logger
+from modules.logger_config import setup_logger
 from version import __version__
 
 class SettingsWindow(QMainWindow):

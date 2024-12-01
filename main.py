@@ -14,7 +14,7 @@ import json
 from bisect import bisect_left
 from check_password import PasswordCheck
 from dashboard import DashboardWindow
-from logger_config import setup_logger
+from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 
 class FilterItemsBinaryThread(QThread):

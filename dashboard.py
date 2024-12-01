@@ -10,7 +10,7 @@ import usb
 import os
 import socket
 import pyodbc
-from logger_config import setup_logger 
+from modules.logger_config import setup_logger 
 from version import __version__
 
 class DashboardWindow(QMainWindow):
