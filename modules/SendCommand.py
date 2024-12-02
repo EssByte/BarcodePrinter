@@ -5,6 +5,7 @@ import os
 from modules.logger_config import setup_logger
 import win32print
 import usb
+import sys
 
 class SendCommand:
     def __init__(self):
@@ -144,3 +145,17 @@ class SendCommand:
             print(f"USB Error: {e}")
         except Exception as e:
             print(f"Unexpected error: {e}")
+
+    def resource_path(self, relative_path):
+        try:
+            # Attempt to get the PyInstaller base path
+            self.logger.debug(f"Attempting to resolve resource path for: {relative_path}")
+            base_path = sys._MEIPASS
+            self.logger.debug(f"PyInstaller base path resolved: {base_path}")
+        except AttributeError:
+            # Fall back to the current working directory in development mode
+            base_path = os.path.abspath(".")
+            self.logger.debug(f"Development mode detected. Base path resolved to: {base_path}")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error while resolving base path: {e}")
+            raise
