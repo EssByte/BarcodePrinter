@@ -14,10 +14,10 @@ def create_json_file():
     """
     file_path = r"C:\barcode\barcode.json"
     values = {
-        "server": "localhost",
-        "database": "example_db",
-        "username": "admin",
-        "password": "admin123",
+        "server": "192.168.1.22\A2006",
+        "database": "AED_ALPHA_FE",
+        "username": "test",
+        "password": "test",
         "vid": "0x1234",
         "pid": "0x5678",
         "endpoint": "0x01",
@@ -33,6 +33,7 @@ def create_json_file():
         "enterToSearch": True,
         "useGenericDriver": True,
         "printerName": "TSC_TA200",
+        "databaseDriverName": "ODBC Driver 18 for SQL Server",
     }
     try:
         # Ensure the directory exists
