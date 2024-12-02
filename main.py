@@ -14,6 +14,7 @@ import json
 from bisect import bisect_left
 from check_password import PasswordCheck
 from dashboard import DashboardWindow
+from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 
@@ -74,7 +75,7 @@ class FetchItemsThread(QThread):
                     i.Description,
                     u.Price AS DefaultUnitPrice,
                     u.Cost,
-                    ISNULL(u.Barcode, i.ItemCode) as Barcode,
+                    ISNULL(NULLIF(u.BarCode, ''), i.ItemCode) as Barcode,
                     ISNULL(p.Location, 'HQ') as Location,
                     ISNULL(p.Price, u.Price) AS PosUnitPrice
                 FROM dbo.ItemUOM u
@@ -85,15 +86,20 @@ class FetchItemsThread(QThread):
             """
             cursor.execute(query)
             items = cursor.fetchall()
+            print(items[:10])
             # Sort items (assuming index 4 is the barcode or description for sorting)
-            sorted_items = sorted(items, key=lambda x: x[4].lower())
-            self.items_fetched.emit(sorted_items)  # Emit sorted items
+            self.items_fetched.emit(items)  # Emit sorted items
         except pyodbc.Error as e:
             self.error_occurred.emit("Error fetching items from the database.")  # Emit error message
         except Exception as e:
             self.error_occurred.emit("Unexpected error occurred while fetching items.")
         finally:
-            cursor.close()  # Make sure to close the cursor
+            if cursor is not None:
+                try:
+                    cursor.close()  # Safely close the cursor
+                except Exception as e:
+                    # Log or handle issues with closing the cursor if needed
+                    print(f"Error closing cursor: {e}")
 
 class BarcodeApp(QMainWindow):
     def __init__(self):
@@ -410,9 +416,11 @@ class BarcodeApp(QMainWindow):
             # Sort the items by the 5th element (index 4), assuming it's a barcode or description
             self.items = items
             self.all_items = sorted(self.items, key=lambda x: x[4].lower())
+
             
             # Display the items (you can call your display logic here)
             self.display_items(self.all_items)
+            print(self.all_items[:100])
             
             # Optionally, update UI elements like the item count or display a success message
             self.logger.info("Items successfully displayed.")
@@ -641,87 +649,91 @@ class BarcodeApp(QMainWindow):
 
     def print_barcode(self):
         selected_rows = []
+        barcode_config = Configurations.BarcodeConfig()
+        send_command = SendCommand()
         for row in range(self.item_table.rowCount()):
             if self.item_table.item(row, 0).checkState() == Qt.Checked:
                 selected_rows.append(row)
 
-        # Log if no items are selected
         if not selected_rows:
             self.logger.warning("No items selected for printing.")
             QMessageBox.warning(self, 'Selection Error', 'No items selected for printing.')
             return
 
-        # Handle USB mode
-        if not self.wireless_mode:
-            self.logger.info("USB mode selected. Checking printer connection...")
-            printer = usb.core.find(idVendor=self.vid, idProduct=self.pid, backend=self.backend)
-            if printer is None:
-                self.logger.error(f"Printer not found (Vendor ID: {self.vid}, Product ID: {self.pid}).")
-                QMessageBox.warning(self, 'Printer Error', 'Printer not found. Check your device and USB permissions.')
-                return
-            try:
-                printer.set_configuration()
-                self.logger.info("Printer connected via USB.")
-            except usb.core.USBError as e:
-                self.logger.error(f"Failed to configure USB printer: {e}")
-                QMessageBox.warning(self, 'Printer Error', f"Failed to configure USB printer: {e}")
-                return
-        else:
-            # Handle wireless mode
-            self.logger.info("Wireless mode selected. Validating IP and port...")
-            try:
-                ip, port = self.ip_address.split(":")
-
-            except (ValueError) as e:
-                self.logger.error(f"Invalid IP or port: {e}")
-                QMessageBox.warning(self, 'Printer Error', f"Invalid IP or port: {e}")
-                return
-
+        printer = None  # Ensure we initialize the printer variable
         try:
-            # Loop through each selected item and send the print command
+            self.logger.info("USB mode selected. Checking printer connection...")
+
+            if barcode_config.get_use_generic_driver():
+                printer = usb.core.find(idVendor=self.vid, idProduct=self.pid, backend=self.backend)
+
+                if printer is None:
+                    self.logger.error(f"Printer not found (Vendor ID: {self.vid}, Product ID: {self.pid}).")
+                    QMessageBox.warning(self, 'Printer Error', 'Printer not found. Check your device and USB permissions.')
+                    return
+
+                try:
+                    printer.set_configuration()
+                    self.logger.info("Printer connected via USB.")
+                except usb.core.USBError as e:
+                    self.logger.error(f"Failed to configure USB printer: {e}")
+                    QMessageBox.warning(self, 'Printer Error', f"Failed to configure USB printer: {e}")
+                    return
+
+            else:
+                self.logger.info("Wireless mode selected. Validating IP and port...")
+                try:
+                    ip, port = self.ip_address.split(":")
+                except ValueError as e:
+                    self.logger.error(f"Invalid IP or port: {e}")
+                    QMessageBox.warning(self, 'Printer Error', f"Invalid IP or port: {e}")
+                    return
+
+            # Process selected items
             for row in selected_rows:
                 description = self.item_table.item(row, 2).text()
                 unit_price_integer = self.item_table.item(row, 7).text()
-                barcode_value = self.item_table.item(row, 5).text()  # Get barcode value
+                barcode_value = self.item_table.item(row, 5).text() or self.item_table.item(row, 5).text()
                 copies = self.item_table.item(row, 8).text()
 
                 self.logger.info(f"Preparing to print item: {description} (Barcode: {barcode_value})")
-
+            
                 printer_clear = ""
+                print_data = ""
                 if not self.useZPL:
-                    print_data = self.replace_placeholders(
-                        self.tpsl_template, 
-                        companyName=self.companyName, 
-                        description=description, 
-                        barcode_value=barcode_value, 
-                        unit_price_integer=unit_price_integer, 
-                        copies=copies
-                    )
                     printer_clear = "CLS"
-                    if not self.wireless_mode:
-                        printer.write(self.endpoint, print_data.encode('utf-8'))
-                        self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
-                    else:
-                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=printer_clear)
-                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=print_data)
-                        self.logger.info(f"Wireless print command sent to {ip}:{port} for item: {barcode_value}")
+                    print_data = self.replace_placeholders(
+                        self.tpsl_template,
+                        companyName=self.companyName,
+                        description=description,
+                        barcode_value=barcode_value,
+                        unit_price_integer=unit_price_integer,
+                        copies=copies,
+                    )
                 else:
                     printer_clear = "^XA^CLS^XZ"
                     print_data = self.replace_placeholders(
-                        self.zpl_template, 
-                        companyName=self.companyName, 
-                        description=description, 
-                        barcode_value=barcode_value, 
-                        unit_price_integer=unit_price_integer, 
-                        copies=copies
+                        self.zpl_template,
+                        companyName=self.companyName,
+                        description=description,
+                        barcode_value=barcode_value,
+                        unit_price_integer=unit_price_integer,
+                        copies=copies,
                     )
-                    if not self.wireless_mode:
+
+                if barcode_config.get_use_generic_driver():
+                    if printer is not None:
                         printer.write(self.endpoint, print_data.encode('utf-8'))
-                        self.logger.info(f"ZPL print command sent successfully for item: {barcode_value}")
+                        self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
                     else:
-                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=printer_clear)
-                        SendCommand.send_wireless_command(ip_address=ip, port=port, command=print_data)
-                        self.logger.info(f"Wireless ZPL print command sent to {ip}:{port} for item: {barcode_value}")
+                        self.logger.error("Printer is not available.")
+                elif barcode_config.get_wireless_mode():
+                    send_command.send_wireless_command(ip_address=ip, port=port, command=printer_clear)
+                    send_command.send_wireless_command(ip_address=ip, port=port, command=print_data)
+                    self.logger.info(f"Wireless print command sent to {ip}:{port} for item: {barcode_value}")
+                elif not barcode_config.get_use_generic_driver():
+                    send_command.send_win32print(barcode_config.get_printer_name(), printer_clear)
+                    send_command.send_win32print(barcode_config.get_printer_name(), print_data)
 
         except usb.core.USBError as e:
             self.logger.error(f"USB Error: {e}")
@@ -731,14 +743,18 @@ class BarcodeApp(QMainWindow):
             QMessageBox.information(self, 'Error', f'{e}')
         finally:
             # Show success message once after all items are printed
-            if not self.wireless_mode:
+            if not self.wireless_mode and barcode_config.get_use_generic_driver():
                 self.logger.info('All selected items have been successfully sent to the printer (USB).')
                 QMessageBox.information(self, 'Success', 'All selected items have been successfully sent to the printer!')
                 usb.util.dispose_resources(printer)
+
+            elif not self.wireless_mode and not barcode_config.get_use_generic_driver():
+                self.logger.info('All selected items have been successfully sent to the printer (win32print).')
+                QMessageBox.information(self, 'Success', 'All selected items have been successfully sent to the printer!')
+
             else:
                 self.logger.info('All selected items have been successfully sent to the printer (wireless).')
                 QMessageBox.information(self, 'Success', 'All selected items have been successfully sent to the printer!')
-
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
