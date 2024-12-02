@@ -3,7 +3,7 @@ from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
 from datetime import datetime
-from settings2 import SettingsWindow
+from settings3 import SettingsWindow
 import sys
 import os
 
