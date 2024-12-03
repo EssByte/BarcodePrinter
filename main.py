@@ -86,7 +86,6 @@ class FetchItemsThread(QThread):
             """
             cursor.execute(query)
             items = cursor.fetchall()
-            print(items[:10])
             # Sort items (assuming index 4 is the barcode or description for sorting)
             self.items_fetched.emit(items)  # Emit sorted items
         except pyodbc.Error as e:
@@ -420,7 +419,6 @@ class BarcodeApp(QMainWindow):
             
             # Display the items (you can call your display logic here)
             self.display_items(self.all_items)
-            print(self.all_items[:100])
             
             # Optionally, update UI elements like the item count or display a success message
             self.logger.info("Items successfully displayed.")
