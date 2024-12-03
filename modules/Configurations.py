@@ -155,6 +155,13 @@ class BarcodeConfig:
         self.config["printerName"] = printer_name
         self._save_config()
 
+    def get_database_driver_name(self):
+        return self.config.get("databaseDriverName", True)
+
+    def set_database_driver_name(self, database_driver_name):
+        self.config["databaseDriverName"] = database_driver_name
+        self._save_config()
+
 
 # Example usage:
 if __name__ == "__main__":
