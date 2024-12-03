@@ -18,5 +18,6 @@
   "enterToSearch": true,
   "useGenericDriver": false,
   "printerName": "TSC_TA200",
-  "databaseDriverName": "ODBC Driver 18 for SQL Server"
+  "databaseDriverName": "ODBC Driver 18 for SQL Server",
+  "hideCost": false
 }

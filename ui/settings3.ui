@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1237</width>
+    <width>1286</width>
     <height>822</height>
    </rect>
   </property>
@@ -288,7 +288,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>-57</y>
+                <y>0</y>
                 <width>1245</width>
                 <height>548</height>
                </rect>
@@ -574,15 +574,16 @@
                    <widget class="QLabel" name="label">
                     <property name="geometry">
                      <rect>
-                      <x>150</x>
-                      <y>100</y>
-                      <width>151</width>
-                      <height>61</height>
+                      <x>130</x>
+                      <y>90</y>
+                      <width>141</width>
+                      <height>41</height>
                      </rect>
                     </property>
                     <property name="font">
                      <font>
                       <family>Sans Serif</family>
+                      <pointsize>7</pointsize>
                       <weight>75</weight>
                       <bold>true</bold>
                      </font>
@@ -607,11 +608,21 @@
                      <bool>true</bool>
                     </property>
                    </widget>
+                   <widget class="QCheckBox" name="cb_logging">
+                    <property name="geometry">
+                     <rect>
+                      <x>210</x>
+                      <y>60</y>
+                      <width>16</width>
+                      <height>23</height>
+                     </rect>
+                    </property>
+                   </widget>
                    <widget class="QFrame" name="frame_9">
                     <property name="geometry">
                      <rect>
-                      <x>290</x>
-                      <y>100</y>
+                      <x>260</x>
+                      <y>80</y>
                       <width>15</width>
                       <height>15</height>
                      </rect>
@@ -630,11 +641,45 @@
                      <enum>QFrame::Raised</enum>
                     </property>
                    </widget>
-                   <widget class="QCheckBox" name="cb_logging">
+                   <widget class="QLabel" name="label_26">
                     <property name="geometry">
                      <rect>
-                      <x>210</x>
-                      <y>60</y>
+                      <x>140</x>
+                      <y>140</y>
+                      <width>81</width>
+                      <height>21</height>
+                     </rect>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <family>Sans Serif</family>
+                      <pointsize>10</pointsize>
+                      <weight>75</weight>
+                      <italic>false</italic>
+                      <bold>true</bold>
+                      <strikeout>false</strikeout>
+                      <kerning>true</kerning>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QLabel {
+	text-align: center;
+	background: transparent;
+	color: white;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string>Hide Cost:</string>
+                    </property>
+                    <property name="textFormat">
+                     <enum>Qt::PlainText</enum>
+                    </property>
+                   </widget>
+                   <widget class="QCheckBox" name="cb_hideCost">
+                    <property name="geometry">
+                     <rect>
+                      <x>220</x>
+                      <y>140</y>
                       <width>16</width>
                       <height>23</height>
                      </rect>
@@ -2858,7 +2903,7 @@ p, li { white-space: pre-wrap; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>1181</width>
+                <width>1230</width>
                 <height>505</height>
                </rect>
               </property>
@@ -3276,7 +3321,7 @@ QPushButton:hover {
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1237</width>
+     <width>1286</width>
      <height>22</height>
     </rect>
    </property>

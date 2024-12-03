@@ -134,7 +134,7 @@ class BarcodeApp(QMainWindow):
         self.logger.info("Logging configuration updated.")
     
     def start_timer(self):
-        self.input_timer.start(200)
+        self.input_timer.start(400)
 
     def handle_config_change(self):
         """
@@ -479,6 +479,8 @@ class BarcodeApp(QMainWindow):
             self.item_table.setColumnWidth(5, 100)  # Barcode column, adjusted for consistency
             self.item_table.setColumnWidth(6, 100)  # Location column
 
+            barcode_config = Configurations.BarcodeConfig()
+
             # Add rows of items to the table
             for row_number, item in enumerate(items[:100]):
                 checkbox_item = QTableWidgetItem()
@@ -494,7 +496,10 @@ class BarcodeApp(QMainWindow):
                 try:
                     # Format currency values
                     formatted_unit_price = f"RM {float(unit_price):.2f}" if unit_price is not None else "RM 0.00"
-                    formatted_unit_cost = f"RM {float(unit_cost):.2f}" if unit_cost is not None else "RM 0.00"
+                    if not barcode_config.get_hide_cost():
+                        formatted_unit_cost = f"RM {float(unit_cost):.2f}" if unit_cost is not None else "RM 0.00"
+                    if barcode_config.get_hide_cost():
+                        formatted_unit_cost = '***'
                     formatted_location_price = f"RM {float(location_price):.2f}" if location_price is not None else "RM 0.00"
                 except ValueError as e:
                     formatted_unit_price = "RM 0.00"

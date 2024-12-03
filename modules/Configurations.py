@@ -162,6 +162,13 @@ class BarcodeConfig:
         self.config["databaseDriverName"] = database_driver_name
         self._save_config()
 
+    def get_hide_cost(self):
+        return self.config.get("hideCost", True)
+
+    def set_hide_cost(self, hide_cost):
+        self.config["hideCost"] = hide_cost
+        self._save_config()
+
 
 # Example usage:
 if __name__ == "__main__":

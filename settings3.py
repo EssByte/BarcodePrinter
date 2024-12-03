@@ -48,6 +48,7 @@ class SettingsWindow(QMainWindow):
             tpslIcon = QPixmap(self.resource_path("images/tpsl.png"))
             self.settings_icon.setPixmap(settingsIcon)
             self.cb_logging = self.findChild(QtWidgets.QCheckBox, 'cb_logging')
+            self.cb_hide_cost = self.findChild(QtWidgets.QCheckBox, "cb_hideCost")
             self.logger.info("Icons initialized successfully")
         except Exception as e:
             self.logger.error(f"Failed to initialize icons: {e}")
@@ -458,6 +459,7 @@ class SettingsWindow(QMainWindow):
             config['companyName'] = self.companyName.text()
             config['location'] = self.location.text()
             config['logging'] = self.cb_logging.isChecked()  # Simplified conditional assignment
+            config['hideCost'] = self.cb_hide_cost.isChecked()
             self.logger.debug(f"Updated other settings: companyName='{config['companyName']}', location='{config['location']}', logging={config['logging']}.")
 
             # Write back the updated configuration
@@ -801,6 +803,13 @@ class SettingsWindow(QMainWindow):
                 else:
                     self.cb_logging.setChecked(False)
                     self.logger.info("Logging is disabled.")
+                
+                if config['hideCost']:
+                    self.cb_hide_cost.setChecked(True)
+                    self.logger.info("Unit Cost is shown.")
+                else:
+                    self.cb_hide_cost.setChecked(False)
+                    self.logger.info("Unit Cost is hidden.")
 
         except FileNotFoundError:
             self.logger.error(f"Configuration file not found at {self.config_path}")
@@ -843,6 +852,7 @@ class SettingsWindow(QMainWindow):
             config['useZPL'] = self.use_zpl.isChecked()
             config['logging'] = self.cb_logging.isChecked()
             config['useGenericDriver'] = self.useGeneric.isChecked()
+            config['hideCost'] = self.cb_hide_cost.isChecked()
 
             # Write back the updated content (without overwriting the entire file)
             with open(self.config_path, 'w') as file:

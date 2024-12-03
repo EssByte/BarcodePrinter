@@ -34,6 +34,7 @@ def create_json_file():
         "useGenericDriver": True,
         "printerName": "TSC_TA200",
         "databaseDriverName": "ODBC Driver 18 for SQL Server",
+        "hideCost": False,
     }
     try:
         # Ensure the directory exists
