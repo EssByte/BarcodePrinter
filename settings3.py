@@ -84,7 +84,6 @@ class SettingsWindow(QMainWindow):
             self.userName = self.findChild(QtWidgets.QLineEdit, "et_userName")
             self.password = self.findChild(QtWidgets.QLineEdit, "et_password")
             self.printer_list = self.findChild(QtWidgets.QComboBox, 'combo_printers')
-            self.populate_printer_list()
             self.printer_list.currentIndexChanged.connect(self.update_printer_in_json)
             self.printerVid = self.findChild(QtWidgets.QLineEdit, "et_printerVid")
             self.printerPid = self.findChild(QtWidgets.QLineEdit, "et_printerPid")
@@ -105,7 +104,6 @@ class SettingsWindow(QMainWindow):
             self.use_zpl = self.findChild(QtWidgets.QRadioButton, "rb_zpl")
             self.use_zpl.toggled.connect(self.onUseZPLStateChanged)
             self.button_group = QButtonGroup()
-            self.logger.error(f"Failed to initialize widgets for the dashboard")
 
             self.button_group.addButton(self.use_tpsl)
             self.button_group.addButton(self.use_zpl)
@@ -116,13 +114,12 @@ class SettingsWindow(QMainWindow):
             self.btn_saveOtherSettings = self.findChild(QtWidgets.QPushButton, "btn_saveOtherSettings")
             self.btn_saveZpl = self.findChild(QtWidgets.QPushButton, "btn_saveZpl")
             self.btn_saveTpsl = self.findChild(QtWidgets.QPushButton, "btn_saveTpsl")
-
             self.btn_saveDatabase.clicked.connect(self.save_database)
             self.btn_savePrinter.clicked.connect(self.save_printer)
             self.btn_saveOtherSettings.clicked.connect(self.save_other_settings)
             self.btn_saveZpl.clicked.connect(self.save_zpl)
             self.btn_saveTpsl.clicked.connect(self.save_tpsl)
-
+            
             self.cancelButton = self.findChild(QtWidgets.QPushButton, "btn_cancel")
             self.cancelButton.setCursor(Qt.PointingHandCursor)
             self.cancelButton.clicked.connect(self.close)
@@ -131,13 +128,13 @@ class SettingsWindow(QMainWindow):
             self.saveButton.clicked.connect(self.update_data)
             self.reloadButton = self.findChild(QtWidgets.QPushButton, "btn_reload")
             self.reloadButton.clicked.connect(self.reload_data)
-            self.logger.info("Widgets initialized.")
             self.btn_sendCommand = self.findChild(QtWidgets.QPushButton, 'btn_sendCommand')
             self.btn_sendCommand.clicked.connect(self.send_command)
             self.btn_installdriver = self.findChild(QtWidgets.QPushButton, 'btn_DatabaseDriverInstall')
             self.btn_installdriver.clicked.connect(lambda: self.install_driver_from_ui("msodbcsql.msi"))
             self.btn_checkdriver = self.findChild(QtWidgets.QPushButton, 'btn_checkDatabaseDriver')
             self.btn_checkdriver.clicked.connect(self.set_database_driver_details)
+            self.logger.info("Widgets initialized.")
         except Exception as e:
             self.logger.error(f"Failed to initialize widgets for the dashboard: {e}")
 
@@ -159,29 +156,32 @@ class SettingsWindow(QMainWindow):
     def update_printer_in_json(self):
         try:
             self.logger.info("Attempting to update printer information in the UI.")
-            
-            # Retrieve current data from the printer list
             current_data = self.printer_list.currentData()
-            if not current_data:
-                self.logger.warning("No printer data found in the current selection.")
-                return
+            # Retrieve current data from the printer list
+            if self.barcode_config.get_use_generic_driver():
+                if not current_data:
+                    self.logger.warning("No printer data found in the current selection.")
+                    return
 
-            # Unpack and update fields
-            vid, pid, out_endpoints = current_data
-            self.logger.debug(f"Printer data retrieved: VID={vid}, PID={pid}, Endpoints={out_endpoints}")
-            
-            self.printerVid.setText(str(vid))  # Update UI for VID
-            self.logger.info(f"Printer VID updated to: {vid}")
-            
-            self.printerPid.setText(str(pid))  # Update UI for PID
-            self.logger.info(f"Printer PID updated to: {pid}")
-            
-            if out_endpoints:
-                self.endpoint.setText(str(out_endpoints[0]))  # Update UI for the first endpoint
-                self.logger.info(f"Printer Endpoint updated to: {out_endpoints[0]}")
+                # Unpack and update fields
+                vid, pid, out_endpoints = current_data
+                self.logger.debug(f"Printer data retrieved: VID={vid}, PID={pid}, Endpoints={out_endpoints}")
+                
+                self.printerVid.setText(str(vid))  # Update UI for VID
+                self.logger.info(f"Printer VID updated to: {vid}")
+                
+                self.printerPid.setText(str(pid))  # Update UI for PID
+                self.logger.info(f"Printer PID updated to: {pid}")
+                
+                if out_endpoints:
+                    self.endpoint.setText(str(out_endpoints[0]))  # Update UI for the first endpoint
+                    self.logger.info(f"Printer Endpoint updated to: {out_endpoints[0]}")
+                else:
+                    self.logger.warning("No endpoints found for the selected printer.")
+                    self.endpoint.clear()
             else:
-                self.logger.warning("No endpoints found for the selected printer.")
-                self.endpoint.clear()
+                printer_name = current_data
+                self.printer_list.setCurrentIndex(self.printer_list.findText(printer_name))
         except Exception as e:
             self.logger.error(f"Error while updating printer information: {e}")
 
@@ -714,6 +714,10 @@ class SettingsWindow(QMainWindow):
         if self.useGeneric.isChecked():
             self.populate_printer_list()
         if self.useCustom.isChecked():
+            self.printerPid.setEnabled(False)
+            self.printerVid.setEnabled(False)
+            self.endpoint.setEnabled(False)
+            self.ip_address.setEnabled(False)
             self.populate_customdriver_printer_list()
 
     def populate_customdriver_printer_list(self):
@@ -787,6 +791,9 @@ class SettingsWindow(QMainWindow):
                     self.useGeneric.setChecked(True)
                 else:
                     self.useCustom.setChecked(True)
+                    self.populate_customdriver_printer_list()
+                    self.printer_list.setCurrentIndex(self.printer_list.findText(config['printerName']))
+                    print("ddddddddddddddddddddddddddd", self.printer_list.findData('TSC_TA200'))
 
                 if config['logging']:
                     self.cb_logging.setChecked(True)
