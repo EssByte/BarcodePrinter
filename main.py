@@ -107,6 +107,9 @@ class BarcodeApp(QMainWindow):
         self.logger.info("Initializing BarcodeApp...")
         self.initUI()
         self.config_path = r'C:\barcode\barcode.json'
+        self.input_timer = QTimer()
+        self.input_timer.setSingleShot(True)
+        self.input_timer.timeout.connect(self.filter_items_binary)
         self.file_watcher = QFileSystemWatcher()
         self.file_watcher.addPath(self.config_path)
         self.file_watcher.fileChanged.connect(self.handle_config_change)
@@ -129,6 +132,9 @@ class BarcodeApp(QMainWindow):
         """ This method will update logging based on the config setting """
         self.logger = setup_logger('BarcodeApp')  # Reinitialize the logger
         self.logger.info("Logging configuration updated.")
+    
+    def start_timer(self):
+        self.input_timer.start(200)
 
     def handle_config_change(self):
         """
@@ -261,7 +267,7 @@ class BarcodeApp(QMainWindow):
         search_label = QLabel("Search:")
         self.item_code_input = QLineEdit(self)
         self.item_code_input.setPlaceholderText('Enter Item Code')
-        self.item_code_input.textChanged.connect(self.filter_items_binary)
+        self.item_code_input.textChanged.connect(self.start_timer)
         self.item_code_input.returnPressed.connect(self.filter_items)
 
         # Search button
