@@ -17,6 +17,8 @@ from dashboard import DashboardWindow
 from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
+from modules.update_manager import check_for_update
+from version import __version__
 
 class FilterItemsBinaryThread(QThread):
     items_filtered = pyqtSignal(list)  # Signal to emit filtered items
@@ -336,18 +338,72 @@ class BarcodeApp(QMainWindow):
             color: white;
         }
         """)
+        self.reload_button = QPushButton('Reload Database', self)
+        self.reload_button.setStyleSheet("""
+        QPushButton {
+            background: white;
+            border: 2px solid rgb(53, 132, 228);
+            color: black;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-style: italic;
+            font-weight: bold;
+            qproperty-cursor: pointingHandCursor;
+        }
+        QPushButton:hover {
+            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
+            color: white;
+        }
+        """)
         self.print_button.setCursor(Qt.PointingHandCursor)
+        self.reload_button.setCursor(Qt.PointingHandCursor)
         self.print_button.clicked.connect(self.print_barcode)
+        self.reload_button.clicked.connect(self.handle_config_change)
 
-        # Add buttons to the print layout
+        # Add the print and reload buttons to the layout, centered
+        print_layout.addStretch(1)
+        print_layout.addWidget(self.reload_button)
         print_layout.addWidget(self.print_button)
 
-        # Add print layout to the grid layout
-        grid_layout.addLayout(print_layout, 2, 0, 1, 3, alignment=Qt.AlignCenter)
-        self.logger.debug("Print button section initialized.")
+        # Create a new layout for the "Update Database" button to align it to the right
+        update_layout = QHBoxLayout()
+        self.update_button = QPushButton('Update', self)
+        self.update_button.setStyleSheet("""
+        QPushButton {
+            background: white;
+            border: 2px solid rgb(53, 132, 228);
+            color: black;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-style: italic;
+            font-weight: bold;
+            qproperty-cursor: pointingHandCursor;
+        }
+        QPushButton:hover {
+            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
+            color: white;
+        }
+        """)
+        self.update_button.setCursor(Qt.PointingHandCursor)
+        self.update_button.clicked.connect(lambda: check_for_update(__version__, self))
+
+        # Add the update button to the new layout and align it to the right
+        update_layout.addWidget(self.update_button)
+
+        # Add both the centered buttons and the right-aligned update button to the grid layout
+       # Add print_layout to the grid, aligning it to the right
+        grid_layout.addLayout(print_layout, 2, 1, 1, 1, alignment=Qt.AlignRight)  # Right-aligned print button
+
+        # Add update_layout to the grid, aligning it to the left
+        grid_layout.addLayout(update_layout, 2, 0, 2, 1, alignment=Qt.AlignLeft)  # Left-aligned update button
+
+
+        self.logger.debug("Print and reload buttons section initialized.")
+        self.logger.debug("Update button section initialized.")
 
         # Final log for UI initialization complete
         self.logger.info("UI components initialization complete.")
+
 
     def loadStylesheet(self):
         try:
