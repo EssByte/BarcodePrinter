@@ -29,6 +29,7 @@ class Updater(QWidget):
         self.setWindowIcon(QIcon(self.resource_path("logo.ico")))
         self.lbl_iconLogo = self.findChild(QLabel, 'lbl_iconLogo')
         self.lbl_iconLogo.setPixmap(QPixmap(self.resource_path("logo.jpeg")))
+        self.progressBar.setVisible(False)
 
     def close_application(self):
         """Close the updater application."""
@@ -62,16 +63,19 @@ class Updater(QWidget):
     def download_update(self):
         """Download the latest version of the BarcodePrinter.exe from GitHub."""
         try:
+            self.progressBar.setVisible(True)
             self.log_message("Starting update download...")
+            self.progressBar.setValue(25)
             response = requests.get(self.download_url, stream=True)
-            response.raise_for_status()
+            response.raise_for_status(50)
 
             # Save the file to the desired location
             file_path = os.path.join(os.getcwd(), "BarcodePrinter.exe")
+            self.progressBar.setValue(75)
             with open(file_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=1024):
                     f.write(chunk)
-
+            self.progressBar.setValue(100)
             self.log_message(f"Update downloaded successfully to {file_path}.")
             QMessageBox.information(self, "Update Complete", f"BarcodePrinter.exe has been updated successfully.")
         except requests.RequestException as e:
