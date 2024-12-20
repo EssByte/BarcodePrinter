@@ -17,8 +17,9 @@ from dashboard import DashboardWindow
 from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
-from modules.update_manager import check_for_update
 from version import __version__
+import subprocess
+
 
 class FilterItemsBinaryThread(QThread):
     items_filtered = pyqtSignal(list)  # Signal to emit filtered items
@@ -226,6 +227,9 @@ class BarcodeApp(QMainWindow):
         self.logger.debug(f"Resolved absolute path: {absolute_path}")
 
         return absolute_path
+    
+    def runUpdater(self):
+        subprocess.Popen([r"C:\barcode\Updater.exe"])
 
     def initUI(self):
         # Initialize logger for UI actions
@@ -385,7 +389,7 @@ class BarcodeApp(QMainWindow):
         }
         """)
         self.update_button.setCursor(Qt.PointingHandCursor)
-        self.update_button.clicked.connect(lambda: check_for_update(__version__, self))
+        self.update_button.clicked.connect(self.runUpdater)
 
         # Add the update button to the new layout and align it to the right
         update_layout.addWidget(self.update_button)
