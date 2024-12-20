@@ -2,7 +2,7 @@ import os
 import re
 import sys
 import pyodbc
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QVBoxLayout, QMenuBar, QAction, QMainWindow
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QFileSystemWatcher, QTimer
 from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtGui import QIcon, QBrush, QColor
@@ -10,6 +10,7 @@ import usb
 import usb.core
 import usb.util
 import usb.backend.libusb1
+import requests
 import json
 from bisect import bisect_left
 from check_password import PasswordCheck
@@ -149,6 +150,8 @@ class BarcodeApp(QMainWindow):
             self.update_logging()
             self.logger.info("Attempting to reload configuration...")
             self.load_config()  # Reload configuration
+            self.logger.info("Checking for updates...")
+            self.check_version()
 
             if self.db_connected:
                 self.logger.info("Closing existing database connection...")
@@ -230,6 +233,7 @@ class BarcodeApp(QMainWindow):
     
     def runUpdater(self):
         subprocess.Popen([r"C:\barcode\Updater.exe"])
+        self.close()
 
     def initUI(self):
         # Initialize logger for UI actions
@@ -408,6 +412,31 @@ class BarcodeApp(QMainWindow):
         # Final log for UI initialization complete
         self.logger.info("UI components initialization complete.")
 
+    def check_version(self):
+
+        self.repo_owner = "PersonX-46"
+        self.repo_name = "BarcodePrinter"
+        self.download_url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/BarcodePrinter.exe"
+        self.api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
+        try:
+            self.logger.info("Fetching version details from GitHub...")
+            response = requests.get(self.api_url)
+            response.raise_for_status()
+
+            release_data = response.json()
+            self.logger.info("Fetched version details from GitHub...")
+            tag_name = release_data["tag_name"]
+            if tag_name > __version__:
+                self.update_button.setVisible(True)
+                self.logger.info("Update Available, update button is visible")
+            else:   
+                self.update_button.setVisible(False)
+                self.logger.info("Update is not available, update button is not visible")
+
+        except requests.RequestException as e:
+            error_message = f"Failed to fetch version details:\n{e}"
+            self.logger.error(error_message)
+            QMessageBox.critical(self, "Version Check Error", error_message)
 
     def loadStylesheet(self):
         try:
