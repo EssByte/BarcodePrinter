@@ -393,6 +393,7 @@ class BarcodeApp(QMainWindow):
         }
         """)
         self.update_button.setCursor(Qt.PointingHandCursor)
+        self.check_version()
         self.update_button.clicked.connect(self.runUpdater)
 
         # Add the update button to the new layout and align it to the right
