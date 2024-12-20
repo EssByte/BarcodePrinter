@@ -15,8 +15,8 @@ class InstallerWizard(QWizard):
         uic.loadUi(self.resource_path("qwizard.ui"), self)  # Load the .ui file
 
         # GitHub file URLs (Replace these with your actual URLs)
-        self.main_exe_url = "https://github.com/PersonX-46/BarcodePrinter/releases/download/latest/BarcodePrinter.exe"
-        self.updater_exe_url = "https://github.com/PersonX-46/BarcodePrinter/releases/download/latest/Updater.exe"
+        self.main_exe_url = "https://github.com/PersonX-46/BarcodePrinter/releases/latest/download/BarcodePrinter.exe"
+        self.updater_exe_url = "https://github.com/PersonX-46/BarcodePrinter/releases/latest/download/Updater.exe"
 
         self.setWindowIcon(QIcon(self.resource_path("logo.ico")))
 
@@ -30,13 +30,17 @@ class InstallerWizard(QWizard):
 
         # Connect buttons
         self.btn_selectFolder.clicked.connect(self.browse_folder)
-        self.button(QWizard.FinishButton).clicked.connect(self.install_files)
+        self.button(QWizard.FinishButton).clicked.disconnect()  # Disconnect default behavior
+        self.button(QWizard.FinishButton).clicked.connect(self.on_finish_button_clicked)
+        self.progressBar.setVisible(False)
 
     def browse_folder(self):
         """Open a folder dialog to select the installation directory."""
         folder = QFileDialog.getExistingDirectory(self, "Select Installation Folder")
         if folder:
             self.et_folderPath.setText(folder)
+            self.progressBar.setVisible(True)
+        
 
     def download_file(self, url, destination):
         """Download a file from the given URL to the specified destination."""
@@ -61,31 +65,57 @@ class InstallerWizard(QWizard):
             # Ensure the folder exists
             os.makedirs(folder, exist_ok=True)
 
+            # Set progress bar to 0
+            self.progressBar.setValue(0)
+
             # Download files to a temporary location
             os.makedirs(self.temp_dir, exist_ok=True)
-            main_exe_temp = os.path.join(self.temp_dir, self.resource_path("BarcodePrinter.exe"))
-            updater_exe_temp = os.path.join(self.temp_dir, self.resource_path("Updater.exe"))
+            main_exe_temp = os.path.join(self.temp_dir, "BarcodePrinter.exe")
+            updater_exe_temp = os.path.join(self.temp_dir, "Updater.exe")
 
+            # Update progress: Downloading files
+            self.progressBar.setValue(10)
             self.download_file(self.main_exe_url, main_exe_temp)
+            self.progressBar.setValue(50)
             self.download_file(self.updater_exe_url, updater_exe_temp)
 
             # Copy files to the selected folder
-            shutil.copy(main_exe_temp, os.path.join(folder, self.resource_path("BarcodePrinter.exe")))
-            shutil.copy(updater_exe_temp, os.path.join(folder, self.resource_path("Updater.exe")))
+            self.progressBar.setValue(70)
+            shutil.copy(main_exe_temp, os.path.join(folder, "BarcodePrinter.exe"))
+            shutil.copy(updater_exe_temp, os.path.join(folder, "Updater.exe"))
 
             # Create a desktop shortcut for BarcodePrinter.exe
-            self.create_shortcut(os.path.join(folder, self.resource_path("BarcodePrinter.exe")))
+            self.progressBar.setValue(90)
+            self.create_shortcut(os.path.join(folder, "BarcodePrinter.exe"))
+
+            # Finalize progress
+            self.progressBar.setValue(100)
 
             QMessageBox.information(self, "Success", "Program installed successfully!")
 
         except Exception as e:
+            self.progressBar.setValue(0)  # Reset progress on error
             QMessageBox.critical(self, "Installation Error", f"An error occurred during installation:\n{e}")
+
+    def on_finish_button_clicked(self):
+        """Custom behavior for the Finish button."""
+        folder = self.et_folderPath.text()
+        if not folder:
+            QMessageBox.warning(self, "Error", "Please select a valid installation folder.")
+            return
+
+        # Call the install_files method to proceed with installation
+        self.install_files()
+
+        # Keep the wizard visible
+        QMessageBox.information(self, "Installation Complete", "Installation is complete. You may close the installer when ready.")
+
 
     def create_shortcut(self, target_path):
         """Create a desktop shortcut for the program."""
         try:
             desktop = os.path.join(os.path.join(os.environ["USERPROFILE"]), "Desktop")
-            shortcut_path = os.path.join(desktop, "MyProgram.lnk")
+            shortcut_path = os.path.join(desktop, "BarcodePrinter.lnk")
 
             shell = win32com.client.Dispatch("WScript.Shell")
             shortcut = shell.CreateShortcut(shortcut_path)
