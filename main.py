@@ -2,7 +2,7 @@ import os
 import re
 import sys
 import pyodbc
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow, QProgressBar
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QFileSystemWatcher, QTimer
 from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtGui import QIcon, QBrush, QColor
@@ -147,23 +147,32 @@ class BarcodeApp(QMainWindow):
         self.logger.info("Configuration file changed. Reloading...")
 
         try:
+            self.progressBar.setVisible(True)
+            self.progressBar.setValue(10)
             self.update_logging()
             self.logger.info("Attempting to reload configuration...")
             self.load_config()  # Reload configuration
+            self.progressBar.setValue(23)
             self.logger.info("Checking for updates...")
             self.check_version()
+            self.progressBar.setValue(35)
 
             if self.db_connected:
                 self.logger.info("Closing existing database connection...")
                 self.connection.close()
+            self.progressBar.setValue(50)
 
             self.logger.info("Reconnecting to the database...")
             self.connect_to_database()  # Reconnect to the database
+            self.progressBar.setValue(74)
 
             self.logger.info("Refreshing items after config reload...")
             self.start_fetch_items()  # Refresh items
+            self.progressBar.setValue(82)
 
             self.logger.info("Configuration reloaded and items refreshed successfully.")
+            self.progressBar.setValue(100)
+            self.progressBar.setVisible(False)
 
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")
@@ -347,6 +356,8 @@ class BarcodeApp(QMainWindow):
         }
         """)
         self.reload_button = QPushButton('Reload Database', self)
+        self.progressBar = QProgressBar(self)
+        self.progressBar.setVisible(False)
         self.reload_button.setStyleSheet("""
         QPushButton {
             background: white;
@@ -370,6 +381,7 @@ class BarcodeApp(QMainWindow):
 
         # Add the print and reload buttons to the layout, centered
         print_layout.addStretch(1)
+        print_layout.addWidget(self.progressBar)
         print_layout.addWidget(self.reload_button)
         print_layout.addWidget(self.print_button)
 
