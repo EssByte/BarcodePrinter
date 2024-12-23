@@ -12,7 +12,7 @@ import usb.util
 import usb.backend.libusb1
 import requests
 import json
-from bisect import bisect_left
+from bisect import bisect_left, bisect_right
 from check_password import PasswordCheck
 from dashboard import DashboardWindow
 from modules import Configurations
@@ -76,11 +76,12 @@ class FetchItemsThread(QThread):
             WITH BaseItems AS (
                 SELECT
                     u.ItemCode,
-                    i.Description,
+                    i.Description AS DescriptionWithUOM,
+                    u.UOM,
                     u.Price AS DefaultUnitPrice,
                     u.Cost,
-                    ISNULL(NULLIF(u.BarCode, ''), i.ItemCode) as Barcode,
-                    ISNULL(p.Location, 'HQ') as Location,
+                    ISNULL(NULLIF(u.BarCode, ''), i.ItemCode) AS Barcode,
+                    ISNULL(p.Location, 'HQ') AS Location,
                     ISNULL(p.Price, u.Price) AS PosUnitPrice
                 FROM dbo.ItemUOM u
                 LEFT JOIN dbo.Item i ON u.ItemCode = i.ItemCode
@@ -90,8 +91,8 @@ class FetchItemsThread(QThread):
             """
             cursor.execute(query)
             items = cursor.fetchall()
-            # Sort items (assuming index 4 is the barcode or description for sorting)
-            self.items_fetched.emit(items)  # Emit sorted items
+            # Emit items without sorting since it's handled in `display_items`
+            self.items_fetched.emit(items)
         except pyodbc.Error as e:
             self.error_occurred.emit("Error fetching items from the database.")  # Emit error message
         except Exception as e:
@@ -101,8 +102,8 @@ class FetchItemsThread(QThread):
                 try:
                     cursor.close()  # Safely close the cursor
                 except Exception as e:
-                    # Log or handle issues with closing the cursor if needed
                     print(f"Error closing cursor: {e}")
+
 
 class BarcodeApp(QMainWindow):
     def __init__(self):
@@ -322,9 +323,9 @@ class BarcodeApp(QMainWindow):
 
         # === Item Table Section ===
         self.item_table = QTableWidget(self)
-        self.item_table.setColumnCount(9)
+        self.item_table.setColumnCount(10)
         self.item_table.setHorizontalHeaderLabels([
-            "Select", "Item Code", "Description", "Unit Price", "Unit Cost",
+            "Select", "Item Code", "Description", "UOM" , "Unit Price", "Unit Cost",
             "Barcode", "Location", "Location Price", "Number of Copies"
         ])
         self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -522,7 +523,7 @@ class BarcodeApp(QMainWindow):
             
             # Sort the items by the 5th element (index 4), assuming it's a barcode or description
             self.items = items
-            self.all_items = sorted(self.items, key=lambda x: x[4].lower())
+            self.all_items = sorted(self.items, key=lambda x: x[5].lower())
 
             
             # Display the items (you can call your display logic here)
@@ -592,7 +593,7 @@ class BarcodeApp(QMainWindow):
                 self.item_table.item(row_number, 0).setTextAlignment(Qt.AlignLeft)
 
                 # Extract item details
-                item_code, description, unit_price, unit_cost, barcode, location, location_price = item
+                item_code, description, uom, unit_price, unit_cost, barcode, location, location_price = item
                 barcode_value = item_code if barcode is None else barcode  # Fallback to item_code if barcode is None
 
                 try:
@@ -608,7 +609,7 @@ class BarcodeApp(QMainWindow):
                     self.logger.warning(f"ValueError while formatting price values: {e}")
 
                 # Set the data for each row
-                for col_number, value in enumerate([item_code, description, formatted_unit_price, formatted_unit_cost, barcode_value, location, formatted_location_price], start=1):
+                for col_number, value in enumerate([item_code, description, uom, formatted_unit_price, formatted_unit_cost, barcode_value, location, formatted_location_price], start=1):
                     table_item = QTableWidgetItem(str(value))
                     table_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                     table_item.setTextAlignment(Qt.AlignCenter)
@@ -618,7 +619,7 @@ class BarcodeApp(QMainWindow):
                 copies_item = QTableWidgetItem("1")
                 copies_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
                 copies_item.setTextAlignment(Qt.AlignCenter)
-                self.item_table.setItem(row_number, 8, copies_item)
+                self.item_table.setItem(row_number, 9, copies_item)
 
                 # Set background color for every even row (index 0, 2, 4, etc.)
                 if row_number % 2 == 0:
@@ -677,17 +678,19 @@ class BarcodeApp(QMainWindow):
     def binary_search(self, items, target: str):
         try:
             # Prepare item codes for search
-            item_codes = [str(item[4]).lower() for item in items]
+            item_codes = [str(item[5]).lower() for item in items]
             self.logger.info(f"Performing binary search for target: '{target}'")
 
             # Perform binary search
             index = bisect_left(item_codes, target.lower())
+            end_index = bisect_right(item_codes, target.lower())
             self.logger.debug(f"Binary search index found: {index}")
 
             # Check if the target is found
-            if index < len(item_codes) and item_codes[index] == target.lower():
-                self.logger.info(f"Item found at index {index}: {items[index]}")
-                return items[index]
+            if index < end_index:
+                matching_items = items[index:end_index]
+                self.logger.info(f"Found {len(matching_items)} matching items for target: '{target}'")
+                return matching_items
 
             # If not found
             self.logger.info(f"Item '{target}' not found.")
@@ -718,7 +721,7 @@ class BarcodeApp(QMainWindow):
         
         if found_item:
             self.logger.info(f"Item found: {found_item}")
-            self.display_items([found_item])
+            self.display_items(found_item)
         else:
             self.logger.warning(f"No items found for search text: {search_text}")
             self.display_items([])
