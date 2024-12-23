@@ -67,7 +67,7 @@ class Updater(QWidget):
             self.log_message("Starting update download...")
             self.progressBar.setValue(25)
             response = requests.get(self.download_url, stream=True)
-            response.raise_for_status(50)
+            response.raise_for_status()
 
             # Save the file to the desired location
             file_path = os.path.join(os.getcwd(), "BarcodePrinter.exe")
