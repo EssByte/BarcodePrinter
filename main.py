@@ -290,9 +290,28 @@ class BarcodeApp(QMainWindow):
         self.item_code_input = QLineEdit(self)
         self.item_code_input.setPlaceholderText('Enter Item Code')
         self.item_code_input.textChanged.connect(self.start_timer)
-        self.item_code_input.returnPressed.connect(self.filter_items)
+        self.item_code_input.returnPressed.connect(lambda: self.filter_items(False))
 
         # Search button
+        self.search_for_uom = QPushButton("Get UOM", self)
+        self.search_for_uom.setCursor(Qt.PointingHandCursor)
+        self.search_for_uom.setStyleSheet("""
+        QPushButton {
+            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
+            color: white;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-style: italic;
+            font-weight: bold;
+            qproperty-cursor: pointingHandCursor;
+        }
+        QPushButton:hover {
+            background: white;
+            border: 2px solid rgb(53, 132, 228);
+            color: black;
+        }
+        """)
+        self.search_for_uom.clicked.connect(lambda: self.filter_items(True))
         self.search_by_description = QPushButton("Search", self)
         self.search_by_description.setCursor(Qt.PointingHandCursor)
         self.search_by_description.setStyleSheet("""
@@ -311,11 +330,12 @@ class BarcodeApp(QMainWindow):
             color: black;
         }
         """)
-        self.search_by_description.clicked.connect(self.filter_items)
+        self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
+        search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
 
         # Add search layout to the grid layout
@@ -669,8 +689,7 @@ class BarcodeApp(QMainWindow):
     def binary_search(self, items, target: str):
         try:
             # Prepare item codes for search
-            item_codes = [str(item[0]).lower() for item in items]
-            self.logger.info(f"Performing binary search for target: '{target}'")
+            item_codes = [str(item[5]).lower() for item in items]
 
             # Perform binary search
             index = bisect_left(item_codes, target.lower())
@@ -719,7 +738,7 @@ class BarcodeApp(QMainWindow):
             # Uncomment to display a message box if no item is found
             #QMessageBox.information(self, "Item Not Found", 'No items match the search criteria!')
 
-    def filter_items(self):
+    def filter_items(self, isUOM):
         if not self.db_connected or not hasattr(self, 'all_items'):
             if not self.warning_shown:
                 QMessageBox.warning(self, 'Database Error', 'Database is not connected. Searched items will not be shown.')
@@ -738,13 +757,29 @@ class BarcodeApp(QMainWindow):
         self.logger.info(f"Keywords extracted: {keywords}")
 
         # Filter items by checking if both ItemCode and Description contain each keyword
-        filtered_items = [
-            item for item in self.all_items
-            if all(
-                keyword in str(item[1]).lower()  # Ensure the keyword is in the description (item[1])
-                for keyword in keywords
-            )
-        ]
+        if not isUOM:
+            filtered_items = [
+                item for item in self.all_items
+                if all(
+                    keyword in str(item[1]).lower()  # Ensure the keyword is in the description (item[1])
+                    for keyword in keywords
+                )
+            ]
+        else:
+
+            filtered_items = [
+                item for item in self.all_items
+                if all(
+                    keyword in str(item[5]).lower()  # Ensure the keyword is in the description (item[1])
+                    for keyword in keywords
+                )
+            ]
+            itemcode = str(filtered_items[0][0])
+            filtered_items = [
+                item for item in self.all_items
+                if str(item[0]).lower() == itemcode.lower()  # Exact match
+            ]
+            print(filtered_items)
         
         # Log the number of filtered items
         self.logger.info(f"Found {len(filtered_items)} items matching the search criteria.")
