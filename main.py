@@ -669,7 +669,7 @@ class BarcodeApp(QMainWindow):
     def binary_search(self, items, target: str):
         try:
             # Prepare item codes for search
-            item_codes = [str(item[5]).lower() for item in items]
+            item_codes = [str(item[0]).lower() for item in items]
             self.logger.info(f"Performing binary search for target: '{target}'")
 
             # Perform binary search
