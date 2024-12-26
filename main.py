@@ -3,7 +3,7 @@ import re
 import sys
 import pyodbc
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow, QProgressBar
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QFileSystemWatcher, QTimer
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QFileSystemWatcher, QTimer, QSettings
 from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtGui import QIcon, QBrush, QColor
 import usb
@@ -124,6 +124,8 @@ class BarcodeApp(QMainWindow):
         self.db_connected = False
         self.connection = None
         self.warning_shown = False
+        self.settings = QSettings("MyCompany", "MyApp")  # Customize organization and app names
+        self.restore_column_widths() 
         self.connect_to_database()
         self.loadStylesheet()
         self.showMaximized()
@@ -325,8 +327,8 @@ class BarcodeApp(QMainWindow):
         self.item_table = QTableWidget(self)
         self.item_table.setColumnCount(10)
         self.item_table.setHorizontalHeaderLabels([
-            "Select", "Item Code", "Description", "UOM" , "Unit Price", "Unit Cost",
-            "Barcode", "Location", "Location Price", "Number of Copies"
+            "*", "Item Code", "Description", "UOM" , "Unit Price", "Unit Cost",
+            "Barcode", "Location", "Price", "Copies"
         ])
         self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.item_table.setSelectionMode(QTableWidget.NoSelection)
@@ -557,30 +559,30 @@ class BarcodeApp(QMainWindow):
             # Log any errors that occur while opening the Dashboard window
             self.logger.error(f"Error opening the Dashboard window: {e}")
             QMessageBox.critical(self, 'Error', f"Failed to open Dashboard window: {e}")
+
+    def closeEvent(self, event):
+        """Override the close event to save column widths."""
+        self.save_column_widths()
+        super().closeEvent(event)
+
+    def save_column_widths(self):
+        """Save column widths to QSettings."""
+        for i in range(self.item_table.columnCount()):
+            self.settings.setValue(f"column_width_{i}", self.item_table.columnWidth(i))
+        print("Column widths saved.")
+
+    def restore_column_widths(self):
+        """Restore column widths from QSettings."""
+        for i in range(self.item_table.columnCount()):
+            width = self.settings.value(f"column_width_{i}", type=int)
+            if width:
+                self.item_table.setColumnWidth(i, width)
+        print("Column widths restored.")
     
     def display_items(self, items):
         try:
             self.logger.info(f"Displaying {len(items[:100])} items.")
-
             self.item_table.setRowCount(len(items[:100]))
-
-            # Set column resize modes for headers
-            self.item_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)  # Select column
-            self.item_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Stretch)           # Item Code
-            self.item_table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Stretch)           # Description
-            self.item_table.horizontalHeader().setSectionResizeMode(3, QHeaderView.ResizeToContents)  # Unit Price
-            self.item_table.horizontalHeader().setSectionResizeMode(4, QHeaderView.ResizeToContents)  # Unit Cost
-            self.item_table.horizontalHeader().setSectionResizeMode(5, QHeaderView.Stretch)           # Barcode
-            self.item_table.horizontalHeader().setSectionResizeMode(6, QHeaderView.ResizeToContents)  # Location
-
-            # Manually adjust column widths after applying resize modes for more control
-            self.item_table.setColumnWidth(0, 50)   # Select column, smallest
-            self.item_table.setColumnWidth(1, 150)  # Item Code column, medium
-            self.item_table.setColumnWidth(2, 300)  # Description column, largest
-            self.item_table.setColumnWidth(3, 100)  # Unit Price column
-            self.item_table.setColumnWidth(4, 150)  # Unit Cost column
-            self.item_table.setColumnWidth(5, 100)  # Barcode column, adjusted for consistency
-            self.item_table.setColumnWidth(6, 100)  # Location column
 
             barcode_config = Configurations.BarcodeConfig()
 
@@ -594,50 +596,39 @@ class BarcodeApp(QMainWindow):
 
                 # Extract item details
                 item_code, description, uom, unit_price, unit_cost, barcode, location, location_price = item
-                barcode_value = item_code if barcode is None else barcode  # Fallback to item_code if barcode is None
+                barcode_value = item_code if barcode is None else barcode
 
-                try:
-                    # Format currency values
-                    formatted_unit_price = f"RM {float(unit_price):.2f}" if unit_price is not None else "RM 0.00"
-                    if not barcode_config.get_hide_cost():
-                        formatted_unit_cost = f"RM {float(unit_cost):.2f}" if unit_cost is not None else "RM 0.00"
-                    if barcode_config.get_hide_cost():
-                        formatted_unit_cost = '***'
-                    formatted_location_price = f"RM {float(location_price):.2f}" if location_price is not None else "RM 0.00"
-                except ValueError as e:
-                    formatted_unit_price = "RM 0.00"
-                    self.logger.warning(f"ValueError while formatting price values: {e}")
+                # Format currency values
+                formatted_unit_price = f"RM {float(unit_price):.2f}" if unit_price is not None else "RM 0.00"
+                formatted_unit_cost = "RM 0.00"
+                if not barcode_config.get_hide_cost():
+                    formatted_unit_cost = f"RM {float(unit_cost):.2f}" if unit_cost is not None else "RM 0.00"
+                elif barcode_config.get_hide_cost():
+                    formatted_unit_cost = '***'
+                formatted_location_price = f"RM {float(location_price):.2f}" if location_price is not None else "RM 0.00"
 
-                # Set the data for each row
+                # Set data
                 for col_number, value in enumerate([item_code, description, uom, formatted_unit_price, formatted_unit_cost, barcode_value, location, formatted_location_price], start=1):
                     table_item = QTableWidgetItem(str(value))
                     table_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                     table_item.setTextAlignment(Qt.AlignCenter)
                     self.item_table.setItem(row_number, col_number, table_item)
 
-                # Add copies column (editable)
+                # Copies column
                 copies_item = QTableWidgetItem("1")
                 copies_item.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
                 copies_item.setTextAlignment(Qt.AlignCenter)
                 self.item_table.setItem(row_number, 9, copies_item)
 
-                # Set background color for every even row (index 0, 2, 4, etc.)
+                # Set background for even rows
                 if row_number % 2 == 0:
                     for col_number in range(self.item_table.columnCount()):
-                        item = self.item_table.item(row_number, col_number)
-                        item.setBackground(QBrush(QColor(230, 238, 255)))  # Set light gray background color for even rows
+                        self.item_table.item(row_number, col_number).setBackground(QBrush(QColor(230, 238, 255)))
 
-            # Adjust column sizes after filling in data
-            self.item_table.resizeColumnsToContents()
-
-            # Add padding to each column
-            padding = 20
-            for column in range(self.item_table.columnCount()):
-                current_width = self.item_table.columnWidth(column)
-                self.item_table.setColumnWidth(column, current_width + padding)
+            # Restore column widths last to avoid conflicts
+            self.restore_column_widths()
 
             self.logger.info("Finished displaying items.")
-        
         except Exception as e:
             self.logger.error(f"Error displaying items: {e}")
             QMessageBox.critical(self, 'Error', f"Error displaying items: {e}")
@@ -750,7 +741,7 @@ class BarcodeApp(QMainWindow):
         filtered_items = [
             item for item in self.all_items
             if all(
-                keyword in item[1].lower()  # Ensure the keyword is in the description (item[1])
+                keyword in str(item[1]).lower()  # Ensure the keyword is in the description (item[1])
                 for keyword in keywords
             )
         ]
