@@ -832,6 +832,8 @@ class BarcodeApp(QMainWindow):
             # Process selected items
             for row in selected_rows:
                 description = self.item_table.item(row, 2).text()
+                description = description.replace('"', '')
+                print("desfjdnfidninbdi", description)
                 unit_price_integer = self.item_table.item(row, 8).text()
                 barcode_value = self.item_table.item(row, 6).text()
                 copies = self.item_table.item(row, 9).text()
