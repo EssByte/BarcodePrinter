@@ -3,6 +3,7 @@
   "database": "AED_ALPHA_FE",
   "username": "test",
   "password": "test",
+  "trusted_connection": false,
   "vid": "0x1203",
   "pid": "0x136",
   "endpoint": "0x1",

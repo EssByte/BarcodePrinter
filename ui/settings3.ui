@@ -288,7 +288,7 @@
               <property name="geometry">
                <rect>
                 <x>0</x>
-                <y>0</y>
+                <y>-42</y>
                 <width>1245</width>
                 <height>548</height>
                </rect>
@@ -1772,6 +1772,18 @@ p, li { white-space: pre-wrap; }
                         </spacer>
                        </item>
                        <item>
+                        <widget class="QCheckBox" name="cb_trustedConnection">
+                         <property name="styleSheet">
+                          <string notr="true">QCheckBox {
+	text-color: white;
+}</string>
+                         </property>
+                         <property name="text">
+                          <string>TC</string>
+                         </property>
+                        </widget>
+                       </item>
+                       <item>
                         <widget class="QPushButton" name="btn_saveDatabase">
                          <property name="minimumSize">
                           <size>
@@ -2903,8 +2915,8 @@ p, li { white-space: pre-wrap; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>1230</width>
-                <height>505</height>
+                <width>497</width>
+                <height>285</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_26">

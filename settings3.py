@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QButtonGroup, QFileDialog
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QButtonGroup
 from PyQt5.QtGui import QPixmap, QIcon
 from PyQt5 import QtWidgets, uic
 import usb.backend
@@ -135,6 +135,8 @@ class SettingsWindow(QMainWindow):
             self.btn_installdriver.clicked.connect(lambda: self.install_driver_from_ui("msodbcsql.msi"))
             self.btn_checkdriver = self.findChild(QtWidgets.QPushButton, 'btn_checkDatabaseDriver')
             self.btn_checkdriver.clicked.connect(self.set_database_driver_details)
+            self.cb_trusted_connection = self.findChild(QtWidgets.QCheckBox, "cb_trustedConnection")
+            self.cb_trusted_connection.stateChanged.connect(self.handle_trustedConnecion)
             self.logger.info("Widgets initialized.")
         except Exception as e:
             self.logger.error(f"Failed to initialize widgets for the dashboard: {e}")
@@ -185,6 +187,16 @@ class SettingsWindow(QMainWindow):
                 self.printer_list.setCurrentIndex(self.printer_list.findText(printer_name))
         except Exception as e:
             self.logger.error(f"Error while updating printer information: {e}")
+
+    def handle_trustedConnecion(self, state):
+        with open(self.config_path, 'r') as f:
+                config = json.load(f)
+        if state == Qt.Checked:
+            config['trusted_connection'] = True
+        elif state == Qt.Unchecked:
+            config['trusted_connection'] = False
+        else:
+            config['trusted_connection'] = False
 
     def save_database(self):
         try:

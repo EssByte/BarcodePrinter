@@ -197,6 +197,7 @@ class BarcodeApp(QMainWindow):
                 self.database = config['database']
                 self.username = config['username']
                 self.password = config['password']
+                self.trustedConnection = ['trusted_connection']
                 self.vid = int(config['vid'], 16)
                 self.pid = int(config['pid'], 16)
                 self.endpoint = int(config['endpoint'], 16)
@@ -503,9 +504,16 @@ class BarcodeApp(QMainWindow):
             self.logger.info("Attempting to connect to the database.")
             
             # Try to establish the connection
-            self.connection = pyodbc.connect(
-                f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
-            )
+
+            if self.trustedConnection:
+                self.connection = pyodbc.connect(
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password};Trusted_Connection=yes;'
+                )
+
+            else:
+                self.connection = pyodbc.connect(
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
+                 )
             
             # Check if the connection was successful
             if self.connection:

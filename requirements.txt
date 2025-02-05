@@ -1,6 +1,5 @@
 PyQt5
 libusb
-libsub1
 pyusb
 auto-py-to-exe
 pyodbc

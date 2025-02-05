@@ -3,7 +3,7 @@ import socket
 import subprocess
 import os
 from modules.logger_config import setup_logger
-import win32print
+from win32 import win32print
 import usb
 import sys
 
