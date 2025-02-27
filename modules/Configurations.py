@@ -1,173 +1,165 @@
-import json
+from PyQt5.QtCore import QSettings
 
 class BarcodeConfig:
-    def __init__(self, config_file="C:\\barcode\\barcode.json"):
-        self.config_file = config_file
-        self._load_config()
-
-    def _load_config(self):
-        """Load the configuration from the JSON file."""
-        try:
-            with open(self.config_file, 'r') as f:
-                self.config = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            self.config = {}  # In case the file is missing or invalid
-
-    def _save_config(self):
-        """Save the current configuration to the JSON file."""
-        try:
-            with open(self.config_file, 'w') as f:
-                json.dump(self.config, f, indent=4)
-        except Exception as e:
-            print(f"Error saving config: {e}")
+    def __init__(self):
+        self.settings = QSettings("YourOrganization", "BarcodePrinter")
 
     # Getters and Setters
     def get_server(self):
-        return self.config.get("server", "localhost")
+        return self.settings.value("server", "localhost")
 
     def set_server(self, server):
-        self.config["server"] = server
-        self._save_config()
+        self.settings.setValue("server", server)
 
     def get_database(self):
-        return self.config.get("database", "example_db")
+        return self.settings.value("database", "example_db")
 
     def set_database(self, database):
-        self.config["database"] = database
-        self._save_config()
+        self.settings.setValue("database", database)
 
     def get_username(self):
-        return self.config.get("username", "admin")
+        return self.settings.value("username", "admin")
 
     def set_username(self, username):
-        self.config["username"] = username
-        self._save_config()
+        self.settings.setValue("username", username)
 
     def get_password(self):
-        return self.config.get("password", "admin123")
+        return self.settings.value("password", "admin123")
 
     def set_password(self, password):
-        self.config["password"] = password
-        self._save_config()
+        self.settings.setValue("password", password)
 
     def get_vid(self):
-        return self.config.get("vid", "0x1234")
+        return self.settings.value("vid", "0x1234")
 
     def set_vid(self, vid):
-        self.config["vid"] = vid
-        self._save_config()
+        self.settings.setValue("vid", vid)
 
     def get_pid(self):
-        return self.config.get("pid", "0x5678")
+        return self.settings.value("pid", "0x5678")
 
     def set_pid(self, pid):
-        self.config["pid"] = pid
-        self._save_config()
+        self.settings.setValue("pid", pid)
 
     def get_endpoint(self):
-        return self.config.get("endpoint", "0x01")
+        return self.settings.value("endpoint", "0x01")
 
     def set_endpoint(self, endpoint):
-        self.config["endpoint"] = endpoint
-        self._save_config()
+        self.settings.setValue("endpoint", endpoint)
 
     def get_company_name(self):
-        return self.config.get("companyName", "Example Corp")
+        return self.settings.value("companyName", "Example Corp")
 
     def set_company_name(self, company_name):
-        self.config["companyName"] = company_name
-        self._save_config()
+        self.settings.setValue("companyName", company_name)
 
     def get_location(self):
-        return self.config.get("location", "HQ")
+        return self.settings.value("location", "HQ")
 
     def set_location(self, location):
-        self.config["location"] = location
-        self._save_config()
+        self.settings.setValue("location", location)
 
     def get_use_zpl(self):
-        return self.config.get("useZPL", True)
+        return self.settings.value("useZPL", True, type=bool)
 
     def set_use_zpl(self, use_zpl):
-        self.config["useZPL"] = use_zpl
-        self._save_config()
+        self.settings.setValue("useZPL", use_zpl)
 
     def get_ip_address(self):
-        return self.config.get("ip_address", "192.168.1.100")
+        return self.settings.value("ip_address", "192.168.1.100")
 
     def set_ip_address(self, ip_address):
-        self.config["ip_address"] = ip_address
-        self._save_config()
+        self.settings.setValue("ip_address", ip_address)
 
     def get_wireless_mode(self):
-        return self.config.get("wireless_mode", False)
+        return self.settings.value("wireless_mode", False, type=bool)
 
     def set_wireless_mode(self, wireless_mode):
-        self.config["wireless_mode"] = wireless_mode
-        self._save_config()
+        self.settings.setValue("wireless_mode", wireless_mode)
 
     def get_zpl_template(self):
-        return self.config.get("zplTemplate", "")
+        return self.settings.value("zplTemplate", "")
 
     def set_zpl_template(self, zpl_template):
-        self.config["zplTemplate"] = zpl_template
-        self._save_config()
+        self.settings.setValue("zplTemplate", zpl_template)
 
     def get_tpsl_template(self):
-        return self.config.get("tpslTemplate", "")
+        return self.settings.value("tpslTemplate", "")
 
     def set_tpsl_template(self, tpsl_template):
-        self.config["tpslTemplate"] = tpsl_template
-        self._save_config()
+        self.settings.setValue("tpslTemplate", tpsl_template)
 
     def get_logging(self):
-        return self.config.get("logging", True)
+        return self.settings.value("logging", True, type=bool)
 
     def set_logging(self, logging):
-        self.config["logging"] = logging
-        self._save_config()
+        self.settings.setValue("logging", logging)
 
     def get_item_count(self):
-        return self.config.get("itemCount", 100)
+        return self.settings.value("itemCount", 100, type=int)
 
     def set_item_count(self, item_count):
-        self.config["itemCount"] = item_count
-        self._save_config()
+        self.settings.setValue("itemCount", item_count)
 
     def get_enter_to_search(self):
-        return self.config.get("enterToSearch", True)
+        return self.settings.value("enterToSearch", True, type=bool)
 
     def set_enter_to_search(self, enter_to_search):
-        self.config["enterToSearch"] = enter_to_search
-        self._save_config()
+        self.settings.setValue("enterToSearch", enter_to_search)
 
     def get_use_generic_driver(self):
-        return self.config.get("useGenericDriver", True)
+        return self.settings.value("useGenericDriver", True, type=bool)
 
     def set_use_generic_driver(self, use_generic_driver):
-        self.config["useGenericDriver"] = use_generic_driver
-        self._save_config()
+        self.settings.setValue("useGenericDriver", use_generic_driver)
 
     def get_printer_name(self):
-        return self.config.get("printerName", True)
+        return self.settings.value("printerName", "TSC_TA200")
 
     def set_printer_name(self, printer_name):
-        self.config["printerName"] = printer_name
-        self._save_config()
+        self.settings.setValue("printerName", printer_name)
 
     def get_database_driver_name(self):
-        return self.config.get("databaseDriverName", True)
+        return self.settings.value("databaseDriverName", "ODBC Driver 18 for SQL Server")
 
     def set_database_driver_name(self, database_driver_name):
-        self.config["databaseDriverName"] = database_driver_name
-        self._save_config()
+        self.settings.setValue("databaseDriverName", database_driver_name)
 
     def get_hide_cost(self):
-        return self.config.get("hideCost", True)
+        return self.settings.value("hideCost", False, type=bool)
 
     def set_hide_cost(self, hide_cost):
-        self.config["hideCost"] = hide_cost
-        self._save_config()
+        self.settings.setValue("hideCost", hide_cost)
+    
+    def reset_to_defaults(self):
+        """Reset all settings to their default values."""
+        defaults = {
+            "server": "localhost",
+            "database": "example_db",
+            "username": "admin",
+            "password": "admin123",
+            "vid": "0x1234",
+            "pid": "0x5678",
+            "endpoint": "0x01",
+            "companyName": "Example Corp",
+            "location": "HQ",
+            "useZPL": True,
+            "ip_address": "192.168.1.100",
+            "wireless_mode": False,
+            "zplTemplate": "^XA \n^LH0,-7\n^C128\n^PR3\n^PW280 \n^FO10,0,^A0N,20,20^FD{{companyName}}^FS ^FO10,25^A0N,15,20^FD{{barcode_value}}^FS ^FO10,40^BY1,1.5,0^BCN,50,N,Y,N,N^FD{{barcode_value}}^FS \n^A0N,50,50\n^FO10,94^A0N,15,20^FB280,3,0,L,0 ^FD{{description}}^FS ^FO10,130^A0N,25,30^FD{{unit_price_integer}}^FS \n^PQ{{copies}} \n^XZ",
+            "tpslTemplate": "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 35MM,25MM \nOFFSET 0.000 \nREFERENCE 0,0 \nCLS \nTEXT 320,5,\"2\",0,1,1,\"{{companyName}}\" \nTEXT 310,40,\"2\",0,1,1,\"{{barcode_value}}\" \nTEXT 310,120,\"0\",0,1,1,\"{{description}}\" \nBARCODE 310,60,\"128\",50,0,0,2,10,\"{{barcode_value}}\" \nTEXT 310,160,\"4\",0,1,1,\"{{unit_price_integer}}\" \nPRINT {{copies}} \nEOP",
+            "logging": True,
+            "itemCount": 100,
+            "enterToSearch": True,
+            "useGenericDriver": True,
+            "printerName": "TSC_TA200",
+            "databaseDriverName": "ODBC Driver 18 for SQL Server",
+            "hideCost": False,
+        }
+
+        # Set all keys to their default values
+        for key, value in defaults.items():
+            self.settings.setValue(key, value)
 
 
 # Example usage:
