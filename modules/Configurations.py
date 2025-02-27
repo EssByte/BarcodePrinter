@@ -1,8 +1,8 @@
-from PyQt5.QtCore import QSettings, pyqtSignal
+from PyQt5.QtCore import QSettings, pyqtSignal, QObject
 
 class BarcodeConfig:
 
-    setting_changed = pyqtSignal()
+    setting_changed = pyqtSignal(str, object)
 
     def __init__(self):
         self.settings = QSettings("YourOrganization", "BarcodePrinter")
@@ -13,147 +13,147 @@ class BarcodeConfig:
 
     def set_server(self, server):
         self.settings.setValue("server", server)
-        self.setting_changed.emit()
+        self.setting_changed.emit("server", server)
 
     def get_database(self):
         return self.settings.value("database", "example_db")
 
     def set_database(self, database):
         self.settings.setValue("database", database)
-        self.setting_changed.emit()
+        self.setting_changed.emit("database", database)
 
     def get_username(self):
         return self.settings.value("username", "admin")
 
     def set_username(self, username):
         self.settings.setValue("username", username)
-        self.setting_changed.emit()
+        self.setting_changed.emit("username", username)
 
     def get_password(self):
         return self.settings.value("password", "admin123")
 
     def set_password(self, password):
         self.settings.setValue("password", password)
-        self.setting_changed.emit()
+        self.setting_changed.emit("password", password)
 
     def get_vid(self):
         return self.settings.value("vid", "0x1234")
 
     def set_vid(self, vid):
         self.settings.setValue("vid", vid)
-        self.setting_changed.emit()
+        self.setting_changed.emit("vid", vid)
 
     def get_pid(self):
         return self.settings.value("pid", "0x5678")
 
     def set_pid(self, pid):
         self.settings.setValue("pid", pid)
-        self.setting_changed.emit()
+        self.setting_changed.emit("pid", pid)
 
     def get_endpoint(self):
         return self.settings.value("endpoint", "0x01")
 
     def set_endpoint(self, endpoint):
         self.settings.setValue("endpoint", endpoint)
-        self.setting_changed.emit()
+        self.setting_changed.emit("endpoint", endpoint)
 
     def get_company_name(self):
         return self.settings.value("companyName", "Example Corp")
 
     def set_company_name(self, company_name):
         self.settings.setValue("companyName", company_name)
-        self.setting_changed.emit()
+        self.setting_changed.emit("companyName", company_name)
 
     def get_location(self):
         return self.settings.value("location", "HQ")
 
     def set_location(self, location):
         self.settings.setValue("location", location)
-        self.setting_changed.emit()
+        self.setting_changed.emit("location", location)
 
     def get_use_zpl(self):
         return self.settings.value("useZPL", True, type=bool)
 
     def set_use_zpl(self, use_zpl):
         self.settings.setValue("useZPL", use_zpl)
-        self.setting_changed.emit()
+        self.setting_changed.emit("useZPL", use_zpl)
 
     def get_ip_address(self):
         return self.settings.value("ip_address", "192.168.1.100")
 
     def set_ip_address(self, ip_address):
         self.settings.setValue("ip_address", ip_address)
-        self.setting_changed.emit()
+        self.setting_changed.emit("ip_address", ip_address)
 
     def get_wireless_mode(self):
         return self.settings.value("wireless_mode", False, type=bool)
 
     def set_wireless_mode(self, wireless_mode):
         self.settings.setValue("wireless_mode", wireless_mode)
-        self.setting_changed.emit()
+        self.setting_changed.emit("wireless_mode", wireless_mode)
 
     def get_zpl_template(self):
         return self.settings.value("zplTemplate", "")
 
     def set_zpl_template(self, zpl_template):
         self.settings.setValue("zplTemplate", zpl_template)
-        self.setting_changed.emit()
+        self.setting_changed.emit("zplTemplate", zpl_template)
 
     def get_tpsl_template(self):
         return self.settings.value("tpslTemplate", "")
 
     def set_tpsl_template(self, tpsl_template):
         self.settings.setValue("tpslTemplate", tpsl_template)
-        self.setting_changed.emit()
+        self.setting_changed.emit("tpslTemplate", tpsl_template)
 
     def get_logging(self):
         return self.settings.value("logging", True, type=bool)
 
     def set_logging(self, logging):
         self.settings.setValue("logging", logging)
-        self.setting_changed.emit()
+        self.setting_changed.emit("logging", logging)
 
     def get_item_count(self):
         return self.settings.value("itemCount", 100, type=int)
 
     def set_item_count(self, item_count):
         self.settings.setValue("itemCount", item_count)
-        self.setting_changed.emit()
+        self.setting_changed.emit("itemCount", item_count)
 
     def get_enter_to_search(self):
         return self.settings.value("enterToSearch", True, type=bool)
 
     def set_enter_to_search(self, enter_to_search):
         self.settings.setValue("enterToSearch", enter_to_search)
-        self.setting_changed.emit()
+        self.setting_changed.emit("enterToSearch", enter_to_search)
 
     def get_use_generic_driver(self):
         return self.settings.value("useGenericDriver", True, type=bool)
 
     def set_use_generic_driver(self, use_generic_driver):
         self.settings.setValue("useGenericDriver", use_generic_driver)
-        self.setting_changed.emit()
+        self.setting_changed.emit("useGenericDriver", use_generic_driver)
 
     def get_printer_name(self):
         return self.settings.value("printerName", "TSC_TA200")
 
     def set_printer_name(self, printer_name):
         self.settings.setValue("printerName", printer_name)
-        self.setting_changed.emit()
+        self.setting_changed.emit("printerName", printer_name)
 
     def get_database_driver_name(self):
         return self.settings.value("databaseDriverName", "ODBC Driver 18 for SQL Server")
 
     def set_database_driver_name(self, database_driver_name):
         self.settings.setValue("databaseDriverName", database_driver_name)
-        self.setting_changed.emit()
+        self.setting_changed.emit("databaseDriverName", database_driver_name)
 
     def get_hide_cost(self):
         return self.settings.value("hideCost", False, type=bool)
 
     def set_hide_cost(self, hide_cost):
         self.settings.setValue("hideCost", hide_cost)
-        self.setting_changed.emit()
+        self.setting_changed.emit("hideCost", hide_cost)
     
     def reset_to_defaults(self):
         """Reset all settings to their default values."""
