@@ -18,6 +18,7 @@ from dashboard import DashboardWindow
 from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
+from modules.Configurations import BarcodeConfig
 from version import __version__
 import subprocess
 
@@ -111,14 +112,11 @@ class BarcodeApp(QMainWindow):
         self.logger = setup_logger('BarcodeApp')  # Use a logger specific to the DashboardWindow
         self.logger.info("Initializing BarcodeApp...")
         self.initUI()
-        self.config_path = r'C:\barcode\barcode.json'
+        self.config = BarcodeConfig()
         self.input_timer = QTimer()
         self.input_timer.setSingleShot(True)
         self.input_timer.timeout.connect(self.filter_items_binary)
-        self.file_watcher = QFileSystemWatcher()
-        self.file_watcher.addPath(self.config_path)
-        self.file_watcher.fileChanged.connect(self.handle_config_change)
-        self.load_config()
+        self.config.setting_changed.connect(self.handle_config_change)
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.setWindowIcon(QIcon(self.resource_path(("images/logo.ico"))))
         self.db_connected = False
@@ -154,7 +152,6 @@ class BarcodeApp(QMainWindow):
             self.progressBar.setValue(10)
             self.update_logging()
             self.logger.info("Attempting to reload configuration...")
-            self.load_config()  # Reload configuration
             self.progressBar.setValue(23)
             self.logger.info("Checking for updates...")
             self.check_version()
@@ -181,49 +178,7 @@ class BarcodeApp(QMainWindow):
             self.logger.error(f"Failed to reload configuration: {e}")
             QMessageBox.critical(self, 'Error', f"Failed to reload configuration: {e}")
     
-    def load_config(self):
-        self.logger.info("Attempting to load configuration...")
-
-        try:
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
-                self.logger.info("Configuration file loaded successfully.")
-
-                # Log the loaded values (or specific values you're interested in)
-                self.logger.debug(f"Server: {config['server']}, Database: {config['database']}")
-                self.logger.debug(f"Username: {config['username']}, IP Address: {config['ip_address']}")
-
-                self.server = config['server']
-                self.database = config['database']
-                self.username = config['username']
-                self.password = config['password']
-                self.trustedConnection = ['trusted_connection']
-                self.vid = int(config['vid'], 16)
-                self.pid = int(config['pid'], 16)
-                self.endpoint = int(config['endpoint'], 16)
-                self.companyName = config['companyName']
-                self.location = config.get('location') 
-                self.useZPL: bool = config['useZPL']
-                self.zpl_template: str = config['zplTemplate']
-                self.tpsl_template: str = config['tpslTemplate']
-                self.ip_address: str = config['ip_address']
-                self.wireless_mode: bool = config['wireless_mode']
-
-                self.logger.info("Configuration values loaded into instance variables.")
-
-        except FileNotFoundError:
-            self.logger.error(f"Configuration file not found at {self.config_path}")
-            QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-            
-        except json.JSONDecodeError:
-            self.logger.error("Error parsing the configuration file.")
-            QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-            
-        except KeyError as e:
-            self.logger.error(f"Missing key in configuration file: {e}")
-            QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
-
-
+    
     def resource_path(self, relative_path):
         #Get absolute path to resource, works for dev and for PyInstaller
         self.logger.info(f"Attempting to resolve resource path for: {relative_path}")
@@ -507,12 +462,12 @@ class BarcodeApp(QMainWindow):
 
             if self.trustedConnection:
                 self.connection = pyodbc.connect(
-                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password};Trusted_Connection=yes;'
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server};DATABASE={self.config.get_database};UID={self.config.get_username};PWD={self.config.get_password};Trusted_Connection=yes;'
                 )
 
             else:
                 self.connection = pyodbc.connect(
-                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server};DATABASE={self.config.get_database};UID={self.config.get_username};PWD={self.config.get_password}'
                  )
             
             # Check if the connection was successful
@@ -813,10 +768,10 @@ class BarcodeApp(QMainWindow):
             self.logger.info("USB mode selected. Checking printer connection...")
 
             if barcode_config.get_use_generic_driver():
-                printer = usb.core.find(idVendor=self.vid, idProduct=self.pid, backend=self.backend)
+                printer = usb.core.find(idVendor=self.config.get_vid(), idProduct=self.config.get_pid(), backend=self.backend)
 
                 if printer is None:
-                    self.logger.error(f"Printer not found (Vendor ID: {self.vid}, Product ID: {self.pid}).")
+                    self.logger.error(f"Printer not found (Vendor ID: {self.config.get_vid()}, Product ID: {self.config.get_pid()}).")
                     QMessageBox.warning(self, 'Printer Error', 'Printer not found. Check your device and USB permissions.')
                     return
 
@@ -831,7 +786,7 @@ class BarcodeApp(QMainWindow):
             else:
                 self.logger.info("Wireless mode selected. Validating IP and port...")
                 try:
-                    ip, port = self.ip_address.split(":")
+                    ip, port = self.config.get_ip_address.split(":")
                 except ValueError as e:
                     self.logger.error(f"Invalid IP or port: {e}")
                     QMessageBox.warning(self, 'Printer Error', f"Invalid IP or port: {e}")
@@ -853,8 +808,8 @@ class BarcodeApp(QMainWindow):
                 if not self.useZPL:
                     printer_clear = "CLS"
                     print_data = self.replace_placeholders(
-                        self.tpsl_template,
-                        companyName=self.companyName,
+                        self.config.get_tpsl_template(),
+                        companyName=self.config.get_company_name(),
                         description=description,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
@@ -863,27 +818,27 @@ class BarcodeApp(QMainWindow):
                 else:
                     printer_clear = "^XA^CLS^XZ"
                     print_data = self.replace_placeholders(
-                        self.zpl_template,
-                        companyName=self.companyName,
+                        self.config.get_zpl_template(),
+                        companyName=self.config.get_company_name(),
                         description=description,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
                         copies=copies,
                     )
 
-                if barcode_config.get_use_generic_driver():
+                if self.config.get_use_generic_driver():
                     if printer is not None:
                         printer.write(self.endpoint, print_data.encode('utf-8'))
                         self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
                     else:
                         self.logger.error("Printer is not available.")
-                elif barcode_config.get_wireless_mode():
+                elif self.config.get_wireless_mode():
                     send_command.send_wireless_command(ip_address=ip, port=port, command=printer_clear)
                     send_command.send_wireless_command(ip_address=ip, port=port, command=print_data)
                     self.logger.info(f"Wireless print command sent to {ip}:{port} for item: {barcode_value}")
-                elif not barcode_config.get_use_generic_driver():
-                    send_command.send_win32print(barcode_config.get_printer_name(), printer_clear)
-                    send_command.send_win32print(barcode_config.get_printer_name(), print_data)
+                elif not self.config.get_use_generic_driver():
+                    send_command.send_win32print(self.config.get_printer_name(), printer_clear)
+                    send_command.send_win32print(self.config.get_printer_name(), print_data)
 
         except usb.core.USBError as e:
             self.logger.error(f"USB Error: {e}")
@@ -893,12 +848,12 @@ class BarcodeApp(QMainWindow):
             QMessageBox.information(self, 'Error', f'{e}')
         finally:
             # Show success message once after all items are printed
-            if not self.wireless_mode and barcode_config.get_use_generic_driver():
+            if not self.config.get_wireless_mode() and self.config.get_use_generic_driver():
                 self.logger.info('All selected items have been successfully sent to the printer (USB).')
                 QMessageBox.information(self, 'Success', 'All selected items have been successfully sent to the printer!')
                 usb.util.dispose_resources(printer)
 
-            elif not self.wireless_mode and not barcode_config.get_use_generic_driver():
+            elif not self.config.get_wireless_mode() and not self.config.get_use_generic_driver():
                 self.logger.info('All selected items have been successfully sent to the printer (win32print).')
                 QMessageBox.information(self, 'Success', 'All selected items have been successfully sent to the printer!')
 
