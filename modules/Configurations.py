@@ -1,11 +1,12 @@
 from PyQt5.QtCore import QSettings, pyqtSignal, QObject
 
-class BarcodeConfig:
+class BarcodeConfig(QObject):
 
     setting_changed = pyqtSignal(str, object)
 
     def __init__(self):
-        self.settings = QSettings("YourOrganization", "BarcodePrinter")
+        super().__init__()
+        self.settings = QSettings("AlphaDigital", "BarcodePrinter")
 
     # Getters and Setters
     def get_server(self):
@@ -154,6 +155,13 @@ class BarcodeConfig:
     def set_hide_cost(self, hide_cost):
         self.settings.setValue("hideCost", hide_cost)
         self.setting_changed.emit("hideCost", hide_cost)
+    
+    def get_trusted_connection(self):
+        return self.settings.value("trustedConnection", False, type=bool)
+    
+    def set_trusted_connection(self, trusted_connection):
+        self.settings.setValue("trustedConnection", trusted_connection)
+        self.setting_changed.emit("trustedConnection", trusted_connection)
     
     def reset_to_defaults(self):
         """Reset all settings to their default values."""
