@@ -18,6 +18,7 @@ class SettingsWindow(QMainWindow):
         super(SettingsWindow, self).__init__()
         self.logger = setup_logger('Settings2')  # Create logger specific to this window
         self.driverInstaller = DriverInstaller()
+        self.config = Configurations.BarcodeConfig()
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.barcode_config = Configurations.BarcodeConfig()
         # Load the UI file first
@@ -189,53 +190,26 @@ class SettingsWindow(QMainWindow):
             self.logger.error(f"Error while updating printer information: {e}")
 
     def handle_trustedConnecion(self, state):
-        with open(self.config_path, 'r') as f:
-                config = json.load(f)
         if state == Qt.Checked:
-            config['trusted_connection'] = True
+            self.config.set_trusted_connection(True)
         elif state == Qt.Unchecked:
-            config['trusted_connection'] = False
+            self.config.set_trusted_connection(False)
         else:
-            config['trusted_connection'] = False
+            self.config.set_trusted_connection(False)
 
     def save_database(self):
         try:
             self.logger.info("Starting database configuration save process.")
             
-            # Read the current configuration file
-            self.logger.debug(f"Reading configuration file from {self.config_path}.")
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
-            
             # Update only the necessary keys
-            config['server'] = self.serverName.text()
-            config['database'] = self.databaseName.text()
-            config['username'] = self.userName.text()
-            config['password'] = self.password.text()
+            self.config.set_server(self.serverName.text())
+            self.config.set_database(self.databaseName.text())
+            self.config.set_username(self.userName.text())
+            self.config.set_password(self.password.text())
             self.logger.debug("Updated database configuration keys: server, database, username, password.")
-            
-            # Write back the updated content (without overwriting the entire file)
-            self.logger.debug(f"Writing updated configuration back to {self.config_path}.")
-            with open(self.config_path, 'w') as file:
-                json.dump(config, file, indent=4)  # Preserve structure
             
             self.logger.info("Database configuration saved successfully.")
             QMessageBox.information(self, 'Success', "Database settings updated successfully!")
-        
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-        
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-        
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
 
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
@@ -263,11 +237,8 @@ class SettingsWindow(QMainWindow):
             # Log initiation of ODBC driver check
             self.logger.info("Checking for ODBC driver details.")
 
-            # Create an instance of BarcodeConfig
-            barcode_config = Configurations.BarcodeConfig()
-
             # Retrieve the database driver name
-            driver_name = barcode_config.get_database_driver_name()
+            driver_name = self.config.get_database_driver_name()
             self.logger.debug(f"Retrieved database driver name: {driver_name}")
 
             # Check for the specific ODBC driver
@@ -414,44 +385,19 @@ class SettingsWindow(QMainWindow):
     def save_printer(self):
         try:
             self.logger.info("Starting printer configuration save process.")
-            
-            # Read the current configuration file
-            self.logger.debug(f"Reading configuration file from {self.config_path}.")
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
 
             # Update necessary keys
-            config['vid'] = self.printerVid.text()
-            config['pid'] = self.printerPid.text()
-            config['endpoint'] = self.endpoint.text()
-            config['ip_address'] = self.ip_address.text()
-            config['wireless_mode'] = self.wireless_mode.isChecked()
-            config['useGenericDriver'] = self.useGeneric.isChecked()
-            config['printerName'] = self.printer_list.currentData()
+            self.config.set_vid(self.printerVid.text())
+            self.config.set_pid(self.printerPid.text())
+            self.config.set_endpoint(self.endpoint.text())
+            self.config.set_ip_address(self.ip_address.text())
+            self.config.set_wireless_mode(self.wireless_mode.isChecked())
+            self.config.set_use_generic_driver(self.useGeneric.isChecked())
+            self.config.set_printer_name(self.printer_list.currentData())
             self.logger.debug(f"Updated printer configuration keys: vid, pid, endpoint, ip_address, wireless_mode, useGenericDriver.")
-
-            # Write back the updated configuration
-            self.logger.debug(f"Writing updated printer configuration back to {self.config_path}.")
-            with open(self.config_path, 'w') as file:
-                json.dump(config, file, indent=4)
 
             self.logger.info("Printer configuration saved successfully.")
             QMessageBox.information(self, 'Success', "Printer settings updated successfully!")
-        
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-        
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-        
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
         
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
@@ -464,38 +410,16 @@ class SettingsWindow(QMainWindow):
 
             # Read the current configuration file
             self.logger.debug(f"Reading configuration file from {self.config_path}.")
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
 
             # Update necessary keys
-            config['companyName'] = self.companyName.text()
-            config['location'] = self.location.text()
-            config['logging'] = self.cb_logging.isChecked()  # Simplified conditional assignment
-            config['hideCost'] = self.cb_hide_cost.isChecked()
-            self.logger.debug(f"Updated other settings: companyName='{config['companyName']}', location='{config['location']}', logging={config['logging']}.")
-
-            # Write back the updated configuration
-            self.logger.debug(f"Writing updated settings back to {self.config_path}.")
-            with open(self.config_path, 'w') as file:
-                json.dump(config, file, indent=4)
+            self.config.set_company_name(self.companyName.text())
+            self.config.set_location(self.location.text())
+            self.config.set_logging(self.cb_logging.isChecked())
+            self.config.set_hide_cost(self.cb_hide_cost.isChecked())
+            self.logger.debug(f"Updated other settings: companyName='{self.config.get_company_name()}', location='{self.config.get_location()}', logging={self.config.get_logging()}.")
 
             self.logger.info("Other settings saved successfully.")
             QMessageBox.information(self, 'Success', "Other settings updated successfully!")
-        
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-        
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-        
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
         
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
@@ -506,38 +430,13 @@ class SettingsWindow(QMainWindow):
         try:
             self.logger.info("Starting ZPL settings save process.")
 
-            # Read the current configuration file
             self.logger.debug(f"Reading configuration file from {self.config_path}.")
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
 
-            # Update necessary keys
-            config['zplTemplate'] = self.zplCommand.toPlainText()
-            config['useZPL'] = self.use_zpl.isChecked()
-            self.logger.debug(f"Updated ZPL settings: zplTemplate='{config['zplTemplate'][:50]}...' (truncated for display), useZPL={config['useZPL']}.")
+            self.config.set_zpl_template(self.zplCommand.toPlainText())
+            self.config.set_use_zpl(self.use_zpl.isChecked())
+            self.logger.debug(f"Updated ZPL settings: zplTemplate='{self.config.get_zpl_template()[:50]}...' (truncated for display), useZPL={self.config.get_use_zpl()}.")
 
-            # Write back the updated configuration
             self.logger.debug(f"Writing updated ZPL settings back to {self.config_path}.")
-            with open(self.config_path, 'w') as file:
-                json.dump(config, file, indent=4)
-
-            self.logger.info("ZPL settings saved successfully.")
-            QMessageBox.information(self, 'Success', "ZPL settings updated successfully!")
-
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
 
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
@@ -555,32 +454,15 @@ class SettingsWindow(QMainWindow):
                 config = json.load(f)
 
             # Update necessary keys
-            config['tpslTemplate'] = self.tpslCommand.toPlainText()
-            config['useZPL'] = self.use_zpl.isChecked()
+            self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+            self.config.set_use_zpl(self.use_zpl.isChecked())
             self.logger.debug(f"Updated TPSL settings: tpslTemplate='{config['tpslTemplate'][:50]}...' (truncated for display), useZPL={config['useZPL']}.")
 
             # Write back the updated configuration
             self.logger.debug(f"Writing updated TPSL settings back to {self.config_path}.")
-            with open(self.config_path, 'w') as file:
-                json.dump(config, file, indent=4)
 
             self.logger.info("TPSL settings saved successfully.")
             QMessageBox.information(self, 'Success', "TPSL settings updated successfully!")
-
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)
-            QMessageBox.critical(self, 'Config Error', error_message)
 
         except Exception as e:
             error_message = f"Unexpected error occurred: {e}"
@@ -769,123 +651,95 @@ class SettingsWindow(QMainWindow):
         try:
             # Log the beginning of the load process
             self.logger.info("Loading configuration data from the config file.")
+                
+            # Populate the UI with data from the configuration file
+            self.serverName.setText(self.config.get_server())
+            self.databaseName.setText(self.config.get_database())
+            self.userName.setText(self.config.get_username())
+            self.password.setText(self.config.get_password())
+            self.printerVid.setText(self.config.get_vid())
+            self.printerPid.setText(self.config.get_pid())
+            self.endpoint.setText(self.config.get_endpoint())
+            self.ip_address.setText(self.config.get_ip_address())
             
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
-                self.logger.info("Configuration file loaded successfully.")
+            if self.config.get_use_zpl():
+                self.use_tpsl.setChecked(False)
+                self.use_zpl.setChecked(True)
+                self.logger.info("ZPL mode selected based on config.")
+            else:
+                self.use_zpl.setChecked(False)
+                self.use_tpsl.setChecked(True)
+                self.logger.info("TPSL mode selected based on config.")
                 
-                # Populate the UI with data from the configuration file
-                self.serverName.setText(config["server"])
-                self.databaseName.setText(config['database'])
-                self.userName.setText(config['username'])
-                self.password.setText(config['password'])
-                self.printerVid.setText(config['vid'])
-                self.printerPid.setText(config['pid'])
-                self.endpoint.setText(config['endpoint'])
-                self.ip_address.setText(config['ip_address'])
-                
-                if config['useZPL']:
-                    self.use_tpsl.setChecked(False)
-                    self.use_zpl.setChecked(True)
-                    self.logger.info("ZPL mode selected based on config.")
-                else:
-                    self.use_zpl.setChecked(False)
-                    self.use_tpsl.setChecked(True)
-                    self.logger.info("TPSL mode selected based on config.")
-                    
-                self.companyName.setText(config['companyName'])
-                self.location.setText(config['location'])
-                self.tpslCommand.setText(config['tpslTemplate'])
-                self.zplCommand.setText(config['zplTemplate'])
-                
-                if config['wireless_mode']:
-                    self.wireless_mode.setChecked(True)
-                    self.logger.info("Wireless mode enabled.")
-                if config['useGenericDriver']:
-                    self.useGeneric.setChecked(True)
-                else:
-                    self.useCustom.setChecked(True)
-                    self.populate_customdriver_printer_list()
-                    self.printer_list.setCurrentIndex(self.printer_list.findText(config['printerName']))
-                    print("ddddddddddddddddddddddddddd", self.printer_list.findData('TSC_TA200'))
+            self.companyName.setText(self.config.get_company_name())
+            self.location.setText(self.config.get_location())
+            self.tpslCommand.setText(self.config.get_tpsl_template())
+            self.zplCommand.setText(self.config.get_zpl_template())
+            
+            if self.config.get_wireless_mode():
+                self.wireless_mode.setChecked(True)
+                self.logger.info("Wireless mode enabled.")
+            if self.config.get_use_generic_driver():
+                self.useGeneric.setChecked(True)
+            else:
+                self.useCustom.setChecked(True)
+                self.populate_customdriver_printer_list()
+                self.printer_list.setCurrentIndex(self.printer_list.findText(self.config.get_printer_name()))
+                print("Printers:", self.printer_list.findData('TSC_TA200'))
 
-                if config['logging']:
-                    self.cb_logging.setChecked(True)
-                    self.logger.info("Logging is enabled.")
-                else:
-                    self.cb_logging.setChecked(False)
-                    self.logger.info("Logging is disabled.")
-                
-                if config['hideCost']:
-                    self.cb_hide_cost.setChecked(True)
-                    self.logger.info("Unit Cost is shown.")
-                else:
-                    self.cb_hide_cost.setChecked(False)
-                    self.logger.info("Unit Cost is hidden.")
+            if self.config.get_logging():
+                self.cb_logging.setChecked(True)
+                self.logger.info("Logging is enabled.")
+            else:
+                self.cb_logging.setChecked(False)
+                self.logger.info("Logging is disabled.")
+            
+            if self.config.get_hide_cost():
+                self.cb_hide_cost.setChecked(True)
+                self.logger.info("Unit Cost is shown.")
+            else:
+                self.cb_hide_cost.setChecked(False)
+                self.logger.info("Unit Cost is hidden.")
 
-        except FileNotFoundError:
-            self.logger.error(f"Configuration file not found at {self.config_path}")
-            QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-
-        except json.JSONDecodeError:
-            self.logger.error('Error parsing the configuration file.')
-            QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-
-        except KeyError as e:
-            self.logger.error(f'Missing key in configuration file: {e}')
-            QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
+        except Exception as e:
+            self.logger.error(f"There was an error while running the load_data() in settings3.py")
+            QMessageBox.critical(self, 'Error', f'{e}')
 
     def update_data(self):
         try:
             # Log the start of the process
             self.logger.info("Updating configuration data.")
-
-            # Read the current configuration file
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
             
             # Log the data being updated
             self.logger.info("Updating fields in the configuration file.")
 
             # Update necessary keys from the UI inputs
-            config['server'] = self.serverName.text()
-            config['database'] = self.databaseName.text()
-            config['username'] = self.userName.text()
-            config['password'] = self.password.text()
-            config['vid'] = self.printerVid.text()
-            config['pid'] = self.printerPid.text()
-            config['endpoint'] = self.endpoint.text()
-            config['companyName'] = self.companyName.text()
-            config['location'] = self.location.text()
-            config['ip_address'] = self.ip_address.text()
-            config['zplTemplate'] = self.zplCommand.toPlainText()
-            config['tpslTemplate'] = self.tpslCommand.toPlainText()
-            config['wireless_mode'] = self.wireless_mode.isChecked()
-            config['useZPL'] = self.use_zpl.isChecked()
-            config['logging'] = self.cb_logging.isChecked()
-            config['useGenericDriver'] = self.useGeneric.isChecked()
-            config['hideCost'] = self.cb_hide_cost.isChecked()
-
-            # Write back the updated content (without overwriting the entire file)
-            with open(self.config_path, 'w') as file:
-                json.dump(config, file, indent=4)
+            self.config.set_server(self.serverName.text())
+            self.config.set_database(self.databaseName.text())
+            self.config.set_username(self.userName.text())
+            self.config.set_password(self.password.text())
+            self.config.set_vid(self.printerVid.text())
+            self.config.set_pid(self.printerPid.text())
+            self.config.set_endpoint(self.endpoint.text())
+            self.config.set_company_name(self.companyName.text())
+            self.config.set_location(self.location.text())
+            self.config.set_ip_address(self.ip_address.text())
+            self.config.set_zpl_template(self.zplCommand.toPlainText())
+            self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+            self.config.set_wireless_mode(self.wireless_mode.isChecked())
+            self.config.set_use_zpl(self.use_zpl.isChecked())
+            self.config.set_logging(self.cb_logging.isChecked())
+            self.config.set_use_generic_driver(self.useGeneric.isChecked())
+            self.config.set_hide_cost(self.cb_hide_cost.isChecked())
 
             # Log successful update
             self.logger.info("Configuration file updated successfully.")
             QMessageBox.information(self, 'Success', "Updated Successfully!")
             self.close()
 
-        except FileNotFoundError:
-            self.logger.error(f"Configuration file not found at {self.config_path}")
-            QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-
-        except json.JSONDecodeError:
-            self.logger.error('Error parsing the configuration file.')
-            QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-
-        except KeyError as e:
-            self.logger.error(f'Missing key in configuration file: {e}')
-            QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
+        except Exception as e:
+            self.logger.error(f"Error while running updata_data() in settings3.py")
+            QMessageBox.critical(self, 'Error', f'{e}')
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
