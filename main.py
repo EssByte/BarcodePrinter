@@ -19,6 +19,7 @@ from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 from modules.Configurations import BarcodeConfig
+from remark import RemarkDialog
 from version import __version__
 import subprocess
 
@@ -460,14 +461,14 @@ class BarcodeApp(QMainWindow):
             
             # Try to establish the connection
 
-            if self.trustedConnection:
+            if self.config.get_trusted_connection():
                 self.connection = pyodbc.connect(
-                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server};DATABASE={self.config.get_database};UID={self.config.get_username};PWD={self.config.get_password};Trusted_Connection=yes;'
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server()};DATABASE={self.config.get_database()};UID={self.config.get_username()};PWD={self.config.get_password()};Trusted_Connection=yes;'
                 )
 
             else:
                 self.connection = pyodbc.connect(
-                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server};DATABASE={self.config.get_database};UID={self.config.get_username};PWD={self.config.get_password}'
+                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server()};DATABASE={self.config.get_database()};UID={self.config.get_username()};PWD={self.config.get_password()}'
                  )
             
             # Check if the connection was successful
@@ -495,9 +496,9 @@ class BarcodeApp(QMainWindow):
             QMessageBox.critical(self, 'Database Error', 'Database is not connected. Items will not be shown.')
             return
 
-        self.logger.info(f"Fetching items for location: {self.location}")
+        self.logger.info(f"Fetching items for location: {self.config.get_location()}")
         
-        self.fetch_items_thread = FetchItemsThread(self.connection, self.location)
+        self.fetch_items_thread = FetchItemsThread(self.connection, self.config.get_location())
         self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
         self.fetch_items_thread.start()
 
@@ -752,8 +753,9 @@ class BarcodeApp(QMainWindow):
 
     def print_barcode(self):
         selected_rows = []
-        barcode_config = Configurations.BarcodeConfig()
         send_command = SendCommand()
+
+        # Get selected rows
         for row in range(self.item_table.rowCount()):
             if self.item_table.item(row, 0).checkState() == Qt.Checked:
                 selected_rows.append(row)
@@ -763,11 +765,21 @@ class BarcodeApp(QMainWindow):
             QMessageBox.warning(self, 'Selection Error', 'No items selected for printing.')
             return
 
+        # Show the Remark Dialog
+        remark_dialog = RemarkDialog()
+        remark_dialog.exec_()  # Show the dialog and wait for user input
+
+        # Check if the user clicked "Write" or "Cancel"
+        if remark_dialog.get_accepted():
+            remark_text = remark_dialog.get_remark()  # Get the remark text
+        else:
+            remark_text = ""  # User clicked "Cancel," so no remark
+
         printer = None  # Ensure we initialize the printer variable
         try:
             self.logger.info("USB mode selected. Checking printer connection...")
 
-            if barcode_config.get_use_generic_driver():
+            if self.config.get_use_generic_driver():
                 printer = usb.core.find(idVendor=self.config.get_vid(), idProduct=self.config.get_pid(), backend=self.backend)
 
                 if printer is None:
@@ -786,7 +798,7 @@ class BarcodeApp(QMainWindow):
             else:
                 self.logger.info("Wireless mode selected. Validating IP and port...")
                 try:
-                    ip, port = self.config.get_ip_address.split(":")
+                    ip, port = self.config.get_ip_address().split(":")
                 except ValueError as e:
                     self.logger.error(f"Invalid IP or port: {e}")
                     QMessageBox.warning(self, 'Printer Error', f"Invalid IP or port: {e}")
@@ -796,21 +808,21 @@ class BarcodeApp(QMainWindow):
             for row in selected_rows:
                 description = self.item_table.item(row, 2).text()
                 description = description.replace('"', '')
-                print("desfjdnfidninbdi", description)
                 unit_price_integer = self.item_table.item(row, 8).text()
                 barcode_value = self.item_table.item(row, 6).text()
                 copies = self.item_table.item(row, 9).text()
 
                 self.logger.info(f"Preparing to print item: {description} (Barcode: {barcode_value})")
-            
+
                 printer_clear = ""
                 print_data = ""
-                if not self.useZPL:
+                if not self.config.get_use_zpl():
                     printer_clear = "CLS"
                     print_data = self.replace_placeholders(
                         self.config.get_tpsl_template(),
                         companyName=self.config.get_company_name(),
                         description=description,
+                        remark=remark_text,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
                         copies=copies,
@@ -821,10 +833,14 @@ class BarcodeApp(QMainWindow):
                         self.config.get_zpl_template(),
                         companyName=self.config.get_company_name(),
                         description=description,
+                        remark=remark_text,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
                         copies=copies,
                     )
+                    # Add remark to ZPL command
+                    if remark_text:
+                        print_data += f"\n^FO10,180^A0N,15,20^FDRemark: {remark_text}^FS"
 
                 if self.config.get_use_generic_driver():
                     if printer is not None:
