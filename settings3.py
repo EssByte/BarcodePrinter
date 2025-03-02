@@ -22,7 +22,7 @@ class SettingsWindow(QMainWindow):
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.barcode_config = Configurations.BarcodeConfig()
         # Load the UI file first
-        self.logger = setup_logger('Settings2')  # Create logger specific to this window
+        self.logger = setup_logger('Settings3')  # Create logger specific to this window
         uic.loadUi(self.resource_path("ui/settings3.ui"), self)
         self.logger.info("Settings2 initialized.")
 
@@ -731,6 +731,7 @@ class SettingsWindow(QMainWindow):
             self.config.set_logging(self.cb_logging.isChecked())
             self.config.set_use_generic_driver(self.useGeneric.isChecked())
             self.config.set_hide_cost(self.cb_hide_cost.isChecked())
+            self.config.set_trusted_connection(self.cb_trusted_connection.isChecked())
 
             # Log successful update
             self.logger.info("Configuration file updated successfully.")
