@@ -2,6 +2,7 @@ import os
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
+from PyQt5.QtGui import QPixmap
 from PyQt5.uic import loadUi
 
 from modules.logger_config import setup_logger  # To load the .ui file directly
@@ -17,8 +18,9 @@ class RemarkDialog(QDialog):
         self.logger = setup_logger('RemarkUI')
         loadUi(self.resource_path("ui/remark.ui"), self)  
 
+        icon = QPixmap(self.resource_path("images/ic_remark.png"))
         self.icon = self.findChild(QtWidgets.QLabel, "lbl_icon")
-        self.icon.setPixmap(self.resource_path("images/ic_remark.png"))
+        self.icon.setPixmap(icon)
 
         # Connect buttons to their respective slots
         self.btn_cancel.clicked.connect(self.on_cancel)
