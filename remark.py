@@ -1,5 +1,6 @@
 import os
 import sys
+from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QApplication, QDialog, QMessageBox
 from PyQt5.uic import loadUi
 
@@ -16,9 +17,13 @@ class RemarkDialog(QDialog):
         self.logger = setup_logger('RemarkUI')
         loadUi(self.resource_path("ui/remark.ui"), self)  
 
+        self.icon = self.findChild(QtWidgets.QLabel, "lbl_icon")
+        self.icon.setPixmap(self.resource_path("images/ic_remark.png"))
+
         # Connect buttons to their respective slots
         self.btn_cancel.clicked.connect(self.on_cancel)
         self.btn_write.clicked.connect(self.on_write)
+    
     
         self.__remark = ""
         self.__isAccepted = False
