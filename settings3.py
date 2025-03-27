@@ -128,6 +128,9 @@ class SettingsWindow(QMainWindow):
             self.saveButton = self.findChild(QtWidgets.QPushButton, "btn_save")
             self.saveButton.setCursor(Qt.PointingHandCursor)
             self.saveButton.clicked.connect(self.update_data)
+            self.resetButton = self.findChild(QtWidgets.QPushButton, "btn_reset")
+            self.resetButton.setCursor(Qt.PointingHandCursor)
+            self.resetButton.clicked.connect(self.reset_data)
             self.reloadButton = self.findChild(QtWidgets.QPushButton, "btn_reload")
             self.reloadButton.clicked.connect(self.reload_data)
             self.btn_sendCommand = self.findChild(QtWidgets.QPushButton, 'btn_sendCommand')
@@ -615,6 +618,7 @@ class SettingsWindow(QMainWindow):
             self.endpoint.setEnabled(False)
             self.ip_address.setEnabled(False)
             self.populate_customdriver_printer_list()
+        
 
     def populate_customdriver_printer_list(self):
     # Create an instance of CheckDrivers
@@ -646,6 +650,11 @@ class SettingsWindow(QMainWindow):
             self.use_zpl.setChecked(False)
             self.tpslCommand.setEnabled(True)
             self.use_tpsl.setChecked(True)
+
+    def reset_data(self):
+        print("Resetting to default!!!!!!")
+        self.config.reset_to_defaults()
+        self.load_data()
 
     def load_data(self):
         try:
