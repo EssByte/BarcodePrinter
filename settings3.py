@@ -141,7 +141,19 @@ class SettingsWindow(QMainWindow):
             self.btn_checkdriver.clicked.connect(self.set_database_driver_details)
             self.cb_trusted_connection = self.findChild(QtWidgets.QCheckBox, "cb_trustedConnection")
             self.cb_trusted_connection.stateChanged.connect(self.handle_trustedConnecion)
+
+            self.combo_zpl_size = self.findChild(QtWidgets.QComboBox, "combo_zpl_size")
+            self.combo_tpsl_size = self.findChild(QtWidgets.QComboBox, "combo_tpsl_size")
+            options = ["size1", "size2", "size3"]
+            self.combo_tpsl_size.clear()
+            self.combo_zpl_size.clear()
+            self.combo_tpsl_size.setItemData(options)
+            self.combo_zpl_size.setItemData(options)
+            self.combo_tpsl_size.currentIndexChanged.connect(self.on_tpslSize_changed)
+            self.combo_zpl_size.currentIndexChanged.connect(self.on_zplSize_changed)
+
             self.logger.info("Widgets initialized.")
+
         except Exception as e:
             self.logger.error(f"Failed to initialize widgets for the dashboard: {e}")
 
@@ -159,6 +171,12 @@ class SettingsWindow(QMainWindow):
         except Exception as e:
             self.logger.error(f"Failed to load data from json file to UI elements: {e}")
         
+    
+    def on_tpslSize_changed(self):
+        return
+    
+    def on_zplSize_changed(self):
+        return
 
     def update_printer_in_json(self):
         try:

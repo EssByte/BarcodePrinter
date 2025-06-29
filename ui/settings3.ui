@@ -39,10 +39,10 @@
        <string notr="true"/>
       </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::Shape::StyledPanel</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+       <enum>QFrame::Shadow::Raised</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
@@ -60,10 +60,10 @@
           </size>
          </property>
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::Shape::StyledPanel</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Shadow::Raised</enum>
          </property>
          <widget class="QLabel" name="lbl_iconLogo">
           <property name="geometry">
@@ -94,7 +94,6 @@
            <font>
             <family>Sans Serif</family>
             <pointsize>25</pointsize>
-            <weight>75</weight>
             <italic>false</italic>
             <bold>true</bold>
             <strikeout>false</strikeout>
@@ -105,7 +104,7 @@
            <string>BarcodePrinter</string>
           </property>
           <property name="textFormat">
-           <enum>Qt::PlainText</enum>
+           <enum>Qt::TextFormat::PlainText</enum>
           </property>
          </widget>
          <widget class="QLabel" name="lbl_version">
@@ -120,7 +119,6 @@
           <property name="font">
            <font>
             <family>Sans Serif</family>
-            <weight>75</weight>
             <bold>true</bold>
            </font>
           </property>
@@ -136,7 +134,7 @@
            <string>version 2.0.1</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
          </widget>
         </widget>
@@ -144,7 +142,7 @@
        <item>
         <spacer name="horizontalSpacer">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -175,10 +173,10 @@
 }</string>
          </property>
          <property name="frameShape">
-          <enum>QFrame::StyledPanel</enum>
+          <enum>QFrame::Shape::StyledPanel</enum>
          </property>
          <property name="frameShadow">
-          <enum>QFrame::Raised</enum>
+          <enum>QFrame::Shadow::Raised</enum>
          </property>
          <widget class="QLabel" name="label_11">
           <property name="geometry">
@@ -193,7 +191,6 @@
            <font>
             <family>Sans Serif</family>
             <pointsize>30</pointsize>
-            <weight>75</weight>
             <italic>true</italic>
             <bold>true</bold>
            </font>
@@ -208,7 +205,7 @@
            <string>Settings</string>
           </property>
           <property name="textFormat">
-           <enum>Qt::PlainText</enum>
+           <enum>Qt::TextFormat::PlainText</enum>
           </property>
          </widget>
          <widget class="QLabel" name="settings_icon">
@@ -253,10 +250,10 @@
        </size>
       </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::Shape::StyledPanel</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+       <enum>QFrame::Shadow::Raised</enum>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
@@ -289,8 +286,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>1273</width>
-                <height>548</height>
+                <width>1314</width>
+                <height>554</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -317,10 +314,10 @@
 }</string>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                    <enum>QFrame::Shape::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                    <enum>QFrame::Shadow::Raised</enum>
                    </property>
                    <widget class="QLabel" name="label_21">
                     <property name="geometry">
@@ -335,7 +332,6 @@
                      <font>
                       <family>Sans Serif</family>
                       <pointsize>13</pointsize>
-                      <weight>75</weight>
                       <italic>false</italic>
                       <bold>true</bold>
                       <strikeout>false</strikeout>
@@ -353,7 +349,7 @@
                      <string>Other Settings</string>
                     </property>
                     <property name="textFormat">
-                     <enum>Qt::PlainText</enum>
+                     <enum>Qt::TextFormat::PlainText</enum>
                     </property>
                    </widget>
                    <widget class="QLabel" name="label_22">
@@ -369,7 +365,6 @@
                      <font>
                       <family>Sans Serif</family>
                       <pointsize>10</pointsize>
-                      <weight>75</weight>
                       <italic>false</italic>
                       <bold>true</bold>
                       <strikeout>false</strikeout>
@@ -387,7 +382,7 @@
                      <string>Company Name:</string>
                     </property>
                     <property name="textFormat">
-                     <enum>Qt::PlainText</enum>
+                     <enum>Qt::TextFormat::PlainText</enum>
                     </property>
                    </widget>
                    <widget class="QLineEdit" name="et_companyName">
@@ -402,7 +397,6 @@
                     <property name="font">
                      <font>
                       <family>Roboto Slab</family>
-                      <weight>75</weight>
                       <bold>true</bold>
                      </font>
                     </property>
@@ -426,7 +420,6 @@
                     <property name="font">
                      <font>
                       <family>Roboto Slab</family>
-                      <weight>75</weight>
                       <bold>true</bold>
                      </font>
                     </property>
@@ -451,7 +444,6 @@
                      <font>
                       <family>Sans Serif</family>
                       <pointsize>10</pointsize>
-                      <weight>75</weight>
                       <italic>false</italic>
                       <bold>true</bold>
                       <strikeout>false</strikeout>
@@ -469,7 +461,7 @@
                      <string>Location:</string>
                     </property>
                     <property name="textFormat">
-                     <enum>Qt::PlainText</enum>
+                     <enum>Qt::TextFormat::PlainText</enum>
                     </property>
                    </widget>
                    <widget class="QFrame" name="frame_8">
@@ -487,10 +479,10 @@
 }</string>
                     </property>
                     <property name="frameShape">
-                     <enum>QFrame::StyledPanel</enum>
+                     <enum>QFrame::Shape::StyledPanel</enum>
                     </property>
                     <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
+                     <enum>QFrame::Shadow::Raised</enum>
                     </property>
                    </widget>
                    <widget class="QLabel" name="lbl_iconOtherSettings">
@@ -550,7 +542,6 @@
                      <font>
                       <family>Sans Serif</family>
                       <pointsize>10</pointsize>
-                      <weight>75</weight>
                       <italic>false</italic>
                       <bold>true</bold>
                       <strikeout>false</strikeout>
@@ -568,7 +559,7 @@
                      <string>Logging:</string>
                     </property>
                     <property name="textFormat">
-                     <enum>Qt::PlainText</enum>
+                     <enum>Qt::TextFormat::PlainText</enum>
                     </property>
                    </widget>
                    <widget class="QLabel" name="label">
@@ -584,7 +575,6 @@
                      <font>
                       <family>Sans Serif</family>
                       <pointsize>7</pointsize>
-                      <weight>75</weight>
                       <bold>true</bold>
                      </font>
                     </property>
@@ -635,10 +625,10 @@
 }</string>
                     </property>
                     <property name="frameShape">
-                     <enum>QFrame::StyledPanel</enum>
+                     <enum>QFrame::Shape::StyledPanel</enum>
                     </property>
                     <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
+                     <enum>QFrame::Shadow::Raised</enum>
                     </property>
                    </widget>
                    <widget class="QLabel" name="label_26">
@@ -654,7 +644,6 @@
                      <font>
                       <family>Sans Serif</family>
                       <pointsize>10</pointsize>
-                      <weight>75</weight>
                       <italic>false</italic>
                       <bold>true</bold>
                       <strikeout>false</strikeout>
@@ -672,7 +661,7 @@
                      <string>Hide Cost:</string>
                     </property>
                     <property name="textFormat">
-                     <enum>Qt::PlainText</enum>
+                     <enum>Qt::TextFormat::PlainText</enum>
                     </property>
                    </widget>
                    <widget class="QCheckBox" name="cb_hideCost">
@@ -702,10 +691,10 @@
 }</string>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                    <enum>QFrame::Shape::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                    <enum>QFrame::Shadow::Raised</enum>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_6">
                     <item>
@@ -716,7 +705,6 @@
                          <font>
                           <family>Sans Serif</family>
                           <pointsize>12</pointsize>
-                          <weight>75</weight>
                           <italic>false</italic>
                           <bold>true</bold>
                           <strikeout>false</strikeout>
@@ -734,14 +722,25 @@
                          <string>TPSL Programming Language</string>
                         </property>
                         <property name="textFormat">
-                         <enum>Qt::PlainText</enum>
+                         <enum>Qt::TextFormat::PlainText</enum>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QComboBox" name="combo_tpsl_size">
+                        <property name="styleSheet">
+                         <string notr="true">QComboBox {
+	background: rgba(255, 255, 255, 130);
+	border-radius: 8px;
+	padding: 5px;
+}</string>
                         </property>
                        </widget>
                       </item>
                       <item>
                        <spacer name="horizontalSpacer_4">
                         <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
+                         <enum>Qt::Orientation::Horizontal</enum>
                         </property>
                         <property name="sizeHint" stdset="0">
                          <size>
@@ -834,10 +833,10 @@
 }</string>
                         </property>
                         <property name="frameShape">
-                         <enum>QFrame::StyledPanel</enum>
+                         <enum>QFrame::Shape::StyledPanel</enum>
                         </property>
                         <property name="frameShadow">
-                         <enum>QFrame::Raised</enum>
+                         <enum>QFrame::Shadow::Raised</enum>
                         </property>
                        </widget>
                       </item>
@@ -852,7 +851,6 @@
                         <property name="font">
                          <font>
                           <family>Sans Serif</family>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -865,23 +863,26 @@
                         </property>
                         <property name="html">
                          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8.25pt; font-weight:600; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;SPEED 2.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;DENSITY 7 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;DIRECTION 0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;SIZE 35MM,25MM &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;OFFSET 0.000 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;REFERENCE 0,0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;CLS &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 320,5,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{companyName}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,40,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,120,\&amp;quot;1\&amp;quot;,0,1,1,\&amp;quot;{{description}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;BARCODE 310,60,\&amp;quot;128\&amp;quot;,50,0,0,2,10,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,160,\&amp;quot;4\&amp;quot;,0,1,1,\&amp;quot;{{unit_price_integer}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;PRINT {{copies}} &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;EOP&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:700; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;SPEED 2.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;DENSITY 7 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;DIRECTION 0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;SIZE 35MM,25MM &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;OFFSET 0.000 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;REFERENCE 0,0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;CLS &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 320,5,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{companyName}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,40,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,120,\&amp;quot;1\&amp;quot;,0,1,1,\&amp;quot;{{description}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;BARCODE 310,60,\&amp;quot;128\&amp;quot;,50,0,0,2,10,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,160,\&amp;quot;4\&amp;quot;,0,1,1,\&amp;quot;{{unit_price_integer}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;PRINT {{copies}} &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;EOP&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                        </widget>
                       </item>
@@ -905,10 +906,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                    <enum>QFrame::Shape::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                    <enum>QFrame::Shadow::Raised</enum>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_5">
                     <item>
@@ -919,7 +920,6 @@ p, li { white-space: pre-wrap; }
                          <font>
                           <family>Sans Serif</family>
                           <pointsize>12</pointsize>
-                          <weight>75</weight>
                           <italic>false</italic>
                           <bold>true</bold>
                           <strikeout>false</strikeout>
@@ -937,14 +937,25 @@ p, li { white-space: pre-wrap; }
                          <string>ZPL Programming Language</string>
                         </property>
                         <property name="textFormat">
-                         <enum>Qt::PlainText</enum>
+                         <enum>Qt::TextFormat::PlainText</enum>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QComboBox" name="combo_zpl_size">
+                        <property name="styleSheet">
+                         <string notr="true">QComboBox {
+	background: rgba(255, 255, 255, 130);
+	border-radius: 8px;
+	padding: 5px;
+}</string>
                         </property>
                        </widget>
                       </item>
                       <item>
                        <spacer name="horizontalSpacer_3">
                         <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
+                         <enum>Qt::Orientation::Horizontal</enum>
                         </property>
                         <property name="sizeHint" stdset="0">
                          <size>
@@ -1037,10 +1048,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                         </property>
                         <property name="frameShape">
-                         <enum>QFrame::StyledPanel</enum>
+                         <enum>QFrame::Shape::StyledPanel</enum>
                         </property>
                         <property name="frameShadow">
-                         <enum>QFrame::Raised</enum>
+                         <enum>QFrame::Shadow::Raised</enum>
                         </property>
                        </widget>
                       </item>
@@ -1055,7 +1066,6 @@ p, li { white-space: pre-wrap; }
                         <property name="font">
                          <font>
                           <family>Sans Serif</family>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -1068,23 +1078,26 @@ p, li { white-space: pre-wrap; }
                         </property>
                         <property name="html">
                          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8.25pt; font-weight:600; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;SPEED 2.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;DENSITY 7 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;DIRECTION 0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;SIZE 35MM,25MM &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;OFFSET 0.000 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;REFERENCE 0,0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;CLS &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 320,5,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{companyName}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,40,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,120,\&amp;quot;1\&amp;quot;,0,1,1,\&amp;quot;{{description}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;BARCODE 310,60,\&amp;quot;128\&amp;quot;,50,0,0,2,10,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,160,\&amp;quot;4\&amp;quot;,0,1,1,\&amp;quot;{{unit_price_integer}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;PRINT {{copies}} &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;EOP&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:700; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;SPEED 2.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;DENSITY 7 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;DIRECTION 0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;SIZE 35MM,25MM &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;OFFSET 0.000 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;REFERENCE 0,0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;CLS &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 320,5,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{companyName}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,40,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,120,\&amp;quot;1\&amp;quot;,0,1,1,\&amp;quot;{{description}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;BARCODE 310,60,\&amp;quot;128\&amp;quot;,50,0,0,2,10,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,160,\&amp;quot;4\&amp;quot;,0,1,1,\&amp;quot;{{unit_price_integer}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;PRINT {{copies}} &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;EOP&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                        </widget>
                       </item>
@@ -1108,16 +1121,16 @@ p, li { white-space: pre-wrap; }
 }</string>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                    <enum>QFrame::Shape::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                    <enum>QFrame::Shadow::Raised</enum>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_11">
                     <item>
                      <layout class="QHBoxLayout" name="horizontalLayout_9">
                       <property name="sizeConstraint">
-                       <enum>QLayout::SetFixedSize</enum>
+                       <enum>QLayout::SizeConstraint::SetFixedSize</enum>
                       </property>
                       <item>
                        <widget class="QLabel" name="label_19">
@@ -1131,7 +1144,6 @@ p, li { white-space: pre-wrap; }
                          <font>
                           <family>Sans Serif</family>
                           <pointsize>12</pointsize>
-                          <weight>75</weight>
                           <italic>false</italic>
                           <bold>true</bold>
                           <strikeout>false</strikeout>
@@ -1149,14 +1161,14 @@ p, li { white-space: pre-wrap; }
                          <string>Printer</string>
                         </property>
                         <property name="textFormat">
-                         <enum>Qt::PlainText</enum>
+                         <enum>Qt::TextFormat::PlainText</enum>
                         </property>
                        </widget>
                       </item>
                       <item>
                        <spacer name="horizontalSpacer_5">
                         <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
+                         <enum>Qt::Orientation::Horizontal</enum>
                         </property>
                         <property name="sizeHint" stdset="0">
                          <size>
@@ -1170,7 +1182,6 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="rb_useGeneric">
                         <property name="font">
                          <font>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -1188,7 +1199,6 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="rb_useIP">
                         <property name="font">
                          <font>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -1206,7 +1216,6 @@ p, li { white-space: pre-wrap; }
                        <widget class="QRadioButton" name="rb_useCustom">
                         <property name="font">
                          <font>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -1300,10 +1309,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                         </property>
                         <property name="frameShape">
-                         <enum>QFrame::StyledPanel</enum>
+                         <enum>QFrame::Shape::StyledPanel</enum>
                         </property>
                         <property name="frameShadow">
-                         <enum>QFrame::Raised</enum>
+                         <enum>QFrame::Shadow::Raised</enum>
                         </property>
                        </widget>
                       </item>
@@ -1329,7 +1338,6 @@ p, li { white-space: pre-wrap; }
                              <font>
                               <family>Sans Serif</family>
                               <pointsize>10</pointsize>
-                              <weight>75</weight>
                               <italic>false</italic>
                               <bold>true</bold>
                               <strikeout>false</strikeout>
@@ -1347,17 +1355,17 @@ p, li { white-space: pre-wrap; }
                              <string>Printers:</string>
                             </property>
                             <property name="textFormat">
-                             <enum>Qt::PlainText</enum>
+                             <enum>Qt::TextFormat::PlainText</enum>
                             </property>
                            </widget>
                           </item>
                           <item>
                            <spacer name="horizontalSpacer_8">
                             <property name="orientation">
-                             <enum>Qt::Horizontal</enum>
+                             <enum>Qt::Orientation::Horizontal</enum>
                             </property>
                             <property name="sizeType">
-                             <enum>QSizePolicy::Fixed</enum>
+                             <enum>QSizePolicy::Policy::Fixed</enum>
                             </property>
                             <property name="sizeHint" stdset="0">
                              <size>
@@ -1378,7 +1386,6 @@ p, li { white-space: pre-wrap; }
                             <property name="font">
                              <font>
                               <family>Roboto Slab</family>
-                              <weight>75</weight>
                               <bold>true</bold>
                              </font>
                             </property>
@@ -1401,7 +1408,6 @@ p, li { white-space: pre-wrap; }
                              <font>
                               <family>Sans Serif</family>
                               <pointsize>10</pointsize>
-                              <weight>75</weight>
                               <italic>false</italic>
                               <bold>true</bold>
                               <strikeout>false</strikeout>
@@ -1419,17 +1425,17 @@ p, li { white-space: pre-wrap; }
                              <string>Endpoint:</string>
                             </property>
                             <property name="textFormat">
-                             <enum>Qt::PlainText</enum>
+                             <enum>Qt::TextFormat::PlainText</enum>
                             </property>
                            </widget>
                           </item>
                           <item>
                            <spacer name="horizontalSpacer_9">
                             <property name="orientation">
-                             <enum>Qt::Horizontal</enum>
+                             <enum>Qt::Orientation::Horizontal</enum>
                             </property>
                             <property name="sizeType">
-                             <enum>QSizePolicy::Fixed</enum>
+                             <enum>QSizePolicy::Policy::Fixed</enum>
                             </property>
                             <property name="sizeHint" stdset="0">
                              <size>
@@ -1450,7 +1456,6 @@ p, li { white-space: pre-wrap; }
                             <property name="font">
                              <font>
                               <family>Roboto Slab</family>
-                              <weight>75</weight>
                               <bold>true</bold>
                              </font>
                             </property>
@@ -1473,7 +1478,6 @@ p, li { white-space: pre-wrap; }
                              <font>
                               <family>Sans Serif</family>
                               <pointsize>10</pointsize>
-                              <weight>75</weight>
                               <italic>false</italic>
                               <bold>true</bold>
                               <strikeout>false</strikeout>
@@ -1491,17 +1495,17 @@ p, li { white-space: pre-wrap; }
                              <string>Printer VID:</string>
                             </property>
                             <property name="textFormat">
-                             <enum>Qt::PlainText</enum>
+                             <enum>Qt::TextFormat::PlainText</enum>
                             </property>
                            </widget>
                           </item>
                           <item>
                            <spacer name="horizontalSpacer_10">
                             <property name="orientation">
-                             <enum>Qt::Horizontal</enum>
+                             <enum>Qt::Orientation::Horizontal</enum>
                             </property>
                             <property name="sizeType">
-                             <enum>QSizePolicy::Fixed</enum>
+                             <enum>QSizePolicy::Policy::Fixed</enum>
                             </property>
                             <property name="sizeHint" stdset="0">
                              <size>
@@ -1522,7 +1526,6 @@ p, li { white-space: pre-wrap; }
                             <property name="font">
                              <font>
                               <family>Roboto Slab</family>
-                              <weight>75</weight>
                               <bold>true</bold>
                              </font>
                             </property>
@@ -1545,7 +1548,6 @@ p, li { white-space: pre-wrap; }
                              <font>
                               <family>Sans Serif</family>
                               <pointsize>10</pointsize>
-                              <weight>75</weight>
                               <italic>false</italic>
                               <bold>true</bold>
                               <strikeout>false</strikeout>
@@ -1563,17 +1565,17 @@ p, li { white-space: pre-wrap; }
                              <string>Printer PID:</string>
                             </property>
                             <property name="textFormat">
-                             <enum>Qt::PlainText</enum>
+                             <enum>Qt::TextFormat::PlainText</enum>
                             </property>
                            </widget>
                           </item>
                           <item>
                            <spacer name="horizontalSpacer_11">
                             <property name="orientation">
-                             <enum>Qt::Horizontal</enum>
+                             <enum>Qt::Orientation::Horizontal</enum>
                             </property>
                             <property name="sizeType">
-                             <enum>QSizePolicy::Fixed</enum>
+                             <enum>QSizePolicy::Policy::Fixed</enum>
                             </property>
                             <property name="sizeHint" stdset="0">
                              <size>
@@ -1594,7 +1596,6 @@ p, li { white-space: pre-wrap; }
                             <property name="font">
                              <font>
                               <family>Roboto Slab</family>
-                              <weight>75</weight>
                               <bold>true</bold>
                              </font>
                             </property>
@@ -1617,7 +1618,6 @@ p, li { white-space: pre-wrap; }
                              <font>
                               <family>Sans Serif</family>
                               <pointsize>10</pointsize>
-                              <weight>75</weight>
                               <italic>false</italic>
                               <bold>true</bold>
                               <strikeout>false</strikeout>
@@ -1635,17 +1635,17 @@ p, li { white-space: pre-wrap; }
                              <string>IP Address:</string>
                             </property>
                             <property name="textFormat">
-                             <enum>Qt::PlainText</enum>
+                             <enum>Qt::TextFormat::PlainText</enum>
                             </property>
                            </widget>
                           </item>
                           <item>
                            <spacer name="horizontalSpacer_12">
                             <property name="orientation">
-                             <enum>Qt::Horizontal</enum>
+                             <enum>Qt::Orientation::Horizontal</enum>
                             </property>
                             <property name="sizeType">
-                             <enum>QSizePolicy::Fixed</enum>
+                             <enum>QSizePolicy::Policy::Fixed</enum>
                             </property>
                             <property name="sizeHint" stdset="0">
                              <size>
@@ -1666,7 +1666,6 @@ p, li { white-space: pre-wrap; }
                             <property name="font">
                              <font>
                               <family>Roboto Slab</family>
-                              <weight>75</weight>
                               <bold>true</bold>
                              </font>
                             </property>
@@ -1703,10 +1702,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                    <enum>QFrame::Shape::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                    <enum>QFrame::Shadow::Raised</enum>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_16">
                     <item>
@@ -1724,10 +1723,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                       </property>
                       <property name="frameShape">
-                       <enum>QFrame::StyledPanel</enum>
+                       <enum>QFrame::Shape::StyledPanel</enum>
                       </property>
                       <property name="frameShadow">
-                       <enum>QFrame::Raised</enum>
+                       <enum>QFrame::Shadow::Raised</enum>
                       </property>
                       <layout class="QHBoxLayout" name="horizontalLayout_34">
                        <item>
@@ -1736,7 +1735,6 @@ p, li { white-space: pre-wrap; }
                           <font>
                            <family>Sans Serif</family>
                            <pointsize>12</pointsize>
-                           <weight>75</weight>
                            <italic>false</italic>
                            <bold>true</bold>
                            <strikeout>false</strikeout>
@@ -1754,14 +1752,14 @@ p, li { white-space: pre-wrap; }
                           <string>Current Database Information</string>
                          </property>
                          <property name="textFormat">
-                          <enum>Qt::PlainText</enum>
+                          <enum>Qt::TextFormat::PlainText</enum>
                          </property>
                         </widget>
                        </item>
                        <item>
                         <spacer name="horizontalSpacer_24">
                          <property name="orientation">
-                          <enum>Qt::Horizontal</enum>
+                          <enum>Qt::Orientation::Horizontal</enum>
                          </property>
                          <property name="sizeHint" stdset="0">
                           <size>
@@ -1824,10 +1822,10 @@ p, li { white-space: pre-wrap; }
                        </sizepolicy>
                       </property>
                       <property name="frameShape">
-                       <enum>QFrame::StyledPanel</enum>
+                       <enum>QFrame::Shape::StyledPanel</enum>
                       </property>
                       <property name="frameShadow">
-                       <enum>QFrame::Raised</enum>
+                       <enum>QFrame::Shadow::Raised</enum>
                       </property>
                       <layout class="QHBoxLayout" name="horizontalLayout_28">
                        <item>
@@ -1877,10 +1875,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                          </property>
                          <property name="frameShape">
-                          <enum>QFrame::StyledPanel</enum>
+                          <enum>QFrame::Shape::StyledPanel</enum>
                          </property>
                          <property name="frameShadow">
-                          <enum>QFrame::Raised</enum>
+                          <enum>QFrame::Shadow::Raised</enum>
                          </property>
                         </widget>
                        </item>
@@ -1906,7 +1904,6 @@ p, li { white-space: pre-wrap; }
                               <font>
                                <family>Sans Serif</family>
                                <pointsize>10</pointsize>
-                               <weight>75</weight>
                                <italic>false</italic>
                                <bold>true</bold>
                                <strikeout>false</strikeout>
@@ -1924,17 +1921,17 @@ p, li { white-space: pre-wrap; }
                               <string>Server Name:</string>
                              </property>
                              <property name="textFormat">
-                              <enum>Qt::PlainText</enum>
+                              <enum>Qt::TextFormat::PlainText</enum>
                              </property>
                             </widget>
                            </item>
                            <item>
                             <spacer name="horizontalSpacer_25">
                              <property name="orientation">
-                              <enum>Qt::Horizontal</enum>
+                              <enum>Qt::Orientation::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Fixed</enum>
+                              <enum>QSizePolicy::Policy::Fixed</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -1961,7 +1958,6 @@ p, li { white-space: pre-wrap; }
                              <property name="font">
                               <font>
                                <family>Roboto Slab</family>
-                               <weight>75</weight>
                                <bold>true</bold>
                               </font>
                              </property>
@@ -1996,7 +1992,6 @@ p, li { white-space: pre-wrap; }
                               <font>
                                <family>Sans Serif</family>
                                <pointsize>10</pointsize>
-                               <weight>75</weight>
                                <italic>false</italic>
                                <bold>true</bold>
                                <strikeout>false</strikeout>
@@ -2014,17 +2009,17 @@ p, li { white-space: pre-wrap; }
                               <string>DB Name:</string>
                              </property>
                              <property name="textFormat">
-                              <enum>Qt::PlainText</enum>
+                              <enum>Qt::TextFormat::PlainText</enum>
                              </property>
                             </widget>
                            </item>
                            <item>
                             <spacer name="horizontalSpacer_26">
                              <property name="orientation">
-                              <enum>Qt::Horizontal</enum>
+                              <enum>Qt::Orientation::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Fixed</enum>
+                              <enum>QSizePolicy::Policy::Fixed</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -2051,7 +2046,6 @@ p, li { white-space: pre-wrap; }
                              <property name="font">
                               <font>
                                <family>Roboto Slab</family>
-                               <weight>75</weight>
                                <bold>true</bold>
                               </font>
                              </property>
@@ -2086,7 +2080,6 @@ p, li { white-space: pre-wrap; }
                               <font>
                                <family>Sans Serif</family>
                                <pointsize>10</pointsize>
-                               <weight>75</weight>
                                <italic>false</italic>
                                <bold>true</bold>
                                <strikeout>false</strikeout>
@@ -2104,17 +2097,17 @@ p, li { white-space: pre-wrap; }
                               <string>Username:</string>
                              </property>
                              <property name="textFormat">
-                              <enum>Qt::PlainText</enum>
+                              <enum>Qt::TextFormat::PlainText</enum>
                              </property>
                             </widget>
                            </item>
                            <item>
                             <spacer name="horizontalSpacer_27">
                              <property name="orientation">
-                              <enum>Qt::Horizontal</enum>
+                              <enum>Qt::Orientation::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Fixed</enum>
+                              <enum>QSizePolicy::Policy::Fixed</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -2141,7 +2134,6 @@ p, li { white-space: pre-wrap; }
                              <property name="font">
                               <font>
                                <family>Roboto Slab</family>
-                               <weight>75</weight>
                                <bold>true</bold>
                               </font>
                              </property>
@@ -2176,7 +2168,6 @@ p, li { white-space: pre-wrap; }
                               <font>
                                <family>Sans Serif</family>
                                <pointsize>10</pointsize>
-                               <weight>75</weight>
                                <italic>false</italic>
                                <bold>true</bold>
                                <strikeout>false</strikeout>
@@ -2194,17 +2185,17 @@ p, li { white-space: pre-wrap; }
                               <string>Password:</string>
                              </property>
                              <property name="textFormat">
-                              <enum>Qt::PlainText</enum>
+                              <enum>Qt::TextFormat::PlainText</enum>
                              </property>
                             </widget>
                            </item>
                            <item>
                             <spacer name="horizontalSpacer_28">
                              <property name="orientation">
-                              <enum>Qt::Horizontal</enum>
+                              <enum>Qt::Orientation::Horizontal</enum>
                              </property>
                              <property name="sizeType">
-                              <enum>QSizePolicy::Fixed</enum>
+                              <enum>QSizePolicy::Policy::Fixed</enum>
                              </property>
                              <property name="sizeHint" stdset="0">
                               <size>
@@ -2231,7 +2222,6 @@ p, li { white-space: pre-wrap; }
                              <property name="font">
                               <font>
                                <family>Roboto Slab</family>
-                               <weight>75</weight>
                                <bold>true</bold>
                               </font>
                              </property>
@@ -2290,10 +2280,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                </property>
                <property name="frameShape">
-                <enum>QFrame::StyledPanel</enum>
+                <enum>QFrame::Shape::StyledPanel</enum>
                </property>
                <property name="frameShadow">
-                <enum>QFrame::Raised</enum>
+                <enum>QFrame::Shadow::Raised</enum>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_14">
                 <item>
@@ -2310,10 +2300,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                   </property>
                   <property name="frameShape">
-                   <enum>QFrame::StyledPanel</enum>
+                   <enum>QFrame::Shape::StyledPanel</enum>
                   </property>
                   <property name="frameShadow">
-                   <enum>QFrame::Raised</enum>
+                   <enum>QFrame::Shadow::Raised</enum>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_7">
                    <item>
@@ -2324,7 +2314,6 @@ p, li { white-space: pre-wrap; }
                         <font>
                          <family>Sans Serif</family>
                          <pointsize>12</pointsize>
-                         <weight>75</weight>
                          <italic>false</italic>
                          <bold>true</bold>
                          <strikeout>false</strikeout>
@@ -2342,14 +2331,14 @@ p, li { white-space: pre-wrap; }
                         <string>Driver Information</string>
                        </property>
                        <property name="textFormat">
-                        <enum>Qt::PlainText</enum>
+                        <enum>Qt::TextFormat::PlainText</enum>
                        </property>
                       </widget>
                      </item>
                      <item>
                       <spacer name="horizontalSpacer_17">
                        <property name="orientation">
-                        <enum>Qt::Horizontal</enum>
+                        <enum>Qt::Orientation::Horizontal</enum>
                        </property>
                        <property name="sizeHint" stdset="0">
                         <size>
@@ -2431,10 +2420,10 @@ p, li { white-space: pre-wrap; }
                    </sizepolicy>
                   </property>
                   <property name="frameShape">
-                   <enum>QFrame::StyledPanel</enum>
+                   <enum>QFrame::Shape::StyledPanel</enum>
                   </property>
                   <property name="frameShadow">
-                   <enum>QFrame::Raised</enum>
+                   <enum>QFrame::Shadow::Raised</enum>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_8">
                    <item>
@@ -2486,10 +2475,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                        </property>
                        <property name="frameShape">
-                        <enum>QFrame::StyledPanel</enum>
+                        <enum>QFrame::Shape::StyledPanel</enum>
                        </property>
                        <property name="frameShadow">
-                        <enum>QFrame::Raised</enum>
+                        <enum>QFrame::Shadow::Raised</enum>
                        </property>
                       </widget>
                      </item>
@@ -2515,7 +2504,6 @@ p, li { white-space: pre-wrap; }
                             <font>
                              <family>Sans Serif</family>
                              <pointsize>10</pointsize>
-                             <weight>75</weight>
                              <italic>false</italic>
                              <bold>true</bold>
                              <strikeout>false</strikeout>
@@ -2533,17 +2521,17 @@ p, li { white-space: pre-wrap; }
                             <string>Driver Name:</string>
                            </property>
                            <property name="textFormat">
-                            <enum>Qt::PlainText</enum>
+                            <enum>Qt::TextFormat::PlainText</enum>
                            </property>
                           </widget>
                          </item>
                          <item>
                           <spacer name="horizontalSpacer_18">
                            <property name="orientation">
-                            <enum>Qt::Horizontal</enum>
+                            <enum>Qt::Orientation::Horizontal</enum>
                            </property>
                            <property name="sizeType">
-                            <enum>QSizePolicy::Fixed</enum>
+                            <enum>QSizePolicy::Policy::Fixed</enum>
                            </property>
                            <property name="sizeHint" stdset="0">
                             <size>
@@ -2570,7 +2558,6 @@ p, li { white-space: pre-wrap; }
                            <property name="font">
                             <font>
                              <family>Roboto Slab</family>
-                             <weight>75</weight>
                              <bold>true</bold>
                             </font>
                            </property>
@@ -2605,7 +2592,6 @@ p, li { white-space: pre-wrap; }
                             <font>
                              <family>Sans Serif</family>
                              <pointsize>10</pointsize>
-                             <weight>75</weight>
                              <italic>false</italic>
                              <bold>true</bold>
                              <strikeout>false</strikeout>
@@ -2623,17 +2609,17 @@ p, li { white-space: pre-wrap; }
                             <string>Version:</string>
                            </property>
                            <property name="textFormat">
-                            <enum>Qt::PlainText</enum>
+                            <enum>Qt::TextFormat::PlainText</enum>
                            </property>
                           </widget>
                          </item>
                          <item>
                           <spacer name="horizontalSpacer_19">
                            <property name="orientation">
-                            <enum>Qt::Horizontal</enum>
+                            <enum>Qt::Orientation::Horizontal</enum>
                            </property>
                            <property name="sizeType">
-                            <enum>QSizePolicy::Fixed</enum>
+                            <enum>QSizePolicy::Policy::Fixed</enum>
                            </property>
                            <property name="sizeHint" stdset="0">
                             <size>
@@ -2660,7 +2646,6 @@ p, li { white-space: pre-wrap; }
                            <property name="font">
                             <font>
                              <family>Roboto Slab</family>
-                             <weight>75</weight>
                              <bold>true</bold>
                             </font>
                            </property>
@@ -2695,7 +2680,6 @@ p, li { white-space: pre-wrap; }
                             <font>
                              <family>Sans Serif</family>
                              <pointsize>10</pointsize>
-                             <weight>75</weight>
                              <italic>false</italic>
                              <bold>true</bold>
                              <strikeout>false</strikeout>
@@ -2713,17 +2697,17 @@ p, li { white-space: pre-wrap; }
                             <string>Driver:</string>
                            </property>
                            <property name="textFormat">
-                            <enum>Qt::PlainText</enum>
+                            <enum>Qt::TextFormat::PlainText</enum>
                            </property>
                           </widget>
                          </item>
                          <item>
                           <spacer name="horizontalSpacer_20">
                            <property name="orientation">
-                            <enum>Qt::Horizontal</enum>
+                            <enum>Qt::Orientation::Horizontal</enum>
                            </property>
                            <property name="sizeType">
-                            <enum>QSizePolicy::Fixed</enum>
+                            <enum>QSizePolicy::Policy::Fixed</enum>
                            </property>
                            <property name="sizeHint" stdset="0">
                             <size>
@@ -2750,7 +2734,6 @@ p, li { white-space: pre-wrap; }
                            <property name="font">
                             <font>
                              <family>Roboto Slab</family>
-                             <weight>75</weight>
                              <bold>true</bold>
                             </font>
                            </property>
@@ -2785,7 +2768,6 @@ p, li { white-space: pre-wrap; }
                             <font>
                              <family>Sans Serif</family>
                              <pointsize>10</pointsize>
-                             <weight>75</weight>
                              <italic>false</italic>
                              <bold>true</bold>
                              <strikeout>false</strikeout>
@@ -2803,17 +2785,17 @@ p, li { white-space: pre-wrap; }
                             <string>Setup:</string>
                            </property>
                            <property name="textFormat">
-                            <enum>Qt::PlainText</enum>
+                            <enum>Qt::TextFormat::PlainText</enum>
                            </property>
                           </widget>
                          </item>
                          <item>
                           <spacer name="horizontalSpacer_21">
                            <property name="orientation">
-                            <enum>Qt::Horizontal</enum>
+                            <enum>Qt::Orientation::Horizontal</enum>
                            </property>
                            <property name="sizeType">
-                            <enum>QSizePolicy::Fixed</enum>
+                            <enum>QSizePolicy::Policy::Fixed</enum>
                            </property>
                            <property name="sizeHint" stdset="0">
                             <size>
@@ -2840,7 +2822,6 @@ p, li { white-space: pre-wrap; }
                            <property name="font">
                             <font>
                              <family>Roboto Slab</family>
-                             <weight>75</weight>
                              <bold>true</bold>
                             </font>
                            </property>
@@ -2868,7 +2849,7 @@ p, li { white-space: pre-wrap; }
              <item>
               <spacer name="horizontalSpacer_23">
                <property name="orientation">
-                <enum>Qt::Horizontal</enum>
+                <enum>Qt::Orientation::Horizontal</enum>
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
@@ -2883,7 +2864,7 @@ p, li { white-space: pre-wrap; }
            <item>
             <spacer name="verticalSpacer">
              <property name="orientation">
-              <enum>Qt::Vertical</enum>
+              <enum>Qt::Orientation::Vertical</enum>
              </property>
              <property name="sizeHint" stdset="0">
               <size>
@@ -2915,8 +2896,8 @@ p, li { white-space: pre-wrap; }
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>497</width>
-                <height>285</height>
+                <width>1314</width>
+                <height>554</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_26">
@@ -2925,7 +2906,7 @@ p, li { white-space: pre-wrap; }
                  <item row="0" column="1">
                   <spacer name="horizontalSpacer_6">
                    <property name="orientation">
-                    <enum>Qt::Horizontal</enum>
+                    <enum>Qt::Orientation::Horizontal</enum>
                    </property>
                    <property name="sizeHint" stdset="0">
                     <size>
@@ -2950,10 +2931,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                    </property>
                    <property name="frameShape">
-                    <enum>QFrame::StyledPanel</enum>
+                    <enum>QFrame::Shape::StyledPanel</enum>
                    </property>
                    <property name="frameShadow">
-                    <enum>QFrame::Raised</enum>
+                    <enum>QFrame::Shadow::Raised</enum>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_28">
                     <item>
@@ -2964,7 +2945,6 @@ p, li { white-space: pre-wrap; }
                          <font>
                           <family>Sans Serif</family>
                           <pointsize>12</pointsize>
-                          <weight>75</weight>
                           <italic>false</italic>
                           <bold>true</bold>
                           <strikeout>false</strikeout>
@@ -2982,14 +2962,14 @@ p, li { white-space: pre-wrap; }
                          <string>Send Custom Commands</string>
                         </property>
                         <property name="textFormat">
-                         <enum>Qt::PlainText</enum>
+                         <enum>Qt::TextFormat::PlainText</enum>
                         </property>
                        </widget>
                       </item>
                       <item>
                        <spacer name="horizontalSpacer_35">
                         <property name="orientation">
-                         <enum>Qt::Horizontal</enum>
+                         <enum>Qt::Orientation::Horizontal</enum>
                         </property>
                         <property name="sizeHint" stdset="0">
                          <size>
@@ -3079,10 +3059,10 @@ p, li { white-space: pre-wrap; }
 }</string>
                         </property>
                         <property name="frameShape">
-                         <enum>QFrame::StyledPanel</enum>
+                         <enum>QFrame::Shape::StyledPanel</enum>
                         </property>
                         <property name="frameShadow">
-                         <enum>QFrame::Raised</enum>
+                         <enum>QFrame::Shadow::Raised</enum>
                         </property>
                        </widget>
                       </item>
@@ -3097,7 +3077,6 @@ p, li { white-space: pre-wrap; }
                         <property name="font">
                          <font>
                           <family>Sans Serif</family>
-                          <weight>75</weight>
                           <bold>true</bold>
                          </font>
                         </property>
@@ -3110,23 +3089,26 @@ p, li { white-space: pre-wrap; }
                         </property>
                         <property name="html">
                          <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
-&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;meta charset=&quot;utf-8&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:8.25pt; font-weight:600; font-style:normal;&quot;&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;SPEED 2.0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;DENSITY 7 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;DIRECTION 0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;SIZE 35MM,25MM &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;OFFSET 0.000 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;REFERENCE 0,0 &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;CLS &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 320,5,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{companyName}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,40,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,120,\&amp;quot;1\&amp;quot;,0,1,1,\&amp;quot;{{description}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;BARCODE 310,60,\&amp;quot;128\&amp;quot;,50,0,0,2,10,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;TEXT 310,160,\&amp;quot;4\&amp;quot;,0,1,1,\&amp;quot;{{unit_price_integer}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;PRINT {{copies}} &lt;/span&gt;&lt;/p&gt;
-&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-size:10pt; font-weight:400;&quot;&gt;EOP&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+hr { height: 1px; border-width: 0; }
+li.unchecked::marker { content: &quot;\2610&quot;; }
+li.checked::marker { content: &quot;\2612&quot;; }
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'Sans Serif'; font-size:10pt; font-weight:700; font-style:normal;&quot;&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;SPEED 2.0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;DENSITY 7 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;DIRECTION 0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;SIZE 35MM,25MM &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;OFFSET 0.000 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;REFERENCE 0,0 &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;CLS &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 320,5,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{companyName}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,40,\&amp;quot;2\&amp;quot;,0,1,1,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,120,\&amp;quot;1\&amp;quot;,0,1,1,\&amp;quot;{{description}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;BARCODE 310,60,\&amp;quot;128\&amp;quot;,50,0,0,2,10,\&amp;quot;{{barcode_value}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;TEXT 310,160,\&amp;quot;4\&amp;quot;,0,1,1,\&amp;quot;{{unit_price_integer}}\&amp;quot; &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;PRINT {{copies}} &lt;/span&gt;&lt;/p&gt;
+&lt;p style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-family:'Fira Sans Semi-Light'; font-weight:400;&quot;&gt;EOP&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                         </property>
                        </widget>
                       </item>
@@ -3140,7 +3122,7 @@ p, li { white-space: pre-wrap; }
                <item>
                 <spacer name="verticalSpacer_2">
                  <property name="orientation">
-                  <enum>Qt::Vertical</enum>
+                  <enum>Qt::Orientation::Vertical</enum>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
@@ -3170,16 +3152,16 @@ p, li { white-space: pre-wrap; }
        </sizepolicy>
       </property>
       <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
+       <enum>QFrame::Shape::StyledPanel</enum>
       </property>
       <property name="frameShadow">
-       <enum>QFrame::Raised</enum>
+       <enum>QFrame::Shadow::Raised</enum>
       </property>
       <layout class="QHBoxLayout" name="horizontalLayout_24">
        <item>
         <spacer name="horizontalSpacer_14">
          <property name="orientation">
-          <enum>Qt::Horizontal</enum>
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
          <property name="sizeHint" stdset="0">
           <size>
@@ -3209,7 +3191,6 @@ p, li { white-space: pre-wrap; }
             <font>
              <family>Sans Serif</family>
              <pointsize>15</pointsize>
-             <weight>75</weight>
              <italic>true</italic>
              <bold>true</bold>
             </font>
@@ -3252,7 +3233,6 @@ QPushButton:hover {
             <font>
              <family>Sans Serif</family>
              <pointsize>15</pointsize>
-             <weight>75</weight>
              <italic>true</italic>
              <bold>true</bold>
             </font>
@@ -3295,7 +3275,6 @@ QPushButton:hover {
             <font>
              <family>Sans Serif</family>
              <pointsize>15</pointsize>
-             <weight>75</weight>
              <italic>true</italic>
              <bold>true</bold>
             </font>
@@ -3338,7 +3317,6 @@ QPushButton:hover {
             <font>
              <family>Sans Serif</family>
              <pointsize>15</pointsize>
-             <weight>75</weight>
              <italic>true</italic>
              <bold>true</bold>
             </font>
@@ -3377,7 +3355,7 @@ QPushButton:hover {
      <x>0</x>
      <y>0</y>
      <width>1348</width>
-     <height>21</height>
+     <height>29</height>
     </rect>
    </property>
   </widget>
