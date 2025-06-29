@@ -165,6 +165,19 @@ class BarcodeConfig(QObject):
     def set_trusted_connection(self, trusted_connection):
         self.settings.setValue("trustedConnection", trusted_connection)
         self.setting_changed.emit("trustedConnection", trusted_connection)
+
+    def get_tpslSize(self):
+        return self.settings.value("tpslSize", False, type=str)
+
+    def set_tpslSize(self, tpslSize):
+        self.settings.setValue("tpslSize", tpslSize)
+        self.setting_changed.emit("tpslSize", tpslSize)
+    
+    def get_zplSize(self):
+        return self.settings.value("zplSize", False, type=str)
+    
+    def set_zplSize(self, tpslSize:str):
+        self.settings.setValue("zplSize", tpslSize)
     
     def reset_to_defaults(self):
         """Reset all settings to their default values."""
