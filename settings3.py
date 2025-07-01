@@ -144,11 +144,13 @@ class SettingsWindow(QMainWindow):
 
             self.combo_zpl_size = self.findChild(QtWidgets.QComboBox, "combo_zpl_size")
             self.combo_tpsl_size = self.findChild(QtWidgets.QComboBox, "combo_tpsl_size")
-            options = ["size1", "size2", "size3"]
+            self.options = ["35mm * 25mm", "80mm * 50mm", "size3"]
             self.combo_tpsl_size.clear()
             self.combo_zpl_size.clear()
-            self.combo_tpsl_size.setItemData(options)
-            self.combo_zpl_size.setItemData(options)
+            self.combo_tpsl_size.addItems(self.options)
+            self.combo_zpl_size.addItems(self.options)
+            self.combo_tpsl_size.setCurrentText(self.config.get_tpslSize())
+            self.combo_zpl_size.setCurrentText(self.config.get_zplSize())
             self.combo_tpsl_size.currentIndexChanged.connect(self.on_tpslSize_changed)
             self.combo_zpl_size.currentIndexChanged.connect(self.on_zplSize_changed)
 
@@ -170,13 +172,31 @@ class SettingsWindow(QMainWindow):
             self.logger.info("Successfully loaded data from json file to UI elements")
         except Exception as e:
             self.logger.error(f"Failed to load data from json file to UI elements: {e}")
-        
     
     def on_tpslSize_changed(self):
-        return
+        selected_item: str = self.combo_tpsl_size.currentText()
+        self.config.set_tpslSize(selected_item)
+        if selected_item == self.options[0]:
+            self.tpslCommand.setText(self.config.get_tpsl_template())
+        elif selected_item == self.options[1]:
+            self.tpslCommand.setText(self.config.get_tpsl_size80_template())
+        elif selected_item == self.options[2]:
+            self.tpslCommand.setText(self.config.get_tpsl_size3_template())
+        else:
+            return
+        
     
     def on_zplSize_changed(self):
-        return
+        selected_item:str = self.combo_zpl_size.currentText()
+        self.config.set_zplSize(selected_item)
+        if selected_item == self.options[0]:
+            self.zplCommand.setText(self.config.get_zpl_template())
+        elif selected_item == self.options[1]:
+            self.zplCommand.setText(self.config.get_zpl_size80_template())
+        elif selected_item == self.options[2]:
+            self.zplCommand.setText(self.config.get_zpl_size3_template())
+        else:
+            return
 
     def update_printer_in_json(self):
         try:
@@ -453,7 +473,13 @@ class SettingsWindow(QMainWindow):
 
             self.logger.debug(f"Reading configuration file from {self.config_path}.")
 
-            self.config.set_zpl_template(self.zplCommand.toPlainText())
+            if self.config.get_zplSize() == self.options[0]:
+                self.config.set_zpl_template(self.tpslCommand.toPlainText())
+            elif self.config.get_zplSize() == self.options[1]:
+                self.config.set_zpl_size80_template(self.tpslCommand.toPlainText())
+            elif self.config.get_zplSize() == self.options[2]:
+                self.config.set_zpl_size3_template(self.tpslCommand.toPlainText())
+
             self.config.set_use_zpl(self.use_zpl.isChecked())
             self.logger.debug(f"Updated ZPL settings: zplTemplate='{self.config.get_zpl_template()[:50]}...' (truncated for display), useZPL={self.config.get_use_zpl()}.")
 
@@ -475,7 +501,13 @@ class SettingsWindow(QMainWindow):
                 config = json.load(f)
 
             # Update necessary keys
-            self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+            if self.config.get_tpslSize() == self.options[0]:
+                self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+            elif self.config.get_tpslSize() == self.options[1]:
+                self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
+            elif self.config.get_tpslSize() == self.options[2]:
+                self.config.set_tpsl_size3_template(self.tpslCommand.toPlainText())
+
             self.config.set_use_zpl(self.use_zpl.isChecked())
             self.logger.debug(f"Updated TPSL settings: tpslTemplate='{config['tpslTemplate'][:50]}...' (truncated for display), useZPL={config['useZPL']}.")
 
@@ -700,8 +732,20 @@ class SettingsWindow(QMainWindow):
                 
             self.companyName.setText(self.config.get_company_name())
             self.location.setText(self.config.get_location())
-            self.tpslCommand.setText(self.config.get_tpsl_template())
-            self.zplCommand.setText(self.config.get_zpl_template())
+
+            if self.config.get_tpslSize() == self.options[0]:
+                self.tpslCommand.setText(self.config.get_tpsl_template())
+            elif self.config.get_tpslSize() == self.options[1]:
+                self.tpslCommand.setText(self.config.get_tpsl_size80_template())
+            elif self.config.get_tpslSize() == self.options[2]:
+                self.tpslCommand.setText(self.config.get_tpsl_size3_template())
+
+            if self.config.get_zplSize() == self.options[0]:
+                self.tpslCommand.setText(self.config.get_zpl_template())
+            elif self.config.get_zplSize() == self.options[1]:
+                self.tpslCommand.setText(self.config.get_zpl_size80_template())
+            elif self.config.get_zplSize() == self.options[2]:
+                self.tpslCommand.setText(self.config.get_zpl_size3_template())
             
             if self.config.get_wireless_mode():
                 self.wireless_mode.setChecked(True)
@@ -751,8 +795,21 @@ class SettingsWindow(QMainWindow):
             self.config.set_company_name(self.companyName.text())
             self.config.set_location(self.location.text())
             self.config.set_ip_address(self.ip_address.text())
-            self.config.set_zpl_template(self.zplCommand.toPlainText())
-            self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+
+            if self.config.get_tpslSize() == self.options[0]:
+                self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+            elif self.config.get_tpslSize() == self.options[1]:
+                self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
+            elif self.config.get_tpslSize() == self.options[2]:
+                self.config.get_tpsl_size3_template(self.tpslCommand.toPlainText())
+                
+            if self.config.get_zplSize() == self.options[0]:
+                self.config.set_zpl_template(self.zplCommand.toPlainText())
+            elif self.config.get_zplSize() == self.options[1]:
+                self.config.set_zpl_size80_template(self.zplCommand.toPlainText())
+            elif self.config.get_zplSize() == self.options[2]:
+                self.config.set_zpl_size3_template(self.zplCommand.toPlainText())
+
             self.config.set_wireless_mode(self.wireless_mode.isChecked())
             self.config.set_use_zpl(self.use_zpl.isChecked())
             self.config.set_logging(self.cb_logging.isChecked())
