@@ -801,7 +801,7 @@ class SettingsWindow(QMainWindow):
             elif self.config.get_tpslSize() == self.options[1]:
                 self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
             elif self.config.get_tpslSize() == self.options[2]:
-                self.config.get_tpsl_size3_template(self.tpslCommand.toPlainText())
+                self.config.set_tpsl_size3_template(self.tpslCommand.toPlainText())
                 
             if self.config.get_zplSize() == self.options[0]:
                 self.config.set_zpl_template(self.zplCommand.toPlainText())
