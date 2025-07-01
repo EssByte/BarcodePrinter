@@ -6,6 +6,15 @@ class BarcodeConfig(QObject):
 
     setting_changed = pyqtSignal(str, object)
 
+    tpsl_template = ""
+    tpsl_template80 = ""
+    tpsl_template3 = ""
+
+    zpl_template = ""
+    zpl_template80 = ""
+    zpl_template3 = ""
+
+
     def __init__(self):
         super().__init__()
         self.settings = QSettings("AlphaDigital", "BarcodePrinter")
@@ -109,6 +118,34 @@ class BarcodeConfig(QObject):
     def set_tpsl_template(self, tpsl_template):
         self.settings.setValue("tpslTemplate", tpsl_template)
         self.setting_changed.emit("tpslTemplate", tpsl_template)
+
+    def get_tpsl_size80_template(self):
+        return self.settings.value("tpsl2")
+    
+    def set_tpsl_size80_template(self, tpsl80_template):
+        self.settings.setValue("tpsl2", tpsl80_template)
+        self.setting_changed.emit("tpsl2", tpsl80_template)
+
+    def get_zpl_size80_template(self):
+        return self.settings.value("zpl2")
+    
+    def set_zpl_size80_template(self, zpl80_template):
+        self.settings.setValue("zpl2", zpl80_template)
+        self.setting_changed.emit("zpl2", zpl80_template)
+    
+    def get_tpsl_size3_template(self):
+        return self.settings.value("tpsl3")
+    
+    def set_tpsl_size3_template(self, tpsl3_template):
+        self.settings.setValue("tpsl2", tpsl3_template)
+        self.setting_changed.emit("tpsl2", tpsl3_template)
+
+    def get_zpl_size3_template(self):
+        return self.settings.value("zpl3")
+    
+    def set_zpl_size3_template(self, zpl3_template):
+        self.settings.setValue("zpl2", zpl3_template)
+        self.setting_changed.emit("zpl2", zpl3_template)
 
     def get_logging(self):
         return self.settings.value("logging", True, type=bool)
