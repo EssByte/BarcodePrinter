@@ -474,11 +474,11 @@ class SettingsWindow(QMainWindow):
             self.logger.debug(f"Reading configuration file from {self.config_path}.")
 
             if self.config.get_zplSize() == self.options[0]:
-                self.config.set_zpl_template(self.tpslCommand.toPlainText())
+                self.config.set_zpl_template(self.zplCommand.toPlainText())
             elif self.config.get_zplSize() == self.options[1]:
-                self.config.set_zpl_size80_template(self.tpslCommand.toPlainText())
+                self.config.set_zpl_size80_template(self.zplCommand.toPlainText())
             elif self.config.get_zplSize() == self.options[2]:
-                self.config.set_zpl_size3_template(self.tpslCommand.toPlainText())
+                self.config.set_zpl_size3_template(self.zplCommand.toPlainText())
 
             self.config.set_use_zpl(self.use_zpl.isChecked())
             self.logger.debug(f"Updated ZPL settings: zplTemplate='{self.config.get_zpl_template()[:50]}...' (truncated for display), useZPL={self.config.get_use_zpl()}.")
@@ -741,11 +741,11 @@ class SettingsWindow(QMainWindow):
                 self.tpslCommand.setText(self.config.get_tpsl_size3_template())
 
             if self.config.get_zplSize() == self.options[0]:
-                self.tpslCommand.setText(self.config.get_zpl_template())
+                self.zplCommand.setText(self.config.get_zpl_template())
             elif self.config.get_zplSize() == self.options[1]:
-                self.tpslCommand.setText(self.config.get_zpl_size80_template())
+                self.zplCommand.setText(self.config.get_zpl_size80_template())
             elif self.config.get_zplSize() == self.options[2]:
-                self.tpslCommand.setText(self.config.get_zpl_size3_template())
+                self.zplCommand.setText(self.config.get_zpl_size3_template())
             
             if self.config.get_wireless_mode():
                 self.wireless_mode.setChecked(True)
