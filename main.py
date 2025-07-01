@@ -2,16 +2,14 @@ import os
 import re
 import sys
 import pyodbc
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow, QProgressBar
-from PyQt5.QtCore import Qt, QThread, pyqtSignal, QFileSystemWatcher, QTimer, QSettings
-from PyQt5.QtWidgets import QHeaderView
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow, QProgressBar, QComboBox
+from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QSettings
 from PyQt5.QtGui import QIcon, QBrush, QColor
 import usb
 import usb.core
 import usb.util
 import usb.backend.libusb1
 import requests
-import json
 from bisect import bisect_left, bisect_right
 from check_password import PasswordCheck
 from dashboard import DashboardWindow
@@ -112,8 +110,8 @@ class BarcodeApp(QMainWindow):
         super().__init__()
         self.logger = setup_logger('BarcodeApp')  # Use a logger specific to the DashboardWindow
         self.logger.info("Initializing BarcodeApp...")
-        self.initUI()
         self.config = BarcodeConfig()
+        self.initUI()
         self.input_timer = QTimer()
         self.input_timer.setSingleShot(True)
         self.input_timer.timeout.connect(self.filter_items_binary)
@@ -289,9 +287,21 @@ class BarcodeApp(QMainWindow):
         """)
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
+        self.barcode_size = QComboBox(self)
+        self.options = ["35mm * 25mm", "80mm * 50mm", "size3"]
+        self.barcode_size.addItems(self.options)
+
+        if self.config.get_use_zpl():
+            self.barcode_size.setCurrentText(self.config.get_zplSize())
+        else:
+            self.barcode_size.setCurrentText(self.config.get_tpslSize())
+        self.barcode_size.setCursor(Qt.PointingHandCursor)
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
+        search_layout.addWidget(self.barcode_size
+                                
+                                )
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
 
