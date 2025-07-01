@@ -290,6 +290,7 @@ class BarcodeApp(QMainWindow):
         self.barcode_size = QComboBox(self)
         self.options = ["35mm * 25mm", "80mm * 50mm", "size3"]
         self.barcode_size.addItems(self.options)
+        self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
 
         if self.config.get_use_zpl():
             self.barcode_size.setCurrentText(self.config.get_zplSize())
@@ -415,6 +416,14 @@ class BarcodeApp(QMainWindow):
         # Final log for UI initialization complete
         self.logger.info("UI components initialization complete.")
 
+    def handle_barcode_size(self):
+        selected_item: str = self.barcode_size.currentText()
+        if not self.config.get_use_zpl():
+            self.config.set_tpslSize(selected_item)
+            
+        else:
+            self.config.set_zplSize(selected_item)
+    
     def check_version(self):
 
         self.repo_owner = "PersonX-46"
