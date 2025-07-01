@@ -823,13 +823,21 @@ class BarcodeApp(QMainWindow):
                 copies = self.item_table.item(row, 9).text()
 
                 self.logger.info(f"Preparing to print item: {description} (Barcode: {barcode_value})")
+                
+                tpsl_template = self.config.get_tpsl_template()
+                zpl_template = self.config.get_zpl_template()
+                
 
                 printer_clear = ""
                 print_data = ""
                 if not self.config.get_use_zpl():
                     printer_clear = "CLS"
+                    if self.config.get_tpslSize() == self.options[1]:
+                        tpsl_template = self.config.get_tpsl_size80_template()
+                    elif self.config.get_tpslSize() == self.options[2]:
+                        tpsl_template = self.config.get_tpsl_size3_template()
                     print_data = self.replace_placeholders(
-                        self.config.get_tpsl_template(),
+                        tpsl_template,
                         companyName=self.config.get_company_name(),
                         description=description,
                         remark=remark_text,
@@ -839,6 +847,10 @@ class BarcodeApp(QMainWindow):
                     )
                 else:
                     printer_clear = "^XA^CLS^XZ"
+                    if self.config.get_zplSize() == self.options[1]:
+                        tpsl_template = self.config.get_zpl_size80_template()
+                    elif self.config.get_zplSize() == self.options[2]:
+                        tpsl_template = self.config.get_zpl_size3_template()
                     print_data = self.replace_placeholders(
                         self.config.get_zpl_template(),
                         companyName=self.config.get_company_name(),
