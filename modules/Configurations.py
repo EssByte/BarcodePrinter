@@ -137,15 +137,15 @@ class BarcodeConfig(QObject):
         return self.settings.value("tpsl3")
     
     def set_tpsl_size3_template(self, tpsl3_template):
-        self.settings.setValue("tpsl2", tpsl3_template)
-        self.setting_changed.emit("tpsl2", tpsl3_template)
+        self.settings.setValue("tpsl3", tpsl3_template)
+        self.setting_changed.emit("tpsl3", tpsl3_template)
 
     def get_zpl_size3_template(self):
         return self.settings.value("zpl3")
     
     def set_zpl_size3_template(self, zpl3_template):
-        self.settings.setValue("zpl2", zpl3_template)
-        self.setting_changed.emit("zpl2", zpl3_template)
+        self.settings.setValue("zpl3", zpl3_template)
+        self.setting_changed.emit("zpl3", zpl3_template)
 
     def get_logging(self):
         return self.settings.value("logging", True, type=bool)
