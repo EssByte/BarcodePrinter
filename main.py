@@ -288,7 +288,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["35mm * 25mm", "60mm * 40mm", "size3"]
+        self.options = ["size1", "size2", "size3"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.setStyleSheet("""
 

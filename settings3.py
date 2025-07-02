@@ -144,7 +144,7 @@ class SettingsWindow(QMainWindow):
 
             self.combo_zpl_size = self.findChild(QtWidgets.QComboBox, "combo_zpl_size")
             self.combo_tpsl_size = self.findChild(QtWidgets.QComboBox, "combo_tpsl_size")
-            self.options = ["35mm * 25mm", "60mm * 40mm", "size3"]
+            self.options = ["size1", "size2", "size3"]
             self.combo_tpsl_size.clear()
             self.combo_zpl_size.clear()
             self.combo_tpsl_size.addItems(self.options)
