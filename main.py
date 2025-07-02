@@ -290,6 +290,15 @@ class BarcodeApp(QMainWindow):
         self.barcode_size = QComboBox(self)
         self.options = ["35mm * 25mm", "60mm * 40mm", "size3"]
         self.barcode_size.addItems(self.options)
+        self.barcode_size.setStyleSheet("""
+
+            QComboBox {
+                background: rgba(255, 255, 255, 130);
+                border-radius: 8px;
+                padding: 5px;
+            }
+
+            """)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
 
         if self.config.get_use_zpl():
@@ -300,9 +309,7 @@ class BarcodeApp(QMainWindow):
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
-        search_layout.addWidget(self.barcode_size
-                                
-                                )
+        search_layout.addWidget(self.barcode_size )
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
 
