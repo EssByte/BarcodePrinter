@@ -109,23 +109,21 @@ class FetchItemsThread(QThread):
         else:
             # SQLite
             try:
-                cursor = self.connection.cursor()
+                self.cursor = self.connection.cursor()
                 query = """
                 SELECT barCode, name, price FROM Tbl_Plu;
                 """
-                cursor.execute(query)
-                items = cursor.fetchall()
+                self.cursor.execute(query)
+                items = self.cursor.fetchall()
                 self.items_fetched.emit(items)
             except Exception as e:
                 self.error_occurred.emit("Error fetching items from SQLite.")
             finally:
-                if cursor:
+                if self.cursor:
                     try:
                         cursor.close()
                     except Exception as e:
                         print(f"Error closing SQLite cursor: {e}")
-
-
 
 class BarcodeApp(QMainWindow):
     def __init__(self):
