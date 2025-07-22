@@ -215,6 +215,12 @@ class BarcodeConfig(QObject):
     
     def set_zplSize(self, tpslSize:str):
         self.settings.setValue("zplSize", tpslSize)
+
+    def get_sqlPath(self):
+        return self.settings.value("sqlPath", False, type=str)
+
+    def set_sqlitePath(self, path:str):
+        self.settings.setValue("sqlPath", path)
     
     def reset_to_defaults(self):
         """Reset all settings to their default values."""

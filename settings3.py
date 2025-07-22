@@ -111,6 +111,8 @@ class SettingsWindow(QMainWindow):
             self.button_group.addButton(self.use_zpl)
             self.onUseZPLStateChanged()
 
+            self.sqlite_path = self.findChild(QtWidgets.QLineEdit, "et_sqlitePath")
+
             self.btn_saveDatabase = self.findChild(QtWidgets.QPushButton, "btn_saveDatabase")
             self.btn_savePrinter = self.findChild(QtWidgets.QPushButton, "btn_savePrinter")
             self.btn_saveOtherSettings = self.findChild(QtWidgets.QPushButton, "btn_saveOtherSettings")
@@ -457,6 +459,7 @@ class SettingsWindow(QMainWindow):
             self.config.set_location(self.location.text())
             self.config.set_logging(self.cb_logging.isChecked())
             self.config.set_hide_cost(self.cb_hide_cost.isChecked())
+            self.config.set_sqlitePath(self.sqlite_path.text)
             self.logger.debug(f"Updated other settings: companyName='{self.config.get_company_name()}', location='{self.config.get_location()}', logging={self.config.get_logging()}.")
 
             self.logger.info("Other settings saved successfully.")
@@ -720,6 +723,7 @@ class SettingsWindow(QMainWindow):
             self.printerPid.setText(self.config.get_pid())
             self.endpoint.setText(self.config.get_endpoint())
             self.ip_address.setText(self.config.get_ip_address())
+            self.sqlite_path.setText(self.config.get_sqlPath())
             
             if self.config.get_use_zpl():
                 self.use_tpsl.setChecked(False)

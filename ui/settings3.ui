@@ -360,7 +360,7 @@
                     <property name="geometry">
                      <rect>
                       <x>20</x>
-                      <y>180</y>
+                      <y>160</y>
                       <width>121</width>
                       <height>21</height>
                      </rect>
@@ -394,7 +394,7 @@
                     <property name="geometry">
                      <rect>
                       <x>150</x>
-                      <y>180</y>
+                      <y>160</y>
                       <width>161</width>
                       <height>25</height>
                      </rect>
@@ -418,7 +418,7 @@
                     <property name="geometry">
                      <rect>
                       <x>150</x>
-                      <y>220</y>
+                      <y>190</y>
                       <width>161</width>
                       <height>25</height>
                      </rect>
@@ -442,7 +442,7 @@
                     <property name="geometry">
                      <rect>
                       <x>70</x>
-                      <y>220</y>
+                      <y>190</y>
                       <width>81</width>
                       <height>21</height>
                      </rect>
@@ -541,7 +541,7 @@
                     <property name="geometry">
                      <rect>
                       <x>140</x>
-                      <y>60</y>
+                      <y>80</y>
                       <width>121</width>
                       <height>21</height>
                      </rect>
@@ -571,81 +571,21 @@
                      <enum>Qt::PlainText</enum>
                     </property>
                    </widget>
-                   <widget class="QLabel" name="label">
-                    <property name="geometry">
-                     <rect>
-                      <x>130</x>
-                      <y>90</y>
-                      <width>141</width>
-                      <height>41</height>
-                     </rect>
-                    </property>
-                    <property name="font">
-                     <font>
-                      <family>Sans Serif</family>
-                      <pointsize>7</pointsize>
-                      <weight>75</weight>
-                      <bold>true</bold>
-                     </font>
-                    </property>
-                    <property name="acceptDrops">
-                     <bool>false</bool>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QLabel {
-	background: rgba(255, 255, 255, 171);
-	border-radius: 10px;
-	padding: 4px;
-}</string>
-                    </property>
-                    <property name="lineWidth">
-                     <number>6</number>
-                    </property>
-                    <property name="text">
-                     <string>Enabling logging may slightly reduce application performance.</string>
-                    </property>
-                    <property name="wordWrap">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
                    <widget class="QCheckBox" name="cb_logging">
                     <property name="geometry">
                      <rect>
                       <x>210</x>
-                      <y>60</y>
+                      <y>80</y>
                       <width>16</width>
                       <height>23</height>
                      </rect>
-                    </property>
-                   </widget>
-                   <widget class="QFrame" name="frame_9">
-                    <property name="geometry">
-                     <rect>
-                      <x>260</x>
-                      <y>80</y>
-                      <width>15</width>
-                      <height>15</height>
-                     </rect>
-                    </property>
-                    <property name="styleSheet">
-                     <string notr="true">QFrame {
-	background: rgb(224, 27, 36);
-	border-radius: 7px;
-	padding 12px;
-}</string>
-                    </property>
-                    <property name="frameShape">
-                     <enum>QFrame::StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
                     </property>
                    </widget>
                    <widget class="QLabel" name="label_26">
                     <property name="geometry">
                      <rect>
                       <x>140</x>
-                      <y>140</y>
+                      <y>100</y>
                       <width>81</width>
                       <height>21</height>
                      </rect>
@@ -678,11 +618,69 @@
                    <widget class="QCheckBox" name="cb_hideCost">
                     <property name="geometry">
                      <rect>
-                      <x>220</x>
-                      <y>140</y>
+                      <x>210</x>
+                      <y>100</y>
                       <width>16</width>
                       <height>23</height>
                      </rect>
+                    </property>
+                   </widget>
+                   <widget class="QLineEdit" name="et_sqlitePath">
+                    <property name="geometry">
+                     <rect>
+                      <x>150</x>
+                      <y>220</y>
+                      <width>161</width>
+                      <height>25</height>
+                     </rect>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <family>Roboto Slab</family>
+                      <weight>75</weight>
+                      <bold>true</bold>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QLineEdit {
+	background: rgba(255, 255, 255, 130);
+	border-radius: 8px;
+	padding: 5px;
+}</string>
+                    </property>
+                   </widget>
+                   <widget class="QLabel" name="label_28">
+                    <property name="geometry">
+                     <rect>
+                      <x>50</x>
+                      <y>220</y>
+                      <width>81</width>
+                      <height>21</height>
+                     </rect>
+                    </property>
+                    <property name="font">
+                     <font>
+                      <family>Sans Serif</family>
+                      <pointsize>10</pointsize>
+                      <weight>75</weight>
+                      <italic>false</italic>
+                      <bold>true</bold>
+                      <strikeout>false</strikeout>
+                      <kerning>true</kerning>
+                     </font>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QLabel {
+	text-align: center;
+	background: transparent;
+	color: white;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string>SQLite Path: </string>
+                    </property>
+                    <property name="textFormat">
+                     <enum>Qt::PlainText</enum>
                     </property>
                    </widget>
                   </widget>
@@ -2938,7 +2936,7 @@ p, li { white-space: pre-wrap; }
                 <x>0</x>
                 <y>0</y>
                 <width>1290</width>
-                <height>542</height>
+                <height>538</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_26">
@@ -3399,7 +3397,7 @@ QPushButton:hover {
      <x>0</x>
      <y>0</y>
      <width>1348</width>
-     <height>19</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
