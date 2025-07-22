@@ -335,6 +335,7 @@ class BarcodeApp(QMainWindow):
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
+        search_layout.addWidget(self.sqlite_switch)
         search_layout.addWidget(self.barcode_size )
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
