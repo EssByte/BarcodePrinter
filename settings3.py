@@ -459,7 +459,7 @@ class SettingsWindow(QMainWindow):
             self.config.set_location(self.location.text())
             self.config.set_logging(self.cb_logging.isChecked())
             self.config.set_hide_cost(self.cb_hide_cost.isChecked())
-            self.config.set_sqlitePath(self.sqlite_path.text)
+            self.config.set_sqlitePath(self.sqlite_path.text())
             self.logger.debug(f"Updated other settings: companyName='{self.config.get_company_name()}', location='{self.config.get_location()}', logging={self.config.get_logging()}.")
 
             self.logger.info("Other settings saved successfully.")

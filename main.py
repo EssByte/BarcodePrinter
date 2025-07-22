@@ -2,7 +2,7 @@ import os
 import re
 import sys
 import pyodbc
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow, QProgressBar, QComboBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QMainWindow, QProgressBar, QComboBox, QCheckBox
 from PyQt5.QtCore import Qt, QThread, pyqtSignal, QTimer, QSettings
 from PyQt5.QtGui import QIcon, QBrush, QColor
 import usb
@@ -20,6 +20,7 @@ from modules.Configurations import BarcodeConfig
 from remark import RemarkDialog
 from version import __version__
 import subprocess
+import sqlite3
 
 
 class FilterItemsBinaryThread(QThread):
@@ -66,43 +67,64 @@ class FetchItemsThread(QThread):
 
     def __init__(self, connection, location):
         super().__init__()
+        self.config = BarcodeConfig()
         self.connection = connection
         self.location = location
 
     def run(self):
-        try:
-            cursor = self.connection.cursor()
-            query = f"""
-            WITH BaseItems AS (
-                SELECT
-                    u.ItemCode,
-                    i.Description AS DescriptionWithUOM,
-                    u.UOM,
-                    u.Price AS DefaultUnitPrice,
-                    u.Cost,
-                    ISNULL(NULLIF(u.BarCode, ''), i.ItemCode) AS Barcode,
-                    ISNULL(p.Location, 'HQ') AS Location,
-                    ISNULL(p.Price, u.Price) AS PosUnitPrice
-                FROM dbo.ItemUOM u
-                LEFT JOIN dbo.Item i ON u.ItemCode = i.ItemCode
-                LEFT JOIN dbo.PosPricePlan p ON u.ItemCode = p.ItemCode AND p.Location = '{self.location}'
-            )
-            SELECT * FROM BaseItems;
-            """
-            cursor.execute(query)
-            items = cursor.fetchall()
-            # Emit items without sorting since it's handled in `display_items`
-            self.items_fetched.emit(items)
-        except pyodbc.Error as e:
-            self.error_occurred.emit("Error fetching items from the database.")  # Emit error message
-        except Exception as e:
-            self.error_occurred.emit("Unexpected error occurred while fetching items.")
-        finally:
-            if cursor is not None:
-                try:
-                    cursor.close()  # Safely close the cursor
-                except Exception as e:
-                    print(f"Error closing cursor: {e}")
+        if not self.config.get_useSqlite():
+            # SQL Server (pyodbc)
+            try:
+                cursor = self.connection.cursor()
+                query = f"""
+                WITH BaseItems AS (
+                    SELECT
+                        u.ItemCode,
+                        i.Description AS DescriptionWithUOM,
+                        u.UOM,
+                        u.Price AS DefaultUnitPrice,
+                        u.Cost,
+                        ISNULL(NULLIF(u.BarCode, ''), i.ItemCode) AS Barcode,
+                        ISNULL(p.Location, 'HQ') AS Location,
+                        ISNULL(p.Price, u.Price) AS PosUnitPrice
+                    FROM dbo.ItemUOM u
+                    LEFT JOIN dbo.Item i ON u.ItemCode = i.ItemCode
+                    LEFT JOIN dbo.PosPricePlan p ON u.ItemCode = p.ItemCode AND p.Location = '{self.location}'
+                )
+                SELECT * FROM BaseItems;
+                """
+                cursor.execute(query)
+                items = cursor.fetchall()
+                self.items_fetched.emit(items)
+            except pyodbc.Error as e:
+                self.error_occurred.emit("Error fetching items from SQL Server.")
+            except Exception as e:
+                self.error_occurred.emit("Unexpected error occurred while fetching items from SQL Server.")
+            finally:
+                if cursor:
+                    try:
+                        cursor.close()
+                    except Exception as e:
+                        print(f"Error closing SQL Server cursor: {e}")
+        else:
+            # SQLite
+            try:
+                cursor = self.connection.cursor()
+                query = """
+                SELECT barCode, name, price FROM Tbl_Plu;
+                """
+                cursor.execute(query)
+                items = cursor.fetchall()
+                self.items_fetched.emit(items)
+            except Exception as e:
+                self.error_occurred.emit("Error fetching items from SQLite.")
+            finally:
+                if cursor:
+                    try:
+                        cursor.close()
+                    except Exception as e:
+                        print(f"Error closing SQLite cursor: {e}")
+
 
 
 class BarcodeApp(QMainWindow):
@@ -120,6 +142,7 @@ class BarcodeApp(QMainWindow):
         self.setWindowIcon(QIcon(self.resource_path(("images/logo.ico"))))
         self.db_connected = False
         self.connection = None
+        self.sqlite_connection = None
         self.warning_shown = False
         self.settings = QSettings("MyCompany", "MyApp")  # Customize organization and app names
         self.restore_column_widths() 
@@ -300,6 +323,9 @@ class BarcodeApp(QMainWindow):
 
             """)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
+        self.sqlite_switch = QCheckBox("Use SQLite")
+        self.sqlite_switch.setChecked(self.config.get_useSqlite())  # default ON
+        self.sqlite_switch.stateChanged.connect(self.toggle_database_mode)
 
         if self.config.get_use_zpl():
             self.barcode_size.setCurrentText(self.config.get_zplSize())
@@ -423,6 +449,10 @@ class BarcodeApp(QMainWindow):
         # Final log for UI initialization complete
         self.logger.info("UI components initialization complete.")
 
+    def toggle_database_mode(self):
+        self.config.set_useSqlite(self.sqlite_switch.isChecked())
+
+
     def handle_barcode_size(self):
         selected_item: str = self.barcode_size.currentText()
         if not self.config.get_use_zpl():
@@ -480,32 +510,51 @@ class BarcodeApp(QMainWindow):
             self.logger.error(f"Failed to apply stylesheet: {e}")
             QMessageBox.critical(self, 'Stylesheet Error', f"Failed to apply stylesheet: {e}")
 
+
     def connect_to_database(self):
-        try:
-            # Log the attempt to connect to the database
-            self.logger.info("Attempting to connect to the database.")
-            
-            # Try to establish the connection
+        if not self.config.get_useSqlite():
+            try:
+                self.logger.info("Attempting to connect to SQL Server...")
 
-            if self.config.get_trusted_connection():
-                self.connection = pyodbc.connect(
-                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server()};DATABASE={self.config.get_database()};UID={self.config.get_username()};PWD={self.config.get_password()};Trusted_Connection=yes;'
-                )
+                if self.config.get_trusted_connection():
+                    self.connection = pyodbc.connect(
+                        f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+                        f'SERVER={self.config.get_server()};'
+                        f'DATABASE={self.config.get_database()};'
+                        f'UID={self.config.get_username()};'
+                        f'PWD={self.config.get_password()};'
+                        'Trusted_Connection=yes;'
+                    )
+                else:
+                    self.connection = pyodbc.connect(
+                        f'DRIVER={{ODBC Driver 17 for SQL Server}};'
+                        f'SERVER={self.config.get_server()};'
+                        f'DATABASE={self.config.get_database()};'
+                        f'UID={self.config.get_username()};'
+                        f'PWD={self.config.get_password()}'
+                    )
 
-            else:
-                self.connection = pyodbc.connect(
-                    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={self.config.get_server()};DATABASE={self.config.get_database()};UID={self.config.get_username()};PWD={self.config.get_password()}'
-                 )
-            
-            # Check if the connection was successful
-            if self.connection:
+                if self.connection:
+                    self.db_connected = True
+                    self.logger.info("Successfully connected to SQL Server.")
+                    print("Success: Connected to SQL Server")
+            except pyodbc.Error as e:
+                self.logger.error(f"SQL Server connection failed: {e}")
+                print(f"Error connecting to SQL Server: {e}")
+                self.db_connected = False
+        else:
+            try:
+                self.logger.info("Attempting to connect to SQLite database...")
+                db_path = self.config.get_sqlPath()  # Full path to SQLite DB file
+                self.connection = sqlite3.connect(db_path)
+                self.connection.row_factory = sqlite3.Row  # Optional: for dict-style rows
                 self.db_connected = True
-                self.logger.info("Successfully connected to the database.")
-                print('Success: Connected to Database')
-        except pyodbc.Error as e:
-            # Log the error if the connection fails
-            self.logger.error(f"Error connecting to the database: {e}")
-            print(f"Error connecting to database: {e}")
+                self.logger.info(f"Connected to SQLite database at {db_path}")
+                print(f"Success: Connected to SQLite database at {db_path}")
+            except sqlite3.Error as e:
+                self.logger.error(f"SQLite connection failed: {e}")
+                print(f"Error connecting to SQLite database: {e}")
+                self.db_connected = False
 
     def replace_placeholders(self, template, **kwargs):
         def replace(match):
@@ -530,21 +579,20 @@ class BarcodeApp(QMainWindow):
 
     def handle_items_fetched(self, items):
         if items:
-            # Log the number of items fetched
             self.logger.info(f"Fetched {len(items)} items.")
-            
-            # Sort the items by the 5th element (index 4), assuming it's a barcode or description
-            self.items = items
-            self.all_items = sorted(self.items, key=lambda x: x[5].lower())
 
-            
-            # Display the items (you can call your display logic here)
+            self.items = items
+
+            if self.config.get_useSqlite():
+                # SQLite: barCode is at index 0
+                self.all_items = sorted(self.items, key=lambda x: str(x[0]).lower())
+            else:
+                # SQL Server: barCode is at index 5
+                self.all_items = sorted(self.items, key=lambda x: str(x[5]).lower())
+
             self.display_items(self.all_items)
-            
-            # Optionally, update UI elements like the item count or display a success message
             self.logger.info("Items successfully displayed.")
         else:
-            # Handle the case when no items were fetched
             self.logger.warning("No items fetched from the database.")
             QMessageBox.warning(self, "No items", "No items were fetched from the database.")
 
@@ -596,7 +644,6 @@ class BarcodeApp(QMainWindow):
 
             barcode_config = Configurations.BarcodeConfig()
 
-            # Add rows of items to the table
             for row_number, item in enumerate(items[:100]):
                 checkbox_item = QTableWidgetItem()
                 checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
@@ -604,11 +651,21 @@ class BarcodeApp(QMainWindow):
                 self.item_table.setItem(row_number, 0, checkbox_item)
                 self.item_table.item(row_number, 0).setTextAlignment(Qt.AlignLeft)
 
-                # Extract item details
-                item_code, description, uom, unit_price, unit_cost, barcode, location, location_price = item
-                barcode_value = item_code if barcode is None else barcode
+                if self.config.get_useSqlite():
+                    # SQLite data: (barCode, name, price)
+                    barcode_value, description, price = item
+                    item_code = "-"
+                    uom = "-"
+                    unit_price = price
+                    unit_cost = 0.00
+                    location = "-"
+                    location_price = price
+                else:
+                    # SQL Server data: (item_code, description, uom, unit_price, unit_cost, barcode, location, location_price)
+                    item_code, description, uom, unit_price, unit_cost, barcode, location, location_price = item
+                    barcode_value = item_code if barcode is None else barcode
 
-                # Format currency values
+                # Format values
                 formatted_unit_price = f"RM {float(unit_price):.2f}" if unit_price is not None else "RM 0.00"
                 formatted_unit_cost = "RM 0.00"
                 if not barcode_config.get_hide_cost():
@@ -617,8 +674,17 @@ class BarcodeApp(QMainWindow):
                     formatted_unit_cost = '***'
                 formatted_location_price = f"RM {float(location_price):.2f}" if location_price is not None else "RM 0.00"
 
-                # Set data
-                for col_number, value in enumerate([item_code, description, uom, formatted_unit_price, formatted_unit_cost, barcode_value, location, formatted_location_price], start=1):
+                # Set data for table
+                for col_number, value in enumerate([
+                    item_code,
+                    description,
+                    uom,
+                    formatted_unit_price,
+                    formatted_unit_cost,
+                    barcode_value,
+                    location,
+                    formatted_location_price
+                ], start=1):
                     table_item = QTableWidgetItem(str(value))
                     table_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
                     table_item.setTextAlignment(Qt.AlignCenter)
@@ -630,19 +696,16 @@ class BarcodeApp(QMainWindow):
                 copies_item.setTextAlignment(Qt.AlignCenter)
                 self.item_table.setItem(row_number, 9, copies_item)
 
-                # Set background for even rows
+                # Background color for even rows
                 if row_number % 2 == 0:
                     for col_number in range(self.item_table.columnCount()):
                         self.item_table.item(row_number, col_number).setBackground(QBrush(QColor(230, 238, 255)))
 
-            # Restore column widths last to avoid conflicts
             self.restore_column_widths()
-
             self.logger.info("Finished displaying items.")
         except Exception as e:
             self.logger.error(f"Error displaying items: {e}")
             QMessageBox.critical(self, 'Error', f"Error displaying items: {e}")
-
 
     def start_filter_items_thread(self):
         try:
@@ -678,21 +741,23 @@ class BarcodeApp(QMainWindow):
 
     def binary_search(self, items, target: str):
         try:
-            # Prepare item codes for search
-            item_codes = [str(item[5]).lower() for item in items]
+            if self.config.get_useSqlite():
+                # SQLite: barcode is at index 0
+                item_codes = [str(item[0]).lower() for item in items]
+            else:
+                # SQL Server: barcode is at index 5
+                item_codes = [str(item[5]).lower() for item in items]
 
-            # Perform binary search
             index = bisect_left(item_codes, target.lower())
             end_index = bisect_right(item_codes, target.lower())
+
             self.logger.debug(f"Binary search index found: {index}")
 
-            # Check if the target is found
             if index < end_index:
                 matching_items = items[index:end_index]
                 self.logger.info(f"Found {len(matching_items)} matching items for target: '{target}'")
                 return matching_items
 
-            # If not found
             self.logger.info(f"Item '{target}' not found.")
             return None
         except Exception as e:
@@ -707,8 +772,6 @@ class BarcodeApp(QMainWindow):
             return  
 
         search_text = self.item_code_input.text().strip().lower()
-        
-        # Log search query
         self.logger.info(f"Searching for items with code: {search_text}")
 
         if not search_text:
@@ -716,7 +779,6 @@ class BarcodeApp(QMainWindow):
             self.display_items(self.all_items[:100])
             return
 
-        # Perform binary search for the item
         found_item = self.binary_search(self.all_items, search_text)
         
         if found_item:
@@ -725,8 +787,6 @@ class BarcodeApp(QMainWindow):
         else:
             self.logger.warning(f"No items found for search text: {search_text}")
             self.display_items([])
-            # Uncomment to display a message box if no item is found
-            #QMessageBox.information(self, "Item Not Found", 'No items match the search criteria!')
 
     def filter_items(self, isUOM):
         if not self.db_connected or not hasattr(self, 'all_items'):
@@ -736,46 +796,50 @@ class BarcodeApp(QMainWindow):
             return
 
         search_text = self.item_code_input.text().strip().lower()
-        
-        # Log the search text being processed
         self.logger.info(f"Filtering items with search text: {search_text}")
-
-        # Extract keywords by splitting the search text
         keywords = search_text.split()
-        
-        # Log the keywords
         self.logger.info(f"Keywords extracted: {keywords}")
 
-        # Filter items by checking if both ItemCode and Description contain each keyword
-        if not isUOM:
-            filtered_items = [
-                item for item in self.all_items
-                if all(
-                    keyword in str(item[1]).lower()  # Ensure the keyword is in the description (item[1])
-                    for keyword in keywords
-                )
-            ]
+        if self.config.get_useSqlite():
+            # SQLite: only (barCode, name, price)
+            if not isUOM:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[1]).lower() for keyword in keywords)  # name
+                ]
+            else:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[0]).lower() for keyword in keywords)  # barcode
+                ]
+                if filtered_items:
+                    itemcode = str(filtered_items[0][0])
+                    filtered_items = [
+                        item for item in self.all_items
+                        if str(item[0]).lower() == itemcode.lower()  # exact match
+                    ]
         else:
+            # SQL Server
+            if not isUOM:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[1]).lower() for keyword in keywords)  # description
+                ]
+            else:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[5]).lower() for keyword in keywords)  # barcode
+                ]
+                if filtered_items:
+                    itemcode = str(filtered_items[0][0])
+                    filtered_items = [
+                        item for item in self.all_items
+                        if str(item[0]).lower() == itemcode.lower()
+                    ]
 
-            filtered_items = [
-                item for item in self.all_items
-                if all(
-                    keyword in str(item[5]).lower()  # Ensure the keyword is in the description (item[1])
-                    for keyword in keywords
-                )
-            ]
-            itemcode = str(filtered_items[0][0])
-            filtered_items = [
-                item for item in self.all_items
-                if str(item[0]).lower() == itemcode.lower()  # Exact match
-            ]
-            print(filtered_items)
-        
-        # Log the number of filtered items
         self.logger.info(f"Found {len(filtered_items)} items matching the search criteria.")
-        
-        # Display the filtered items
         self.display_items(filtered_items)
+
 
     def print_barcode(self):
         selected_rows = []

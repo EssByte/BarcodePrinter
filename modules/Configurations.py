@@ -218,6 +218,12 @@ class BarcodeConfig(QObject):
 
     def get_sqlPath(self):
         return self.settings.value("sqlPath", False, type=str)
+    
+    def get_useSqlite(self):
+        return self.settings.value("useSqlite", False, type=bool)
+    
+    def set_useSqlite(self, canUse:bool):
+        self.settings.setValue("useSqlite", canUse)
 
     def set_sqlitePath(self, path:str):
         self.settings.setValue("sqlPath", path)
