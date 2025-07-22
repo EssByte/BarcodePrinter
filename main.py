@@ -65,17 +65,22 @@ class FetchItemsThread(QThread):
     items_fetched = pyqtSignal(list)
     error_occurred = pyqtSignal(str)
 
-    def __init__(self, connection, location):
+    def __init__(self, db_path_or_connection, location, use_sqlite):
         super().__init__()
         self.config = BarcodeConfig()
-        self.connection = connection
+        self.db_source = db_path_or_connection  # Can be path or pyodbc connection
         self.location = location
+        self.use_sqlite = use_sqlite
 
     def run(self):
-        if not self.config.get_useSqlite():
+        print("[DEBUG] FetchItemsThread started")
+
+        if not self.use_sqlite:
             # SQL Server (pyodbc)
+            cursor = None
             try:
-                cursor = self.connection.cursor()
+                connection = self.db_source  # pyodbc connection
+                cursor = connection.cursor()
                 query = f"""
                 WITH BaseItems AS (
                     SELECT
@@ -97,9 +102,9 @@ class FetchItemsThread(QThread):
                 items = cursor.fetchall()
                 self.items_fetched.emit(items)
             except pyodbc.Error as e:
-                self.error_occurred.emit("Error fetching items from SQL Server.")
+                self.error_occurred.emit(f"Error fetching items from SQL Server: {e}")
             except Exception as e:
-                self.error_occurred.emit("Unexpected error occurred while fetching items from SQL Server.")
+                self.error_occurred.emit(f"Unexpected error in SQL Server fetch: {e}")
             finally:
                 if cursor:
                     try:
@@ -107,23 +112,33 @@ class FetchItemsThread(QThread):
                     except Exception as e:
                         print(f"Error closing SQL Server cursor: {e}")
         else:
-            # SQLite
+            # SQLite (must create connection inside thread)
+            print("[DEBUG] Using SQLite mode for fetching items")
+            cursor = None
+            connection = None
             try:
-                self.cursor = self.connection.cursor()
-                query = """
-                SELECT barCode, name, price FROM Tbl_Plu;
-                """
-                self.cursor.execute(query)
-                items = self.cursor.fetchall()
+                connection = sqlite3.connect(self.db_source)  # Create connection in this thread
+                cursor = connection.cursor()
+                print("[DEBUG] SQLite cursor created")
+                query = "SELECT barCode, name, price FROM Tbl_Plu;"
+                cursor.execute(query)
+                print("[DEBUG] Query executed")
+                items = cursor.fetchall()
+                print(f"[DEBUG] Retrieved {len(items)} items from SQLite")
                 self.items_fetched.emit(items)
+                print("[DEBUG] Emitted items to main thread")
             except Exception as e:
-                self.error_occurred.emit("Error fetching items from SQLite.")
+                print(f"[DEBUG] Exception occurred in SQLite block: {e}")
+                self.error_occurred.emit(f"SQLite error: {e}")
             finally:
-                if self.cursor:
+                if cursor:
                     try:
                         cursor.close()
                     except Exception as e:
                         print(f"Error closing SQLite cursor: {e}")
+                if connection:
+                    connection.close()
+
 
 class BarcodeApp(QMainWindow):
     def __init__(self):
@@ -546,7 +561,6 @@ class BarcodeApp(QMainWindow):
                 self.logger.info("Attempting to connect to SQLite database...")
                 db_path = self.config.get_sqlPath()  # Full path to SQLite DB file
                 self.connection = sqlite3.connect(db_path)
-                self.connection.row_factory = sqlite3.Row  # Optional: for dict-style rows
                 self.db_connected = True
                 self.logger.info(f"Connected to SQLite database at {db_path}")
                 print(f"Success: Connected to SQLite database at {db_path}")
@@ -565,19 +579,41 @@ class BarcodeApp(QMainWindow):
         return re.sub(r'{{(.*?)}}', replace, template)
 
     def start_fetch_items(self):
+        print("[DEBUG] start_fetch_items() called")
+
         if not self.db_connected:
             self.logger.error('Database is not connected. Items will not be shown.')
             QMessageBox.critical(self, 'Database Error', 'Database is not connected. Items will not be shown.')
             return
 
         self.logger.info(f"Fetching items for location: {self.config.get_location()}")
-        
-        self.fetch_items_thread = FetchItemsThread(self.connection, self.config.get_location())
+
+        if self.config.get_useSqlite():
+            db_path = self.config.get_sqlPath()
+            self.fetch_items_thread = FetchItemsThread(db_path, self.config.get_location(), True)
+        else:
+            self.fetch_items_thread = FetchItemsThread(self.connection, self.config.get_location(), False)
+
         self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
+        self.fetch_items_thread.error_occurred.connect(self.handle_fetch_error)
         self.fetch_items_thread.start()
 
+    
+    def handle_fetch_error(self, message):
+        print(f"[ERROR] {message}")
+        QMessageBox.critical(self, "Fetch Error", message)
+
+
+
     def handle_items_fetched(self, items):
+        print("[DEBUG] handle_items_fetched called")
+
+        print(f"{len(items)} items fetched from database")
+        for i, item in enumerate(items[:5]):
+            print(f"Item {i + 1}: {item}")
+
         if items:
+            print(f"Fetched {len(items)} items")
             self.logger.info(f"Fetched {len(items)} items.")
 
             self.items = items
