@@ -799,29 +799,56 @@ class BarcodeApp(QMainWindow):
             self.logger.error(f"Error during binary search: {e}")
             return None
 
-    def filter_items_binary(self):
+    def filter_items(self, isUOM):
         if not self.db_connected or not hasattr(self, 'all_items'):
             if not self.warning_shown:
                 QMessageBox.warning(self, 'Database Error', 'Database is not connected. Searched items will not be shown.')
                 self.warning_shown = True
-            return  
-
-        search_text = self.item_code_input.text().strip().lower()
-        self.logger.info(f"Searching for items with code: {search_text}")
-
-        if not search_text:
-            self.logger.info("No search text provided, displaying first 100 items.")
-            self.display_items(self.all_items[:100])
             return
 
-        found_item = self.binary_search(self.all_items, search_text)
-        
-        if found_item:
-            self.logger.info(f"Item found: {found_item}")
-            self.display_items(found_item)
+        search_text = self.item_code_input.text().strip().lower()
+        self.logger.info(f"Filtering items with search text: {search_text}")
+        keywords = search_text.split()
+        self.logger.info(f"Keywords extracted: {keywords}")
+
+        if self.config.get_useSqlite():
+            # SQLite: only (barCode, name, price)
+            if not isUOM:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[1]).lower() for keyword in keywords)  # name
+                ]
+                self.logger.info(f"Step 1 (SQLite, not UOM): {filtered_items}")
+            else:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[0]).lower() for keyword in keywords)  # barcode
+                ]
+                self.logger.info(f"Step 1 (SQLite, UOM): {filtered_items}")
+                if filtered_items:
+                    itemcode = str(filtered_items[0][0])
+                    filtered_items = [
+                        item for item in self.all_items
+                        if str(item[0]).lower() == itemcode.lower()  # exact match
+                    ]
+                    self.logger.info(f"Step 2 (SQLite, UOM, exact match): {filtered_items}")
         else:
-            self.logger.warning(f"No items found for search text: {search_text}")
-            self.display_items([])
+            # SQL Server
+            if not isUOM:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[1]).lower() for keyword in keywords)  # description
+                ]
+                self.logger.info(f"Step 1 (SQL Server, not UOM): {filtered_items}")
+            else:
+                filtered_items = [
+                    item for item in self.all_items
+                    if all(keyword in str(item[0]).lower() for keyword in keywords)  # item code
+                ]
+                self.logger.info(f"Step 1 (SQL Server, UOM): {filtered_items}")
+
+        self.logger.info(f"Found {len(filtered_items)} items matching the search criteria.")
+        self.display_items(filtered_items)
 
     def filter_items(self, isUOM):
         if not self.db_connected or not hasattr(self, 'all_items'):
