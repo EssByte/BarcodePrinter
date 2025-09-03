@@ -856,22 +856,15 @@ class BarcodeApp(QMainWindow):
         else:
             # SQL Server
             if not isUOM:
-                filtered_items = [
-                    item for item in self.all_items
-                    if all(keyword in str(item[1]).lower() for keyword in keywords)  # description
-                ]
+                    filtered_items = [
+                        item for item in self.all_items
+                        if all(keyword in str(item[1]).lower() for keyword in keywords)  # description
+                    ]
             else:
                 filtered_items = [
                     item for item in self.all_items
-                    if all(keyword in str(item[5]).lower() for keyword in keywords)  # barcode
+                    if all(keyword in str(item[0]).lower() for keyword in keywords)  # item code
                 ]
-                if filtered_items:
-                    itemcode = str(filtered_items[0][0])
-                    filtered_items = [
-                        item for item in self.all_items
-                        if str(item[0]).lower() == itemcode.lower()
-                    ]
-
         self.logger.info(f"Found {len(filtered_items)} items matching the search criteria.")
         self.display_items(filtered_items)
 
