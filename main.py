@@ -146,6 +146,13 @@ class BarcodeApp(QMainWindow):
         self.logger = setup_logger('BarcodeApp')  # Use a logger specific to the DashboardWindow
         self.logger.info("Initializing BarcodeApp...")
         self.config = BarcodeConfig()
+
+        self.current_page = 1
+        self.items_per_page = 100  
+        self.total_pages = 1
+        self.current_displayed_items = []
+    
+        self.initUI()
         self.initUI()
         self.input_timer = QTimer()
         self.input_timer.setSingleShot(True)
@@ -327,14 +334,12 @@ class BarcodeApp(QMainWindow):
         self.options = ["size1", "size2", "size3"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.setStyleSheet("""
-
             QComboBox {
                 background: rgba(255, 255, 255, 130);
                 border-radius: 8px;
                 padding: 5px;
             }
-
-            """)
+        """)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
         self.sqlite_switch = QCheckBox("Use SQLite")
         self.sqlite_switch.setChecked(self.config.get_useSqlite())  # default ON
@@ -345,11 +350,12 @@ class BarcodeApp(QMainWindow):
         else:
             self.barcode_size.setCurrentText(self.config.get_tpslSize())
         self.barcode_size.setCursor(Qt.PointingHandCursor)
+        
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
         search_layout.addWidget(self.sqlite_switch)
-        search_layout.addWidget(self.barcode_size )
+        search_layout.addWidget(self.barcode_size)
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
 
@@ -362,7 +368,7 @@ class BarcodeApp(QMainWindow):
         self.item_table = QTableWidget(self)
         self.item_table.setColumnCount(10)
         self.item_table.setHorizontalHeaderLabels([
-            "*", "Item Code", "Description", "UOM" , "Unit Price", "Unit Cost",
+            "*", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost",
             "Barcode", "Location", "Price", "Copies"
         ])
         self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
@@ -372,8 +378,96 @@ class BarcodeApp(QMainWindow):
         grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
         self.logger.debug("Item table added to layout.")
 
+        # === Pagination Controls Section ===
+        pagination_layout = QHBoxLayout()
+        
+        # Previous page button
+        self.prev_button = QPushButton('Previous', self)
+        self.prev_button.setStyleSheet("""
+        QPushButton {
+            background: white;
+            border: 2px solid rgb(53, 132, 228);
+            color: black;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-style: italic;
+            font-weight: bold;
+            qproperty-cursor: pointingHandCursor;
+            padding: 5px 15px;
+        }
+        QPushButton:hover {
+            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
+            color: white;
+        }
+        QPushButton:disabled {
+            background: #cccccc;
+            color: #666666;
+            border: 2px solid #999999;
+        }
+        """)
+        self.prev_button.clicked.connect(self.previous_page)
+        self.prev_button.setCursor(Qt.PointingHandCursor)
+        
+        # Page info label
+        self.page_label = QLabel('Page 1 of 1')
+        self.page_label.setStyleSheet("font-weight: bold; font-size: 14px; padding: 5px 10px;")
+        
+        # Next page button
+        self.next_button = QPushButton('Next', self)
+        self.next_button.setStyleSheet("""
+        QPushButton {
+            background: white;
+            border: 2px solid rgb(53, 132, 228);
+            color: black;
+            border-top-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            font-style: italic;
+            font-weight: bold;
+            qproperty-cursor: pointingHandCursor;
+            padding: 5px 15px;
+        }
+        QPushButton:hover {
+            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
+            color: white;
+        }
+        QPushButton:disabled {
+            background: #cccccc;
+            color: #666666;
+            border: 2px solid #999999;
+        }
+        """)
+        self.next_button.clicked.connect(self.next_page)
+        self.next_button.setCursor(Qt.PointingHandCursor)
+        
+        # Items per page selector
+        items_per_page_label = QLabel('Items per page:')
+        items_per_page_label.setStyleSheet("font-weight: bold;")
+        self.items_per_page_combo = QComboBox(self)
+        self.items_per_page_combo.addItems(['50', '100', '200', '500'])
+        self.items_per_page_combo.setCurrentText(str(self.items_per_page))
+        self.items_per_page_combo.currentTextChanged.connect(self.change_items_per_page)
+        self.items_per_page_combo.setStyleSheet("""
+            QComboBox {
+                background: rgba(255, 255, 255, 130);
+                border-radius: 8px;
+                padding: 5px;
+            }
+        """)
+        
+        # Add widgets to pagination layout
+        pagination_layout.addWidget(self.prev_button)
+        pagination_layout.addWidget(self.page_label)
+        pagination_layout.addWidget(self.next_button)
+        pagination_layout.addStretch(1)  # Push the combo box to the right
+        pagination_layout.addWidget(items_per_page_label)
+        pagination_layout.addWidget(self.items_per_page_combo)
+        
+        # Add pagination layout to the grid layout (row 2)
+        grid_layout.addLayout(pagination_layout, 2, 0, 1, 3)
+        self.logger.debug("Pagination controls added to layout.")
+
         # === Buttons Section ===
-        print_layout = QHBoxLayout()
+        buttons_layout = QHBoxLayout()
 
         # Print Button
         self.print_button = QPushButton('Print Barcode', self)
@@ -393,9 +487,9 @@ class BarcodeApp(QMainWindow):
             color: white;
         }
         """)
+        
+        # Reload Button
         self.reload_button = QPushButton('Reload Database', self)
-        self.progressBar = QProgressBar(self)
-        self.progressBar.setVisible(False)
         self.reload_button.setStyleSheet("""
         QPushButton {
             background: white;
@@ -412,19 +506,12 @@ class BarcodeApp(QMainWindow):
             color: white;
         }
         """)
-        self.print_button.setCursor(Qt.PointingHandCursor)
-        self.reload_button.setCursor(Qt.PointingHandCursor)
-        self.print_button.clicked.connect(self.print_barcode)
-        self.reload_button.clicked.connect(self.handle_config_change)
-
-        # Add the print and reload buttons to the layout, centered
-        print_layout.addStretch(1)
-        print_layout.addWidget(self.progressBar)
-        print_layout.addWidget(self.reload_button)
-        print_layout.addWidget(self.print_button)
-
-        # Create a new layout for the "Update Database" button to align it to the right
-        update_layout = QHBoxLayout()
+        
+        # Progress Bar
+        self.progressBar = QProgressBar(self)
+        self.progressBar.setVisible(False)
+        
+        # Update Button
         self.update_button = QPushButton('Update', self)
         self.update_button.setStyleSheet("""
         QPushButton {
@@ -442,27 +529,69 @@ class BarcodeApp(QMainWindow):
             color: white;
         }
         """)
+        
+        # Set cursors
+        self.print_button.setCursor(Qt.PointingHandCursor)
+        self.reload_button.setCursor(Qt.PointingHandCursor)
         self.update_button.setCursor(Qt.PointingHandCursor)
-        self.check_version()
+        
+        # Connect signals
+        self.print_button.clicked.connect(self.print_barcode)
+        self.reload_button.clicked.connect(self.handle_config_change)
         self.update_button.clicked.connect(self.runUpdater)
+        
+        # Add widgets to buttons layout
+        buttons_layout.addWidget(self.update_button)
+        buttons_layout.addStretch(1)
+        buttons_layout.addWidget(self.progressBar)
+        buttons_layout.addWidget(self.reload_button)
+        buttons_layout.addWidget(self.print_button)
 
-        # Add the update button to the new layout and align it to the right
-        update_layout.addWidget(self.update_button)
+        # Add buttons layout to the grid layout (row 3)
+        grid_layout.addLayout(buttons_layout, 3, 0, 1, 3)
+        
+        self.logger.debug("Action buttons section initialized.")
 
-        # Add both the centered buttons and the right-aligned update button to the grid layout
-       # Add print_layout to the grid, aligning it to the right
-        grid_layout.addLayout(print_layout, 2, 1, 1, 1, alignment=Qt.AlignRight)  # Right-aligned print button
+        # Check version and update button visibility
+        self.check_version()
 
-        # Add update_layout to the grid, aligning it to the left
-        grid_layout.addLayout(update_layout, 2, 0, 2, 1, alignment=Qt.AlignLeft)  # Left-aligned update button
-
-
-        self.logger.debug("Print and reload buttons section initialized.")
-        self.logger.debug("Update button section initialized.")
+        # Initially disable pagination buttons until we have data
+        self.update_pagination_buttons()
 
         # Final log for UI initialization complete
         self.logger.info("UI components initialization complete.")
 
+    
+    def change_items_per_page(self, new_value):
+        """Change the number of items displayed per page"""
+        try:
+            self.items_per_page = int(new_value)
+            self.current_page = 1  # Reset to first page
+            if hasattr(self, 'current_displayed_items'):
+                self.display_items(self.current_displayed_items)
+        except ValueError:
+            self.logger.error(f"Invalid items per page value: {new_value}")
+
+    def update_pagination_buttons(self):
+        """Update the state of pagination buttons based on current page"""
+        self.prev_button.setEnabled(self.current_page > 1)
+        self.next_button.setEnabled(self.current_page < self.total_pages)
+        self.page_label.setText(f'Page {self.current_page} of {self.total_pages}')
+
+    def previous_page(self):
+        """Go to the previous page"""
+        if self.current_page > 1:
+            self.current_page -= 1
+            if hasattr(self, 'current_displayed_items'):
+                self.display_items(self.current_displayed_items)
+
+    def next_page(self):
+        """Go to the next page"""
+        if self.current_page < self.total_pages:
+            self.current_page += 1
+            if hasattr(self, 'current_displayed_items'):
+                self.display_items(self.current_displayed_items)
+                
     def toggle_database_mode(self):
         self.config.set_useSqlite(self.sqlite_switch.isChecked())
 
@@ -673,13 +802,34 @@ class BarcodeApp(QMainWindow):
         print("Column widths restored.")
     
     def display_items(self, items):
+        """Display items with pagination"""
         try:
-            self.logger.info(f"Displaying {len(items[:100])} items.")
-            self.item_table.setRowCount(len(items[:100]))
+            # Store the current filtered items
+            self.current_displayed_items = items
+            
+            # Calculate pagination
+            total_items = len(items)
+            self.total_pages = max(1, (total_items + self.items_per_page - 1) // self.items_per_page)
+            
+            # Ensure current page is within valid range
+            if self.current_page > self.total_pages:
+                self.current_page = self.total_pages
+            
+            # Calculate start and end indices for current page
+            start_index = (self.current_page - 1) * self.items_per_page
+            end_index = min(start_index + self.items_per_page, total_items)
+            
+            # Get items for current page
+            page_items = items[start_index:end_index]
+            
+            self.logger.info(f"Displaying page {self.current_page}: items {start_index + 1}-{end_index} of {total_items}")
+            
+            # Clear and setup table
+            self.item_table.setRowCount(len(page_items))
 
             barcode_config = Configurations.BarcodeConfig()
 
-            for row_number, item in enumerate(items[:100]):
+            for row_number, item in enumerate(page_items):
                 checkbox_item = QTableWidgetItem()
                 checkbox_item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
                 checkbox_item.setCheckState(Qt.Unchecked)
@@ -736,8 +886,12 @@ class BarcodeApp(QMainWindow):
                     for col_number in range(self.item_table.columnCount()):
                         self.item_table.item(row_number, col_number).setBackground(QBrush(QColor(230, 238, 255)))
 
+            # Update pagination controls
+            self.update_pagination_buttons()
             self.restore_column_widths()
-            self.logger.info("Finished displaying items.")
+            
+            self.logger.info(f"Finished displaying page {self.current_page} with {len(page_items)} items.")
+            
         except Exception as e:
             self.logger.error(f"Error displaying items: {e}")
             QMessageBox.critical(self, 'Error', f"Error displaying items: {e}")
@@ -800,6 +954,7 @@ class BarcodeApp(QMainWindow):
             return None
 
     def filter_items_binary(self):
+        """Update filtering to reset to page 1 when filtering"""
         if not self.db_connected or not hasattr(self, 'all_items'):
             if not self.warning_shown:
                 QMessageBox.warning(self, 'Database Error', 'Database is not connected. Searched items will not be shown.')
@@ -809,9 +964,12 @@ class BarcodeApp(QMainWindow):
         search_text = self.item_code_input.text().strip().lower()
         self.logger.info(f"Searching for items with code: {search_text}")
 
+        # Reset to first page when filtering
+        self.current_page = 1
+
         if not search_text:
-            self.logger.info("No search text provided, displaying first 100 items.")
-            self.display_items(self.all_items[:100])
+            self.logger.info("No search text provided, displaying first page of all items.")
+            self.display_items(self.all_items)
             return
 
         found_item = self.binary_search(self.all_items, search_text)
@@ -824,11 +982,15 @@ class BarcodeApp(QMainWindow):
             self.display_items([])
 
     def filter_items(self, isUOM):
+        """Update filtering to reset to page 1 when filtering"""
         if not self.db_connected or not hasattr(self, 'all_items'):
             if not self.warning_shown:
                 QMessageBox.warning(self, 'Database Error', 'Database is not connected. Searched items will not be shown.')
                 self.warning_shown = True
             return
+
+        # Reset to first page when filtering
+        self.current_page = 1
 
         search_text = self.item_code_input.text().strip().lower()
         self.logger.info(f"Filtering items with search text: {search_text}")
@@ -865,9 +1027,9 @@ class BarcodeApp(QMainWindow):
                     item for item in self.all_items
                     if all(keyword in str(item[0]).lower() for keyword in keywords)  # item code
                 ]
+        
         self.logger.info(f"Found {len(filtered_items)} items matching the search criteria.")
         self.display_items(filtered_items)
-
 
     def print_barcode(self):
         selected_rows = []
