@@ -153,7 +153,6 @@ class BarcodeApp(QMainWindow):
         self.current_displayed_items = []
     
         self.initUI()
-        self.initUI()
         self.input_timer = QTimer()
         self.input_timer.setSingleShot(True)
         self.input_timer.timeout.connect(self.filter_items_binary)
