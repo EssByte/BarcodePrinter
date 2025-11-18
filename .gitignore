@@ -5,3 +5,4 @@ barcodeimg.py
 __pycache__
 output/
 main.spec
+OUTPUT/
