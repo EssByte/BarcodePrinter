@@ -241,9 +241,33 @@ class BarcodeApp(QMainWindow):
         return absolute_path
     
     def runUpdater(self):
-        subprocess.Popen([r"C:\barcode\Updater.exe"])
-        self.close()
-
+        """Smart updater that works in both dev and production"""
+        try:
+            self.logger.info("Starting updater...")
+            
+            # Try to run as Python script first (development)
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            updater_script = os.path.join(current_dir, "updater.py")
+            
+            if os.path.exists(updater_script):
+                # Development mode - run as Python script
+                self.close()
+                subprocess.Popen([sys.executable, updater_script])
+            else:
+                # Production mode - run as exe
+                updater_exe = os.path.join(os.getcwd(), "Updater.exe")
+                if os.path.exists(updater_exe):
+                    self.close()
+                    subprocess.Popen([updater_exe])
+                else:
+                    # Fallback to hardcoded path
+                    subprocess.Popen([r"C:\barcode\Updater.exe"])
+                    self.close()
+                    
+        except Exception as e:
+            self.logger.error(f"Failed to start updater: {e}")
+            QMessageBox.critical(self, "Updater Error", f"Failed to start updater: {e}")
+            
     def initUI(self):
         # Initialize logger for UI actions
         self.logger.info("Initializing the UI components.")
