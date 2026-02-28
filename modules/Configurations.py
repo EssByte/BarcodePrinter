@@ -13,6 +13,9 @@ class BarcodeConfig(QObject):
     zpl_template = ""
     zpl_template80 = ""
     zpl_template3 = ""
+    zpl_funbake = ""
+
+    tpsl_funbake = ""
 
 
     def __init__(self):
@@ -146,6 +149,20 @@ class BarcodeConfig(QObject):
     def set_zpl_size3_template(self, zpl3_template):
         self.settings.setValue("zpl3", zpl3_template)
         self.setting_changed.emit("zpl3", zpl3_template)
+
+    def get_tpsl_funbake_template(self):
+        return self.settings.value("tpsl_funbake", "")
+    
+    def set_tpsl_funbake_template(self, template):
+        self.settings.setValue("tpsl_funbake", template)
+        self.setting_changed.emit("tpsl_funbake", template)
+
+    def get_zpl_funbake_template(self):
+        return self.settings.value("zpl_funbake", "")
+    
+    def set_zpl_funbake_template(self, template):
+        self.settings.setValue("zpl_funbake", template)
+        self.setting_changed.emit("zpl_funbake", template)
 
     def get_logging(self):
         return self.settings.value("logging", True, type=bool)
