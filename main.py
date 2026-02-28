@@ -354,7 +354,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["size1", "size2", "size3"]
+        self.options = ["size1", "size2", "size3", "Fun Bake"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.setStyleSheet("""
             QComboBox {
@@ -729,6 +729,17 @@ class BarcodeApp(QMainWindow):
                 return f"{{{{{key}}}}}"  # Or raise an exception if needed
             return str(kwargs[key])
         return re.sub(r'{{(.*?)}}', replace, template)
+
+    def split_description(self, description, max_chars=25):
+        """Split description into two lines for printer labels."""
+        if len(description) <= max_chars:
+            return description, ""
+        
+        split_pos = description.rfind(' ', 0, max_chars + 1)
+        if split_pos == -1:
+            split_pos = max_chars
+            
+        return description[:split_pos].strip(), description[split_pos:].strip()
 
     def start_fetch_items(self):
         print("[DEBUG] start_fetch_items() called")
@@ -1117,10 +1128,11 @@ class BarcodeApp(QMainWindow):
 
                 self.logger.info(f"Preparing to print item: {description} (Barcode: {barcode_value})")
                 
+                description_1, description_2 = self.split_description(description)
+                
                 tpsl_template = self.config.get_tpsl_template()
                 zpl_template = self.config.get_zpl_template()
                 
-
                 printer_clear = ""
                 print_data = ""
                 if not self.config.get_use_zpl():
@@ -1129,10 +1141,15 @@ class BarcodeApp(QMainWindow):
                         tpsl_template = self.config.get_tpsl_size80_template()
                     elif self.config.get_tpslSize() == self.options[2]:
                         tpsl_template = self.config.get_tpsl_size3_template()
+                    elif self.config.get_tpslSize() == self.options[3]: # Fun Bake
+                        tpsl_template = self.config.get_tpsl_funbake_template()
+
                     print_data = self.replace_placeholders(
                         tpsl_template,
                         companyName=self.config.get_company_name(),
                         description=description,
+                        description_1=description_1,
+                        description_2=description_2,
                         remark=remark_text,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
@@ -1141,30 +1158,31 @@ class BarcodeApp(QMainWindow):
                 else:
                     printer_clear = "^XA^CLS^XZ"
                     if self.config.get_zplSize() == self.options[1]:
-                        tpsl_template = self.config.get_zpl_size80_template()
+                        zpl_template = self.config.get_zpl_size80_template()
                     elif self.config.get_zplSize() == self.options[2]:
-                        tpsl_template = self.config.get_zpl_size3_template()
+                        zpl_template = self.config.get_zpl_size3_template()
+                    elif self.config.get_zplSize() == self.options[3]: # Fun Bake
+                        zpl_template = self.config.get_zpl_funbake_template()
+
                     print_data = self.replace_placeholders(
-                        self.config.get_zpl_template(),
+                        zpl_template,
                         companyName=self.config.get_company_name(),
                         description=description,
+                        description_1=description_1,
+                        description_2=description_2,
                         remark=remark_text,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
                         copies=copies,
                     )
-                    # Add remark to ZPL command
-                    if remark_text:
+                    # Add remark to ZPL command (only if not Fun Bake, as it's built-in)
+                    if remark_text and self.config.get_zplSize() != self.options[3]:
                         print_data += f"\n^FO10,180^A0N,15,20^FDRemark: {remark_text}^FS"
 
                 if self.config.get_use_generic_driver():
                     if printer is not None:
-                        printer.write(self.endpoint, "CLS".encode('utf-8'))
-                        time.sleep(0.1)
                         printer.write(self.endpoint, print_data.encode('utf-8'))
                         self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
-                        if i < len(selected_rows) - 1:
-                            time.sleep(0.2)  # 200ms delay between print jobs
                     else:
                         self.logger.error("Printer is not available.")
                 elif self.config.get_wireless_mode():
