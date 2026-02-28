@@ -818,13 +818,17 @@ class SettingsWindow(QMainWindow):
                 self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
             elif self.config.get_tpslSize() == self.options[2]:
                 self.config.set_tpsl_size3_template(self.tpslCommand.toPlainText())
-                
+            elif self.config.get_tpslSize() == self.options[3]:
+                self.config.set_tpsl_funbake_template(self.tpslCommand.toPlainText())
+
             if self.config.get_zplSize() == self.options[0]:
                 self.config.set_zpl_template(self.zplCommand.toPlainText())
             elif self.config.get_zplSize() == self.options[1]:
                 self.config.set_zpl_size80_template(self.zplCommand.toPlainText())
             elif self.config.get_zplSize() == self.options[2]:
                 self.config.set_zpl_size3_template(self.zplCommand.toPlainText())
+            elif self.config.get_zplSize() == self.options[3]:
+                self.config.set_zpl_funbake_template(self.zplCommand.toPlainText())
 
             self.config.set_wireless_mode(self.wireless_mode.isChecked())
             self.config.set_use_zpl(self.use_zpl.isChecked())
