@@ -1159,8 +1159,12 @@ class BarcodeApp(QMainWindow):
 
                 if self.config.get_use_generic_driver():
                     if printer is not None:
+                        printer.write(self.endpoint, "CLS".encode('utf-8'))
+                        time.sleep(0.1)
                         printer.write(self.endpoint, print_data.encode('utf-8'))
                         self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
+                        if i < len(selected_rows) - 1:
+                            time.sleep(0.2)  # 200ms delay between print jobs
                     else:
                         self.logger.error("Printer is not available.")
                 elif self.config.get_wireless_mode():
