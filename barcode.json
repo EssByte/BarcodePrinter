@@ -21,6 +21,6 @@
   "printerName": "TSC_TA200",
   "databaseDriverName": "ODBC Driver 18 for SQL Server",
   "hideCost": false,
-  "tpsl_funbake": "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 80MM,50MM \nOFFSET 0.000 \nREFERENCE 0,0 \nCLS \nTEXT 10,100,\"3\",0,1,1,\"{{description_1}}\" \nTEXT 10,140,\"3\",0,1,1,\"{{description_2}}\" \nBARCODE 10,200,\"128\",60,1,0,2,4,\"{{barcode_value}}\" \nTEXT 10,270,\"2\",0,1,1,\"{{barcode_value}}\" \nTEXT 400,200,\"4\",0,1,1,\"RM {{unit_price_integer}}\" \nTEXT 10,350,\"2\",0,1,1,\"{{remark}}\" \nPRINT {{copies}} \nEOP",
-  "zpl_funbake": "^XA\n^FO10,100^A0N,30,30^FD{{description_1}}^FS\n^FO10,140^A0N,30,30^FD{{description_2}}^FS\n^FO10,200^BY2,3,60^BCN,60,N,N,N^FD{{barcode_value}}^FS\n^FO400,200^A0N,40,40^FDRM {{unit_price_integer}}^FS\n^FO10,350^A0N,20,20^FD{{remark}}^FS\n^PQ{{copies}}\n^XZ"
+  "tpsl_funbake": "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 80MM,50MM \nREFERENCE 0,0 \nCLS \nTEXT 320,80,\"2\",0,1,1,\"{{companyName}}\" \nTEXT 315,120,\"1\",0,1,1,\"{{description_1}}\" \nTEXT 315,135,\"1\",0,1,1,\"{{description_2}}\" \nBARCODE 315,160,\"128\",50,0,0,2,10,\"{{barcode_value}}\" \nTEXT 315,220,\"2\",0,1,1,\"{{barcode_value}}\" \nTEXT 315,250,\"4\",0,1,1,\"RM {{unit_price_integer}}\" \nTEXT 400,280,\"2\",0,1,1,\"{{remark}}\" \nPRINT {{copies}} \nEOP",
+  "zpl_funbake": "^XA\n^FO25,80^A0N,20,20^FD{{companyName}}^FS\n^FO25,105^A0N,15,20^FD{{description_1}}^FS\n^FO25,120^A0N,15,20^FD{{description_2}}^FS\n^FO25,140^BY1,1.5,0^BCN,50,N,Y,N,N^FD{{barcode_value}}^FS\n^FO25,200^A0N,25,30^FDRM {{unit_price_integer}}^FS\n^FO25,240^A0N,15,20^FD{{remark}}^FS\n^PQ{{copies}}\n^XZ"
 }
