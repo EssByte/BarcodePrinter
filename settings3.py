@@ -146,7 +146,7 @@ class SettingsWindow(QMainWindow):
 
             self.combo_zpl_size = self.findChild(QtWidgets.QComboBox, "combo_zpl_size")
             self.combo_tpsl_size = self.findChild(QtWidgets.QComboBox, "combo_tpsl_size")
-            self.options = ["size1", "size2", "size3"]
+            self.options = ["size1", "size2", "size3", "Fun Bake"]
             self.combo_tpsl_size.clear()
             self.combo_zpl_size.clear()
             self.combo_tpsl_size.addItems(self.options)
@@ -184,6 +184,8 @@ class SettingsWindow(QMainWindow):
             self.tpslCommand.setText(self.config.get_tpsl_size80_template())
         elif selected_item == self.options[2]:
             self.tpslCommand.setText(self.config.get_tpsl_size3_template())
+        elif selected_item == self.options[3]:
+            self.tpslCommand.setText(self.config.get_tpsl_funbake_template())
         else:
             return
         
@@ -197,6 +199,8 @@ class SettingsWindow(QMainWindow):
             self.zplCommand.setText(self.config.get_zpl_size80_template())
         elif selected_item == self.options[2]:
             self.zplCommand.setText(self.config.get_zpl_size3_template())
+        elif selected_item == self.options[3]:
+            self.zplCommand.setText(self.config.get_zpl_funbake_template())
         else:
             return
 
@@ -482,6 +486,8 @@ class SettingsWindow(QMainWindow):
                 self.config.set_zpl_size80_template(self.zplCommand.toPlainText())
             elif self.config.get_zplSize() == self.options[2]:
                 self.config.set_zpl_size3_template(self.zplCommand.toPlainText())
+            elif self.config.get_zplSize() == self.options[3]:
+                self.config.set_zpl_funbake_template(self.zplCommand.toPlainText())
 
             self.config.set_use_zpl(self.use_zpl.isChecked())
             self.logger.debug(f"Updated ZPL settings: zplTemplate='{self.config.get_zpl_template()[:50]}...' (truncated for display), useZPL={self.config.get_use_zpl()}.")
@@ -510,6 +516,8 @@ class SettingsWindow(QMainWindow):
                 self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
             elif self.config.get_tpslSize() == self.options[2]:
                 self.config.set_tpsl_size3_template(self.tpslCommand.toPlainText())
+            elif self.config.get_tpslSize() == self.options[3]:
+                self.config.set_tpsl_funbake_template(self.tpslCommand.toPlainText())
 
             self.config.set_use_zpl(self.use_zpl.isChecked())
             self.logger.debug(f"Updated TPSL settings: tpslTemplate='{config['tpslTemplate'][:50]}...' (truncated for display), useZPL={config['useZPL']}.")
@@ -743,6 +751,8 @@ class SettingsWindow(QMainWindow):
                 self.tpslCommand.setText(self.config.get_tpsl_size80_template())
             elif self.config.get_tpslSize() == self.options[2]:
                 self.tpslCommand.setText(self.config.get_tpsl_size3_template())
+            elif self.config.get_tpslSize() == self.options[3]:
+                self.tpslCommand.setText(self.config.get_tpsl_funbake_template())
 
             if self.config.get_zplSize() == self.options[0]:
                 self.zplCommand.setText(self.config.get_zpl_template())
@@ -750,6 +760,8 @@ class SettingsWindow(QMainWindow):
                 self.zplCommand.setText(self.config.get_zpl_size80_template())
             elif self.config.get_zplSize() == self.options[2]:
                 self.zplCommand.setText(self.config.get_zpl_size3_template())
+            elif self.config.get_zplSize() == self.options[3]:
+                self.zplCommand.setText(self.config.get_zpl_funbake_template())
             
             if self.config.get_wireless_mode():
                 self.wireless_mode.setChecked(True)
