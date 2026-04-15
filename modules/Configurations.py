@@ -151,7 +151,7 @@ class BarcodeConfig(QObject):
         self.setting_changed.emit("zpl3", zpl3_template)
 
     def get_tpsl_funbake_template(self):
-        default = "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 75MM, 50MM \nREFERENCE 0,0 \nCLS \nTEXT 300,20,\"2\",0,1,1,2,\"nama produk / product name\" \nTEXT 300,50,\"3\",0,1,1,2,\"{{description}}\" \nBAR 10,95,580,2 \nBAR 10,95,2,145 \nTEXT 60,115,\"2\",0,1,1,0,\"kod produk / product code\" \nBARCODE 215,140,\"128\",50,0,0,2,4,2,\"{{barcode_value}}\" \nTEXT 215,200,\"2\",0,1,1,2,\"{{barcode_value}}\" \nBAR 430,95,2,145 \nTEXT 445,115,\"2\",0,1,1,0,\"harga / price\" \nTEXT 515,160,\"3\",0,1,1,2,\"RM {{unit_price_integer}}\" \nBAR 590,95,2,145 \nBAR 10,240,580,2 \nTEXT 60,260,\"2\",0,1,1,0,\"expire date\" \nTEXT 60,290,\"3\",0,1,1,0,\"{{remark}}\" \nPRINT {{copies}} \nEOP"
+        default = "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 70MM, 50MM \nREFERENCE 0,0 \nCLS \nTEXT 280,20,\"2\",0,1,1,2,\"nama produk / product name\" \nTEXT 280,50,\"3\",0,1,1,2,\"{{description}}\" \nBAR 10,95,540,2 \nBAR 10,95,2,145 \nTEXT 60,115,\"2\",0,1,1,0,\"kod produk / product code\" \nBARCODE 205,140,\"128\",50,0,0,2,4,2,\"{{barcode_value}}\" \nTEXT 205,200,\"2\",0,1,1,2,\"{{barcode_value}}\" \nBAR 400,95,2,145 \nTEXT 415,115,\"2\",0,1,1,0,\"harga / price\" \nTEXT 475,160,\"3\",0,1,1,2,\"RM {{unit_price_integer}}\" \nBAR 550,95,2,145 \nBAR 10,240,540,2 \nTEXT 60,260,\"2\",0,1,1,0,\"expire date\" \nTEXT 60,290,\"3\",0,1,1,0,\"{{remark}}\" \nPRINT {{copies}} \nEOP"
         return self.settings.value("tpsl_funbake", default)
     
     def set_tpsl_funbake_template(self, template):
@@ -159,7 +159,7 @@ class BarcodeConfig(QObject):
         self.setting_changed.emit("tpsl_funbake", template)
 
     def get_zpl_funbake_template(self):
-        default = "^XA\n^FO0,20^FB600,1,0,C,0^A0N,20,20^FDnama produk / product name^FS\n^FO0,50^FB600,1,0,C,0^A0N,30,30^FD{{description}}^FS\n^FO10,95^GB580,2,2^FS\n^FO10,95^GB2,145,2^FS\n^FO60,115^A0N,20,20^FDkod produk / product code^FS\n^FO60,140^FB370,1,0,C,0^BY2,3,50^BCN,50,Y,N,N^FD{{barcode_value}}^FS\n^FO430,95^GB2,145,2^FS\n^FO445,115^A0N,20,20^FDharga / price^FS\n^FO445,160^FB150,1,0,C,0^A0N,30,30^FDRM {{unit_price_integer}}^FS\n^FO590,95^GB2,145,2^FS\n^FO10,240^GB580,2,2^FS\n^FO60,260^A0N,20,20^FDexpire date^FS\n^FO60,290^A0N,30,30^FD{{remark}}^FS\n^PQ{{copies}}\n^XZ"
+        default = "^XA\n^FO0,20^FB560,1,0,C,0^A0N,20,20^FDnama produk / product name^FS\n^FO0,50^FB560,1,0,C,0^A0N,30,30^FD{{description}}^FS\n^FO10,95^GB540,2,2^FS\n^FO10,95^GB2,145,2^FS\n^FO60,115^A0N,20,20^FDkod produk / product code^FS\n^FO35,140^FB330,1,0,C,0^BY2,3,50^BCN,50,Y,N,N^FD{{barcode_value}}^FS\n^FO400,95^GB2,145,2^FS\n^FO415,115^A0N,20,20^FDharga / price^FS\n^FO410,160^FB130,1,0,C,0^A0N,30,30^FDRM {{unit_price_integer}}^FS\n^FO550,95^GB2,145,2^FS\n^FO10,240^GB540,2,2^FS\n^FO60,260^A0N,20,20^FDexpire date^FS\n^FO60,290^A0N,30,30^FD{{remark}}^FS\n^PQ{{copies}}\n^XZ"
         return self.settings.value("zpl_funbake", default)
     
     def set_zpl_funbake_template(self, template):
