@@ -1155,7 +1155,7 @@ class BarcodeApp(QMainWindow):
                             'unit_price_integer': unit_price_integer
                         }
                         label_image = image_printer.render_fun_bake_label(label_data)
-                        print_data = image_printer.get_full_command(label_image)
+                        print_data = image_printer.get_full_command(label_image, copies=int(copies))
                         printer_clear = b"" # Included in print_data
 
                     print_data = self.replace_placeholders(
