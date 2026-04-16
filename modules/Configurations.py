@@ -16,6 +16,7 @@ class BarcodeConfig(QObject):
     zpl_funbake = ""
 
     tpsl_funbake = ""
+    tpsl_funbake_image = ""
 
 
     def __init__(self):
@@ -165,6 +166,14 @@ class BarcodeConfig(QObject):
     def set_zpl_funbake_template(self, template):
         self.settings.setValue("zpl_funbake", template)
         self.setting_changed.emit("zpl_funbake", template)
+
+    def get_tpsl_funbake_image_template(self):
+        default = "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 75MM, 50MM \nREFERENCE 0,0 \nCLS \nTEXT 360,20,\"2\",0,1,1,2,\"nama produk / product name\" \nTEXT 360,50,\"3\",0,1,1,2,\"{{description}}\" \nBAR 60,95,530,2 \nBAR 60,95,2,145 \nTEXT 80,115,\"2\",0,1,1,0,\"kod produk / product code\" \nQRCODE 80,140,L,5,A,0,\"{{barcode_value}}\" \nTEXT 80,210,\"2\",0,1,1,0,\"{{barcode_value}}\" \nBAR 440,95,2,145 \nTEXT 455,115,\"2\",0,1,1,0,\"harga / price\" \nTEXT 455,160,\"3\",0,1,1,0,\"RM {{unit_price_integer}}\" \nBAR 590,95,2,145 \nBAR 60,240,530,2 \nTEXT 80,260,\"2\",0,1,1,0,\"expire date\" \nTEXT 80,290,\"3\",0,1,1,0,\"{{remark}}\" \nPRINT {{copies}} \nEOP"
+        return self.settings.value("tpsl_funbake_image", default)
+    
+    def set_tpsl_funbake_image_template(self, template):
+        self.settings.setValue("tpsl_funbake_image", template)
+        self.setting_changed.emit("tpsl_funbake_image", template)
 
     def get_logging(self):
         return self.settings.value("logging", True, type=bool)
