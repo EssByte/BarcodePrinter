@@ -50,8 +50,11 @@ class SendCommand:
                 self.logger.info(f"Connected to {ip_address}:{port}")
 
                 # Send the command
-                client_socket.sendall(command.encode('utf-8'))
-                self.logger.info(f"Command sent successfully: {command}")
+                if isinstance(command, str):
+                    client_socket.sendall(command.encode('utf-8'))
+                else:
+                    client_socket.sendall(command)
+                self.logger.info("Command sent successfully.")
 
         except Exception as e:
             # Log the error
@@ -102,8 +105,11 @@ class SendCommand:
             self.logger.debug("Page started.")
 
             # Send raw data to the printer
-            win32print.WritePrinter(printer, raw_data.encode())
-            self.logger.info(f"Data sent to printer '{printer_name}': {raw_data}")
+            if isinstance(raw_data, str):
+                win32print.WritePrinter(printer, raw_data.encode('utf-8'))
+            else:
+                win32print.WritePrinter(printer, raw_data)
+            self.logger.info(f"Data sent to printer '{printer_name}'.")
 
             # End the page and the job
             win32print.EndPagePrinter(printer)

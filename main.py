@@ -17,6 +17,7 @@ from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 from modules.Configurations import BarcodeConfig
+from modules.ImagePrinter import ImagePrinter
 from remark import RemarkDialog
 from version import __version__
 import subprocess
@@ -354,7 +355,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["size1", "size2", "size3", "Fun Bake", "Fun Bake (QR)"]
+        self.options = ["size1", "size2", "size3", "Fun Bake", "Fun Bake (QR)", "Fun Bake (Graphic)"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.setStyleSheet("""
             QComboBox {
@@ -1145,6 +1146,17 @@ class BarcodeApp(QMainWindow):
                         tpsl_template = self.config.get_tpsl_funbake_template()
                     elif self.config.get_tpslSize() == self.options[4]: # Fun Bake (QR)
                         tpsl_template = self.config.get_tpsl_funbake_image_template()
+                    elif self.config.get_tpslSize() == self.options[5]: # Fun Bake (Graphic)
+                        image_printer = ImagePrinter()
+                        label_data = {
+                            'description': description,
+                            'barcode_value': barcode_value,
+                            'remark': remark_text,
+                            'unit_price_integer': unit_price_integer
+                        }
+                        label_image = image_printer.render_fun_bake_label(label_data)
+                        print_data = image_printer.get_full_command(label_image)
+                        printer_clear = b"" # Included in print_data
 
                     print_data = self.replace_placeholders(
                         tpsl_template,
