@@ -151,7 +151,7 @@ class BarcodeConfig(QObject):
         self.setting_changed.emit("zpl3", zpl3_template)
 
     def get_tpsl_funbake_template(self):
-        default = "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 75MM, 50MM \nREFERENCE 0,0 \nCLS \nTEXT 300,20,\"2\",0,1,1,2,\"nama produk / product name\" \nTEXT 300,50,\"3\",0,1,1,2,\"{{description}}\" \nBAR 10,95,580,2 \nBAR 10,95,2,145 \nTEXT 25,115,\"2\",0,1,1,0,\"kod produk / product code\" \nBARCODE 25,140,\"128\",50,0,0,2,4,0,\"{{barcode_value}}\" \nTEXT 25,200,\"2\",0,1,1,0,\"{{barcode_value}}\" \nBAR 400,95,2,145 \nTEXT 415,115,\"2\",0,1,1,0,\"harga / price\" \nTEXT 415,160,\"3\",0,1,1,0,\"RM {{unit_price_integer}}\" \nBAR 590,95,2,145 \nBAR 10,240,580,2 \nTEXT 25,260,\"2\",0,1,1,0,\"expire date\" \nTEXT 25,290,\"3\",0,1,1,0,\"{{remark}}\" \nPRINT {{copies}} \nEOP"
+        default = "SPEED 2.0 \nDENSITY 7 \nDIRECTION 0 \nSIZE 75MM, 50MM \nREFERENCE 0,0 \nCLS \nTEXT 310,20,\"2\",0,1,1,2,\"nama produk / product name\" \nTEXT 310,50,\"3\",0,1,1,2,\"{{description}}\" \nBAR 20,95,580,2 \nBAR 20,95,2,145 \nTEXT 35,115,\"2\",0,1,1,0,\"kod produk / product code\" \nBARCODE 35,140,\"128\",50,0,0,2,4,0,\"{{barcode_value}}\" \nTEXT 35,200,\"2\",0,1,1,0,\"{{barcode_value}}\" \nBAR 410,95,2,145 \nTEXT 425,115,\"2\",0,1,1,0,\"harga / price\" \nTEXT 425,160,\"3\",0,1,1,0,\"RM {{unit_price_integer}}\" \nBAR 600,95,2,145 \nBAR 20,240,580,2 \nTEXT 35,260,\"2\",0,1,1,0,\"expire date\" \nTEXT 35,290,\"3\",0,1,1,0,\"{{remark}}\" \nPRINT {{copies}} \nEOP"
         return self.settings.value("tpsl_funbake", default)
     
     def set_tpsl_funbake_template(self, template):
