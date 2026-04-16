@@ -112,29 +112,38 @@ class ImagePrinter:
         """
         # Ensure image is monochrome
         image = image.convert('1')
+        
+        # IMPORTANT: Pillow '1' mode uses 0 for Black and 1 for White.
+        # TSC printers use 1 for Black (Heat) and 0 for White.
+        # We must invert the image bits.
+        image = Image.eval(image, lambda x: 0 if x == 1 else 1)
+        
         width, height = image.size
         width_bytes = (width + 7) // 8
-        
-        # TPSL expects bit-column format? 
-        # Actually standard BITMAP command often expects raster scan.
-        # For TSC TA200, mode 0 is typically used.
-        
-        # Mode 0: Overwrite
-        # Data is raw bytes, row by row (left to right, top to bottom)
         
         # Get raw data from Pillow
         data = image.tobytes()
         
-        # Construct command
-        # Binary data must be handled carefully. 
-        # In this environment, we might need to send it as a byte array.
-        
+        # BITMAP command header
+        # Using mode 0 (Overwrite)
         header = f"BITMAP {x},{y},{width_bytes},{height},0,".encode('utf-8')
         footer = b"\r\n"
         
         return header + data + footer
 
-    def get_full_command(self, image):
+    def get_full_command(self, image, copies=1):
         """Wraps the bitmap in standard TPSL start/end commands"""
         bitmap_data = self.to_tpsl_bitmap(image, 0, 0)
-        return b"CLS\r\n" + bitmap_data + b"PRINT 1,1\r\n"
+        
+        header = (
+            "SPEED 2.0\r\n"
+            "DENSITY 7\r\n"
+            "DIRECTION 0\r\n"
+            "SIZE 75MM, 50MM\r\n"
+            "REFERENCE 0,0\r\n"
+            "CLS\r\n"
+        ).encode('utf-8')
+        
+        footer = f"PRINT {copies}\r\n".encode('utf-8')
+        
+        return header + bitmap_data + footer
