@@ -354,7 +354,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["size1", "size2", "size3", "Fun Bake"]
+        self.options = ["size1", "size2", "size3", "Fun Bake", "Fun Bake (QR)"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.setStyleSheet("""
             QComboBox {
@@ -1143,6 +1143,8 @@ class BarcodeApp(QMainWindow):
                         tpsl_template = self.config.get_tpsl_size3_template()
                     elif self.config.get_tpslSize() == self.options[3]: # Fun Bake
                         tpsl_template = self.config.get_tpsl_funbake_template()
+                    elif self.config.get_tpslSize() == self.options[4]: # Fun Bake (QR)
+                        tpsl_template = self.config.get_tpsl_funbake_image_template()
 
                     print_data = self.replace_placeholders(
                         tpsl_template,
