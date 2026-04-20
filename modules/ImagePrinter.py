@@ -12,73 +12,50 @@ class ImagePrinter:
         
     def render_fun_bake_label(self, data):
         """
-        Renders a simple label with just the description as a centered image.
-        75mm x 50mm
+        Renders a smaller test image (200x200) to verify transmission.
+        75mm x 50mm label area.
         """
-        width_mm, height_mm = 75, 50
-        width_px = int(width_mm * self.dpmm)
-        height_px = int(height_mm * self.dpmm)
+        width_px, height_px = 200, 200 # Smaller test size
         
         # Create a white 1-bit image (1 = White)
         image = Image.new('1', (width_px, height_px), 1)
         draw = ImageDraw.Draw(image)
         
-        # Try to load a font that supports Chinese, fallback to default
-        font_paths = [
-            "/usr/share/fonts/google-noto-sans-cjk-vf-fonts/NotoSansCJK-VF.ttc",
-            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
-            "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
-        ]
-        
-        font_main = None
-        for font_path in font_paths:
-            try:
-                if os.path.exists(font_path):
-                    font_main = ImageFont.truetype(font_path, 60) # Larger font
-                    break
-            except:
-                pass
+        # Test Pattern: Big black box
+        draw.rectangle([10, 10, 190, 190], fill=0) # Black box
 
-        if not font_main:
+        # Find font
+        font_path = "/usr/share/fonts/google-noto-sans-cjk-vf-fonts/NotoSansCJK-VF.ttc"
+        try:
+            font_main = ImageFont.truetype(font_path, 30)
+        except:
             font_main = ImageFont.load_default()
 
-        # TEST PATTERN: Draw a small black rectangle in the top-left (0,0)
-        # This confirms if BITMAP data is working at all
-        draw.rectangle([10, 10, 100, 100], fill=0) # Black box
-
-        # Draw centered description
-        description = data.get('description', 'TEST IMAGE')
-        center_x = width_px // 2
-        center_y = height_px // 2
-        
-        # fill=0 is Black in PIL mode '1'
-        draw.text((center_x, center_y), description, fill=0, anchor="mm", font=font_main)
+        # Text in the middle
+        draw.text((100, 100), data.get('description', 'TEST'), fill=1, anchor="mm", font=font_main) # White text on black box
         
         return image
 
-    def to_tpsl_bitmap(self, image, x=0, y=0):
+    def to_tpsl_bitmap(self, image, x=50, y=50):
         """
-        Converts a Pillow image to a BITMAP command.
+        Converts a Pillow image to a GW (Graphic Write) command.
+        GW x, y, width_bytes, height, data
         """
-        # Ensure 1-bit
         image = image.convert('1')
         
-        # INVERSION: Most TSPL printers need 1 for Ink (Heat)
-        # PIL '1' uses 0 for Black ink. So we MUST invert.
-        # If it was solid black before, maybe the header was wrong.
+        # PIL '1' mode: 0=Black, 1=White
+        # TSPL 'GW' expects: 1=Black, 0=White (Heat on)
+        # So we MUST invert.
         image = Image.eval(image, lambda x: 0 if x == 1 else 1)
         
         width, height = image.size
         width_bytes = (width + 7) // 8
         data = image.tobytes()
         
-        # Mode 0 = OVERWRITE
-        # Some printers are picky about the comma and binary data
-        header = f"BITMAP {x},{y},{width_bytes},{height},0,".encode('utf-8')
+        # GW Command Header
+        header = f"GW {x},{y},{width_bytes},{height},".encode('utf-8')
         
-        # NO trailing \r\n after binary data - the data should be the exact size
-        return header + data
+        return header + data + b"\r\n"
 
     def get_full_command(self, image, copies=1):
         """Wraps the bitmap in standard TPSL start/end commands"""
