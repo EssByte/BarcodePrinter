@@ -12,13 +12,8 @@ class ImagePrinter:
         
     def render_fun_bake_label(self, data):
         """
-        Renders the Fun Bake label (75mm x 50mm) as a monochrome image.
-        data = {
-            'description': '...',
-            'barcode_value': '...',
-            'remark': '...',
-            'unit_price_integer': '...'
-        }
+        Renders a simple label with just the description as a centered image.
+        75mm x 50mm
         """
         width_mm, height_mm = 75, 50
         width_px = int(width_mm * self.dpmm)
@@ -36,90 +31,24 @@ class ImagePrinter:
             "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
         ]
         
-        font_small = font_large = font_extra_large = None
-        
+        font_main = None
         for font_path in font_paths:
             try:
                 if os.path.exists(font_path):
-                    font_small = ImageFont.truetype(font_path, 16)
-                    font_large = ImageFont.truetype(font_path, 24)
-                    font_extra_large = ImageFont.truetype(font_path, 32)
+                    font_main = ImageFont.truetype(font_path, 40)
                     break
-            except Exception as e:
-                print(f"Failed to load font {font_path}: {e}")
+            except:
+                pass
 
-        if not font_small:
-            print("No Chinese-compatible font found. Falling back to default.")
-            font_small = ImageFont.load_default()
-            font_large = ImageFont.load_default()
-            font_extra_large = ImageFont.load_default()
+        if not font_main:
+            font_main = ImageFont.load_default()
 
-        # Layout Constants (based on the aggressive shift logic)
-        left_margin = 80
-        center_x = width_px // 2 + 30 # slight right bias
+        # Draw centered description
+        description = data.get('description', '')
+        center_x = width_px // 2
+        center_y = height_px // 2
         
-        # 1. Header: "nama produk / product name"
-        draw.text((center_x, 20), "nama produk / product name", fill=0, anchor="mt", font=font_small)
-        
-        # 2. Description
-        # Use extra large for Chinese characters to be readable
-        draw.text((center_x, 50), data.get('description', ''), fill=0, anchor="mt", font=font_extra_large)
-        
-        # 3. Horizontal Bar
-        draw.rectangle([60, 95, 590, 97], fill=0)
-        
-        # 4. Vertical Bar
-        draw.rectangle([440, 95, 442, 240], fill=0)
-        
-        # 5. Right Border Bar
-        draw.rectangle([590, 95, 592, 240], fill=0)
-        
-        # 6. Left side: "kod produk / product code"
-        draw.text((80, 115), "kod produk / product code", fill=0, font=font_small)
-        
-        # 7. Generate Barcode (Code128)
-        code_class = barcode.get_barcode_class('code128')
-        rv = io.BytesIO()
-        # module_width 0.2mm is approx 1.6 dots at 8dpmm. 
-        code_obj = code_class(data.get('barcode_value', '0000000'), writer=ImageWriter())
-        # Disable text as we draw it manually
-        code_obj.write(rv, options={
-            "module_width": 0.25, 
-            "module_height": 10.0, 
-            "font_size": 0, 
-            "text_distance": 0,
-            "quiet_zone": 1.0,
-            "write_text": False
-        })
-        
-        barcode_img = Image.open(rv).convert('1')
-        # Resize/Crop barcode to fit our area (approx 350px wide, 60px high)
-        max_barcode_w = 340
-        max_barcode_h = 60
-        
-        # Calculate aspect ratio
-        w_ratio = max_barcode_w / barcode_img.width
-        h_ratio = max_barcode_h / barcode_img.height
-        ratio = min(w_ratio, h_ratio)
-        new_size = (int(barcode_img.width * ratio), int(barcode_img.height * ratio))
-        barcode_img = barcode_img.resize(new_size, Image.NEAREST)
-        
-        # Paste barcode
-        image.paste(barcode_img, (80, 140))
-        
-        # Value below barcode
-        draw.text((80, 205), data.get('barcode_value', ''), fill=0, font=font_small)
-        
-        # 8. Right side: "harga / price"
-        draw.text((455, 115), "harga / price", fill=0, font=font_small)
-        draw.text((455, 160), f"RM {data.get('unit_price_integer', '0')}", fill=0, font=font_large)
-        
-        # 9. Bottom Horizontal Bar
-        draw.rectangle([60, 240, 590, 242], fill=0)
-        
-        # 10. Bottom: "expire date" and Remark
-        draw.text((80, 260), "expire date", fill=0, font=font_small)
-        draw.text((80, 290), data.get('remark', ''), fill=0, font=font_large)
+        draw.text((center_x, center_y), description, fill=0, anchor="mm", font=font_main)
         
         return image
 
