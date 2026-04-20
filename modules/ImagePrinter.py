@@ -2,6 +2,7 @@ import barcode
 from barcode.writer import ImageWriter
 from PIL import Image, ImageDraw, ImageFont
 import io
+import os
 
 class ImagePrinter:
     def __init__(self, dpi=203):
@@ -27,15 +28,31 @@ class ImagePrinter:
         image = Image.new('1', (width_px, height_px), 1)
         draw = ImageDraw.Draw(image)
         
-        # Try to load a font, fallback to default
-        try:
-            # Note: On Linux/Windows, we might need path to a .ttf
-            # For now using basic ones or default
-            font_small = ImageFont.load_default()
-            font_large = ImageFont.load_default() 
-        except:
+        # Try to load a font that supports Chinese, fallback to default
+        font_paths = [
+            "/usr/share/fonts/google-noto-sans-cjk-vf-fonts/NotoSansCJK-VF.ttc",
+            "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
+            "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc"
+        ]
+        
+        font_small = font_large = font_extra_large = None
+        
+        for font_path in font_paths:
+            try:
+                if os.path.exists(font_path):
+                    font_small = ImageFont.truetype(font_path, 16)
+                    font_large = ImageFont.truetype(font_path, 24)
+                    font_extra_large = ImageFont.truetype(font_path, 32)
+                    break
+            except Exception as e:
+                print(f"Failed to load font {font_path}: {e}")
+
+        if not font_small:
+            print("No Chinese-compatible font found. Falling back to default.")
             font_small = ImageFont.load_default()
             font_large = ImageFont.load_default()
+            font_extra_large = ImageFont.load_default()
 
         # Layout Constants (based on the aggressive shift logic)
         left_margin = 80
@@ -45,7 +62,8 @@ class ImagePrinter:
         draw.text((center_x, 20), "nama produk / product name", fill=0, anchor="mt", font=font_small)
         
         # 2. Description
-        draw.text((center_x, 50), data.get('description', ''), fill=0, anchor="mt", font=font_large)
+        # Use extra large for Chinese characters to be readable
+        draw.text((center_x, 50), data.get('description', ''), fill=0, anchor="mt", font=font_extra_large)
         
         # 3. Horizontal Bar
         draw.rectangle([60, 95, 590, 97], fill=0)

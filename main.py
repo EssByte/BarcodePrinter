@@ -1158,17 +1158,18 @@ class BarcodeApp(QMainWindow):
                         print_data = image_printer.get_full_command(label_image, copies=int(copies))
                         printer_clear = b"" # Included in print_data
 
-                    print_data = self.replace_placeholders(
-                        tpsl_template,
-                        companyName=self.config.get_company_name(),
-                        description=description,
-                        description_1=description_1,
-                        description_2=description_2,
-                        remark=remark_text,
-                        barcode_value=barcode_value,
-                        unit_price_integer=unit_price_integer,
-                        copies=copies,
-                    )
+                    if self.config.get_tpslSize() != self.options[5]:
+                        print_data = self.replace_placeholders(
+                            tpsl_template,
+                            companyName=self.config.get_company_name(),
+                            description=description,
+                            description_1=description_1,
+                            description_2=description_2,
+                            remark=remark_text,
+                            barcode_value=barcode_value,
+                            unit_price_integer=unit_price_integer,
+                            copies=copies,
+                        )
                 else:
                     printer_clear = "^XA^CLS^XZ"
                     if self.config.get_zplSize() == self.options[1]:
@@ -1195,7 +1196,9 @@ class BarcodeApp(QMainWindow):
 
                 if self.config.get_use_generic_driver():
                     if printer is not None:
-                        printer.write(self.endpoint, print_data.encode('utf-8'))
+                        if isinstance(print_data, str):
+                            print_data = print_data.encode('utf-8')
+                        printer.write(self.endpoint, print_data)
                         self.logger.info(f"Barcode print command sent successfully for item: {barcode_value}")
                     else:
                         self.logger.error("Printer is not available.")
