@@ -57,13 +57,13 @@ class ImagePrinter:
         Converts a Pillow image to a TPSL BITMAP command string.
         Format: BITMAP x,y,width_bytes,height,mode,data
         """
-        # Ensure image is monochrome
+        # Ensure image is monochrome (1-bit)
         image = image.convert('1')
         
-        # IMPORTANT: Pillow '1' mode uses 0 for Black and 1 for White.
-        # TSC printers use 1 for Black (Heat) and 0 for White.
-        # We must invert the image bits.
-        image = Image.eval(image, lambda x: 0 if x == 1 else 1)
+        # By default, PIL '1' mode: 0=Black, 1=White
+        # TSPL expects: 1=Black, 0=White
+        # If it was printing solid black, it means the 1s (background) were firing.
+        # Let's try WITHOUT the inversion first to see if that fixes the background.
         
         width, height = image.size
         width_bytes = (width + 7) // 8
@@ -73,10 +73,10 @@ class ImagePrinter:
         
         # BITMAP command header
         # Using mode 0 (Overwrite)
+        # Note: No space after the comma before the binary data
         header = f"BITMAP {x},{y},{width_bytes},{height},0,".encode('utf-8')
-        footer = b"\r\n"
         
-        return header + data + footer
+        return header + data + b"\r\n"
 
     def get_full_command(self, image, copies=1):
         """Wraps the bitmap in standard TPSL start/end commands"""
