@@ -12,50 +12,51 @@ class ImagePrinter:
         
     def render_fun_bake_label(self, data):
         """
-        Renders a smaller test image (200x200) to verify transmission.
-        75mm x 50mm label area.
+        Renders the full label (75mm x 50mm) as an image.
+        Padded to 608px width (76 bytes) for perfect alignment.
         """
-        width_px, height_px = 200, 200 # Smaller test size
+        width_px = 608 
+        height_px = 400
         
         # Create a white 1-bit image (1 = White)
         image = Image.new('1', (width_px, height_px), 1)
         draw = ImageDraw.Draw(image)
         
-        # Test Pattern: Big black box
-        draw.rectangle([10, 10, 190, 190], fill=0) # Black box
-
         # Find font
         font_path = "/usr/share/fonts/google-noto-sans-cjk-vf-fonts/NotoSansCJK-VF.ttc"
         try:
-            font_main = ImageFont.truetype(font_path, 30)
+            # We use a large font for the description
+            font_main = ImageFont.truetype(font_path, 50)
         except:
             font_main = ImageFont.load_default()
 
-        # Text in the middle
-        draw.text((100, 100), data.get('description', 'TEST'), fill=1, anchor="mm", font=font_main) # White text on black box
+        # Draw centered description
+        description = data.get('description', 'TEST IMAGE')
+        center_x = width_px // 2
+        center_y = height_px // 2
+        
+        # Draw text (fill=0 is black)
+        draw.text((center_x, center_y), description, fill=0, anchor="mm", font=font_main)
         
         return image
 
-    def to_tpsl_bitmap(self, image, x=50, y=50):
+    def to_tpsl_bitmap(self, image, x=0, y=0):
         """
         Converts a Pillow image to a GW (Graphic Write) command.
-        GW x, y, width_bytes, height, data
         """
         image = image.convert('1')
         
-        # PIL '1' mode: 0=Black, 1=White
-        # TSPL 'GW' expects: 1=Black, 0=White (Heat on)
-        # So we MUST invert.
-        image = Image.eval(image, lambda x: 0 if x == 1 else 1)
+        # Invert: 0 (Black in PIL) -> 1 (Ink in TSPL)
+        image = Image.eval(image, lambda val: 0 if val == 1 else 1)
         
         width, height = image.size
         width_bytes = (width + 7) // 8
         data = image.tobytes()
         
-        # GW Command Header
+        # GW Header: No space after comma, binary data follows immediately
         header = f"GW {x},{y},{width_bytes},{height},".encode('utf-8')
         
-        return header + data + b"\r\n"
+        return header + data
 
     def get_full_command(self, image, copies=1):
         """Wraps the bitmap in standard TPSL start/end commands"""
@@ -70,6 +71,6 @@ class ImagePrinter:
             "CLS\r\n"
         ).encode('utf-8')
         
-        footer = f"PRINT {copies}\r\n".encode('utf-8')
+        footer = f"\r\nPRINT {copies}\r\n".encode('utf-8')
         
         return header + bitmap_data + footer
