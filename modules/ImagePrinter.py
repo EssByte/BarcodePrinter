@@ -85,6 +85,13 @@ class ImagePrinter:
         remark = data.get('remark', '')
         draw.text((80, 295), remark, fill=0, font=font_large)
 
+        # BIG Hello World text for testing
+        try:
+            font_huge = ImageFont.truetype(font_path, 60)
+        except:
+            font_huge = ImageFont.load_default()
+        draw.text((width_px//2, 360), "HELLO WORLD", fill=0, anchor="mm", font=font_huge)
+
         return image
 
     def to_tpsl_bitmap(self, image, x=0, y=0):
