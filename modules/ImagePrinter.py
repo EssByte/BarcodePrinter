@@ -87,6 +87,19 @@ class ImagePrinter:
 
     def get_full_command(self, image, copies=1):
         """Wraps the bitmap in standard TPSL start/end commands"""
+        # Automatically save a copy of the image to the images/ folder for debugging
+        try:
+            if not os.path.exists('images'):
+                os.makedirs('images')
+            import datetime
+            # Use microsecond (%f) to avoid collisions if multiple labels are printed quickly
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            image.save(f"images/print_{timestamp}.png")
+        except Exception as e:
+            # We don't want to crash the whole print job if saving fails (e.g. permission issues)
+            # but we log it to console
+            print(f"Warning: Failed to save debug image to 'images/' folder: {e}")
+
         bitmap_data = self.to_tpsl_bitmap(image, 0, 0)
         
         header = (
