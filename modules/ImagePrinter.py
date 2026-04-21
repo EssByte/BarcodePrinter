@@ -41,10 +41,10 @@ class ImagePrinter:
             font_path = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
 
         try:
-            font_small = ImageFont.truetype(font_path, 20)
-            font_medium = ImageFont.truetype(font_path, 30)
-            font_large = ImageFont.truetype(font_path, 40)
-            font_huge = ImageFont.truetype(font_path, 30)
+            font_small = ImageFont.truetype(font_path, 12)
+            font_medium = ImageFont.truetype(font_path, 20)
+            font_large = ImageFont.truetype(font_path, 30)
+            font_huge = ImageFont.truetype(font_path, 24)
         except:
             # Final fallback to built-in tiny font if all files fail
             font_small = font_medium = font_large = font_huge = ImageFont.load_default()
