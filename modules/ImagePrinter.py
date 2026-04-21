@@ -21,18 +21,15 @@ class ImagePrinter:
         # Create a white 1-bit image (1 = White)
         image = Image.new('1', (width_px, height_px), 1)
         draw = ImageDraw.Draw(image)
-        
-        # Fonts
-        font_path = "/usr/share/fonts/google-noto-sans-cjk-vf-fonts/NotoSansCJK-VF.ttc"
+        # Load local font (Droid Sans Fallback - covers both EN and ZH reliably)
+        font_path = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
         try:
-            # We use multiple scales for different parts of the label
-            font_small = ImageFont.truetype(font_path, 18)
-            font_medium = ImageFont.truetype(font_path, 24)
-            font_large = ImageFont.truetype(font_path, 35)
-            # Specifying index=0 for the TTC collection to ensure successful loading
-            font_huge = ImageFont.truetype(font_path, 80, index=0)
+            font_small = ImageFont.truetype(font_path, 20)
+            font_medium = ImageFont.truetype(font_path, 30)
+            font_large = ImageFont.truetype(font_path, 40)
+            font_huge = ImageFont.truetype(font_path, 80)
         except:
-            font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
+            font_small = font_medium = font_large = font_huge = ImageFont.load_default()
 
         # FRESH START: NEW GRID LAYOUT
         
