@@ -100,6 +100,26 @@ class ImagePrinter:
         # Barcode Value Text
         draw.text((20, 350), barcode_value, fill=0, font=font_medium)
 
+        # 6. Column B (Right Side)
+        col_b_x = col_split + 10
+        
+        # Row A: PRICE
+        draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small)
+        price = data.get('unit_price_integer', '0.00')
+        # Using medium font for the value to make it readable
+        draw.text((col_b_x, 45), price, fill=0, font=font_medium)
+
+        # Row B: EXPIRY
+        draw.text((col_b_x, 110), "GUNA SBL / EXP", fill=0, font=font_small)
+        expiry = data.get('remark', '')
+        draw.text((col_b_x, 145), expiry, fill=0, font=font_medium)
+
+        # Row C: NET WEIGHT
+        draw.text((col_b_x, 210), "BERAT BERSIH / NET WT", fill=0, font=font_small)
+
+        # Row D: BATCH
+        draw.text((col_b_x, 310), "LOT / BATCH", fill=0, font=font_small)
+
         return image
 
     def to_tpsl_bitmap(self, image, x=0, y=0):
