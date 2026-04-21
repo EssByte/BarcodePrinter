@@ -34,68 +34,29 @@ class ImagePrinter:
         except:
             font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
 
-        # CCTV TEST: Solid black bar at the top with white text (very high contrast)
-        draw.rectangle([0, 0, width_px, 100], fill=0)
-        draw.text((width_px//2, 50), "ACTIVE TEST", fill=1, anchor="mm", font=font_huge)
-
-        # Draw Headers (moved slightly down)
-        draw.text((width_px//2, 120), "nama produk / product name", fill=0, anchor="mm", font=font_small)
-        description = data.get('description', '')
-        draw.text((width_px//2, 150), description, fill=0, anchor="mm", font=font_large)
-
-        # Draw Box (60, 95) to (590, 240)
-        draw.line([(60, 95), (590, 95)], fill=0, width=2)   # Top
-        draw.line([(60, 240), (590, 240)], fill=0, width=2) # Bottom
-        draw.line([(60, 95), (60, 240)], fill=0, width=2)   # Left
-        draw.line([(440, 95), (440, 240)], fill=0, width=2) # Middle
-        draw.line([(590, 95), (590, 240)], fill=0, width=2) # Right
-
-        # Left Column: Product Code
-        draw.text((80, 115), "kod produk / product code", fill=0, font=font_small)
+        # DEBUG LAYOUT: Simple markers to identify coordinates
+        description = data.get('description', 'DEBUG LABEL')
+        draw.text((width_px//2, 40), f"DESC: {description}", fill=0, anchor="mm", font=font_medium)
+        draw.text((width_px//2, 80), "--- TOP SECTION ---", fill=0, anchor="mm", font=font_large)
         
-        # Generate Barcode
+        # Center Barcode
         barcode_value = data.get('barcode_value', '12345678')
         try:
             from barcode import Code128
             from barcode.writer import ImageWriter
             import io
-            
-            # Create barcode image buffer
             rv = io.BytesIO()
-            Code128(barcode_value, writer=ImageWriter()).write(rv, options={
-                "write_text": False, 
-                "module_height": 10.0, 
-                "quiet_zone": 1.0,
-                "background": "white",
-                "foreground": "black"
-            })
+            Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 10.0, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
             rv.seek(0)
             bc_img = Image.open(rv).convert('1')
-            
-            # Scale barcode to fit the allocated space
-            bc_img = bc_img.resize((300, 50))
-            image.paste(bc_img, (80, 140))
-        except Exception as e:
-            draw.text((80, 140), f"[Barcode: {barcode_value}]", fill=0, font=font_small)
-
-        draw.text((80, 205), barcode_value, fill=0, font=font_medium)
-
-        # Right Column: Price
-        draw.text((455, 115), "harga / price", fill=0, font=font_small)
-        price = data.get('unit_price_integer', '0.00')
-        draw.text((455, 165), f"RM {price}", fill=0, font=font_price)
-
-        # Footer: Expire Date / Remark
-        draw.text((80, 260), "expire date", fill=0, font=font_small)
-        remark = data.get('remark', '')
-        draw.text((80, 295), remark, fill=0, font=font_large)
-
-        # BIG Hello World text for testing
-        try:
-            font_huge = ImageFont.truetype(font_path, 60)
+            bc_img = bc_img.resize((400, 100))
+            image.paste(bc_img, (width_px//2 - 200, 140))
         except:
-            font_huge = ImageFont.load_default()
-        draw.text((width_px//2, 360), "HELLO WORLD", fill=0, anchor="mm", font=font_huge)
+            draw.text((width_px//2, 190), f"[BC ERROR: {barcode_value}]", fill=0, anchor="mm", font=font_medium)
+
+        draw.text((width_px//2, 260), f"CODE: {barcode_value}", fill=0, anchor="mm", font=font_large)
+        draw.text((width_px//2, 330), "--- BOTTOM SECTION ---", fill=0, anchor="mm", font=font_large)
+        draw.text((width_px//2, 370), "END OF LABEL", fill=0, anchor="mm", font=font_small)
 
         return image
 
