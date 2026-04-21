@@ -44,7 +44,7 @@ class ImagePrinter:
             font_small = ImageFont.truetype(font_path, 20)
             font_medium = ImageFont.truetype(font_path, 30)
             font_large = ImageFont.truetype(font_path, 40)
-            font_huge = ImageFont.truetype(font_path, 40)
+            font_huge = ImageFont.truetype(font_path, 30)
         except:
             # Final fallback to built-in tiny font if all files fail
             font_small = font_medium = font_large = font_huge = ImageFont.load_default()
@@ -69,11 +69,11 @@ class ImagePrinter:
         draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small)
         # Big Description
         description = data.get('description', 'VANILLA POWDER')
-        # Large English description (pushed up slightly)
+        # English description (now smaller)
         draw.text((20, 50), description, fill=0, font=font_huge)
         
-        # Large Chinese Translation: 香草粉 (Vanilla Powder)
-        draw.text((20, 140), "香草粉", fill=0, font=font_huge)
+        # Chinese Translation (now smaller and much closer)
+        draw.text((20, 90), "香草粉", fill=0, font=font_huge)
 
         return image
 
