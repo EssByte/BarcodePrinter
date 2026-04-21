@@ -49,6 +49,14 @@ class ImagePrinter:
             row_y = int(height_px * (i * 0.25))
             draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
+        # 4. Content for Column A, Row A (Top Left)
+        # Small Label
+        draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small)
+        # Big Description
+        description = data.get('description', 'VANILLA POWDER')
+        # Positioning the large description text prominently in Row A
+        draw.text((20, 70), description, fill=0, font=font_huge)
+
         return image
 
     def to_tpsl_bitmap(self, image, x=0, y=0):
