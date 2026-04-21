@@ -75,6 +75,31 @@ class ImagePrinter:
         # Chinese Translation (now smaller and much closer)
         draw.text((20, 90), "香草粉", fill=0, font=font_huge)
 
+        # 5. Content for Column A, Row B (Bottom Left)
+        # Label
+        draw.text((20, 250), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small)
+        
+        # Generate and Paste Barcode
+        barcode_value = data.get('barcode_value', '12345678')
+        try:
+            from barcode import Code128
+            from barcode.writer import ImageWriter
+            import io
+            rv = io.BytesIO()
+            Code128(barcode_value, writer=ImageWriter()).write(rv, options={
+                "write_text": False, "module_height": 10.0, "quiet_zone": 1.0, 
+                "background": "white", "foreground": "black"
+            })
+            rv.seek(0)
+            bc_img = Image.open(rv).convert('1')
+            bc_img = bc_img.resize((300, 60))
+            image.paste(bc_img, (20, 280))
+        except:
+            draw.text((20, 280), "[BARCODE ERROR]", fill=0, font=font_small)
+
+        # Barcode Value Text
+        draw.text((20, 350), barcode_value, fill=0, font=font_medium)
+
         return image
 
     def to_tpsl_bitmap(self, image, x=0, y=0):
