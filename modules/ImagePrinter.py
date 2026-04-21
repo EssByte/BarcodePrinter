@@ -30,7 +30,7 @@ class ImagePrinter:
             font_medium = ImageFont.truetype(font_path, 24)
             font_large = ImageFont.truetype(font_path, 35)
             font_price = ImageFont.truetype(font_path, 40)
-            font_huge = ImageFont.truetype(font_path, 60)
+            font_huge = ImageFont.truetype(font_path, 100)
         except:
             font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
 
@@ -55,7 +55,7 @@ class ImagePrinter:
         # Big Description
         description = data.get('description', 'VANILLA POWDER')
         # Positioning the large description text prominently in Row A
-        draw.text((20, 70), description, fill=0, font=font_huge)
+        draw.text((20, 60), description, fill=0, font=font_huge)
 
         return image
 
