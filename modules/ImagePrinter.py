@@ -34,12 +34,19 @@ class ImagePrinter:
         except:
             font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
 
-        # DEBUG LAYOUT: Simple markers to identify coordinates
-        description = data.get('description', 'DEBUG LABEL')
-        draw.text((width_px//2, 40), f"DESC: {description}", fill=0, anchor="mm", font=font_medium)
-        draw.text((width_px//2, 80), "--- TOP SECTION ---", fill=0, anchor="mm", font=font_large)
+        # DEBUG LAYOUT 2: Shifted and Huge
+        description = data.get('description', 'TEST')
         
-        # Center Barcode
+        # Huge markers at corners
+        draw.line([(0,0), (60,60)], fill=0, width=10)
+        draw.line([(width_px,0), (width_px-60, 60)], fill=0, width=10)
+        draw.line([(0, height_px), (60, height_px-60)], fill=0, width=10)
+        draw.line([(width_px, height_px), (width_px-60, height_px-60)], fill=0, width=10)
+        
+        # Top Text (No anchor)
+        draw.text((150, 10), "TOP START", fill=0, font=font_huge)
+        
+        # Barcode shifted right
         barcode_value = data.get('barcode_value', '12345678')
         try:
             from barcode import Code128
@@ -49,14 +56,14 @@ class ImagePrinter:
             Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 10.0, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
             rv.seek(0)
             bc_img = Image.open(rv).convert('1')
-            bc_img = bc_img.resize((400, 100))
-            image.paste(bc_img, (width_px//2 - 200, 140))
+            bc_img = bc_img.resize((400, 150))
+            image.paste(bc_img, (200, 100)) # Shifted Right
         except:
-            draw.text((width_px//2, 190), f"[BC ERROR: {barcode_value}]", fill=0, anchor="mm", font=font_medium)
+            draw.text((150, 150), "[ERROR]", fill=0, font=font_huge)
 
-        draw.text((width_px//2, 260), f"CODE: {barcode_value}", fill=0, anchor="mm", font=font_large)
-        draw.text((width_px//2, 330), "--- BOTTOM SECTION ---", fill=0, anchor="mm", font=font_large)
-        draw.text((width_px//2, 370), "END OF LABEL", fill=0, anchor="mm", font=font_small)
+        # Bottom Text
+        draw.text((150, 270), f"BC: {barcode_value}", fill=0, font=font_huge)
+        draw.text((150, 340), "BOTTOM END", fill=0, font=font_large)
 
         return image
 
