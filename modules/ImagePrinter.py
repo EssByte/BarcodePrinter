@@ -29,8 +29,8 @@ class ImagePrinter:
             font_small = ImageFont.truetype(font_path, 18)
             font_medium = ImageFont.truetype(font_path, 24)
             font_large = ImageFont.truetype(font_path, 35)
-            font_price = ImageFont.truetype(font_path, 40)
-            font_huge = ImageFont.truetype(font_path, 100)
+            # Specifying index=0 for the TTC collection to ensure successful loading
+            font_huge = ImageFont.truetype(font_path, 80, index=0)
         except:
             font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
 
@@ -54,8 +54,11 @@ class ImagePrinter:
         draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small)
         # Big Description
         description = data.get('description', 'VANILLA POWDER')
-        # Positioning the large description text prominently in Row A
-        draw.text((20, 60), description, fill=0, font=font_huge)
+        # Large English description (pushed up slightly)
+        draw.text((20, 50), description, fill=0, font=font_huge)
+        
+        # Large Chinese Translation: 香草粉 (Vanilla Powder)
+        draw.text((20, 140), "香草粉", fill=0, font=font_huge)
 
         return image
 
