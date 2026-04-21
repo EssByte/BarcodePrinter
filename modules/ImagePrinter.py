@@ -30,13 +30,18 @@ class ImagePrinter:
             font_medium = ImageFont.truetype(font_path, 24)
             font_large = ImageFont.truetype(font_path, 35)
             font_price = ImageFont.truetype(font_path, 40)
+            font_huge = ImageFont.truetype(font_path, 60)
         except:
-            font_small = font_medium = font_large = font_price = ImageFont.load_default()
+            font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
 
-        # Draw Headers
-        draw.text((width_px//2, 25), "nama produk / product name", fill=0, anchor="mm", font=font_small)
+        # CCTV TEST: Solid black bar at the top with white text (very high contrast)
+        draw.rectangle([0, 0, width_px, 100], fill=0)
+        draw.text((width_px//2, 50), "ACTIVE TEST", fill=1, anchor="mm", font=font_huge)
+
+        # Draw Headers (moved slightly down)
+        draw.text((width_px//2, 120), "nama produk / product name", fill=0, anchor="mm", font=font_small)
         description = data.get('description', '')
-        draw.text((width_px//2, 60), description, fill=0, anchor="mm", font=font_large)
+        draw.text((width_px//2, 150), description, fill=0, anchor="mm", font=font_large)
 
         # Draw Box (60, 95) to (590, 240)
         draw.line([(60, 95), (590, 95)], fill=0, width=2)   # Top
