@@ -34,36 +34,20 @@ class ImagePrinter:
         except:
             font_small = font_medium = font_large = font_price = font_huge = ImageFont.load_default()
 
-        # DEBUG LAYOUT 2: Shifted and Huge
-        description = data.get('description', 'TEST')
+        # FRESH START: NEW GRID LAYOUT
         
-        # Huge markers at corners
-        draw.line([(0,0), (60,60)], fill=0, width=10)
-        draw.line([(width_px,0), (width_px-60, 60)], fill=0, width=10)
-        draw.line([(0, height_px), (60, height_px-60)], fill=0, width=10)
-        draw.line([(width_px, height_px), (width_px-60, height_px-60)], fill=0, width=10)
-        
-        # Top Text (No anchor)
-        draw.text((150, 10), "TOP START", fill=0, font=font_huge)
-        
-        # Barcode shifted right
-        barcode_value = data.get('barcode_value', '12345678')
-        try:
-            from barcode import Code128
-            from barcode.writer import ImageWriter
-            import io
-            rv = io.BytesIO()
-            Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 10.0, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
-            rv.seek(0)
-            bc_img = Image.open(rv).convert('1')
-            bc_img = bc_img.resize((400, 150))
-            image.paste(bc_img, (200, 100)) # Shifted Right
-        except:
-            draw.text((150, 150), "[ERROR]", fill=0, font=font_huge)
+        # 1. Split columns: Vertical line at 70% of width
+        col_split = int(width_px * 0.70)
+        draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
 
-        # Bottom Text
-        draw.text((150, 270), f"BC: {barcode_value}", fill=0, font=font_huge)
-        draw.text((150, 340), "BOTTOM END", fill=0, font=font_large)
+        # 2. Column A Rows (Left side): 60% / 40% split
+        row_a_split = int(height_px * 0.60)
+        draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
+
+        # 3. Column B Rows (Right side): 4 equal rows (25% each)
+        for i in range(1, 4):
+            row_y = int(height_px * (i * 0.25))
+            draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
         return image
 
