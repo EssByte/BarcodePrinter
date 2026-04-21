@@ -21,14 +21,32 @@ class ImagePrinter:
         # Create a white 1-bit image (1 = White)
         image = Image.new('1', (width_px, height_px), 1)
         draw = ImageDraw.Draw(image)
-        # Load local font (Droid Sans Fallback - covers both EN and ZH reliably)
-        font_path = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
+        # Detect OS and load appropriate font
+        import platform
+        import os
+        if platform.system() == "Windows":
+            # Common Windows CJK fonts
+            font_paths = [
+                "C:\\Windows\\Fonts\\msyh.ttc",   # Microsoft YaHei
+                "C:\\Windows\\Fonts\\msyhbd.ttc", # Microsoft YaHei Bold
+                "C:\\Windows\\Fonts\\simhei.ttf", # SimHei
+                "C:\\Windows\\Fonts\\arial.ttf"   # Emergency Fallback
+            ]
+            font_path = "arial.ttf" 
+            for p in font_paths:
+                if os.path.exists(p):
+                    font_path = p
+                    break
+        else:
+            font_path = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
+
         try:
             font_small = ImageFont.truetype(font_path, 20)
             font_medium = ImageFont.truetype(font_path, 30)
             font_large = ImageFont.truetype(font_path, 40)
             font_huge = ImageFont.truetype(font_path, 80)
         except:
+            # Final fallback to built-in tiny font if all files fail
             font_small = font_medium = font_large = font_huge = ImageFont.load_default()
 
         # FRESH START: NEW GRID LAYOUT
