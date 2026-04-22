@@ -389,6 +389,7 @@ class BarcodeApp(QMainWindow):
         self.item_table.verticalHeader().setDefaultSectionSize(45)  # Increased row height
         self.item_table.verticalHeader().setVisible(True)         # Ensure row numbers are visible
         self.item_table.setColumnWidth(0, 50)                       # Static width for the first column
+        self.item_table.setColumnWidth(9, 100)                      # Increased width for Copies column
         self.item_table.horizontalHeader().setSectionResizeMode(0, 1) # Fixed mode (QHeaderView.Fixed = 1)
         
         grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
@@ -682,6 +683,17 @@ class BarcodeApp(QMainWindow):
             QTableWidget::item:selected {
                 background-color: #e3f2fd;
                 color: #1976d2;
+            }
+            
+            /* Table Editor Styling */
+            QTableWidget QLineEdit {
+                background-color: #ffffff;
+                border: 1px solid #3498db;
+                border-radius: 4px;
+                padding: 2px;
+                margin: 0px;
+                font-size: 13px;
+                text-align: center;
             }
             
             QHeaderView::section {
