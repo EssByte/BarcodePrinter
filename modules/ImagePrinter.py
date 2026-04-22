@@ -108,9 +108,16 @@ class ImagePrinter:
 
         # Row C: NET WEIGHT (150 to 225)
         draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
+        weight = data.get('net_weight', '')
+        draw.text((col_b_x, 185), weight, fill=0, font=font_medium)
 
         # Row D: BATCH (225 to 300)
         draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small_bold)
+        batch = data.get('batch', '')
+        draw.text((col_b_x, 260), batch, fill=0, font=font_medium)
+
+        # Rotate 180 degrees (correction for upside-down printing)
+        image = image.rotate(180)
 
         return image
 
