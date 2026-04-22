@@ -25,29 +25,22 @@ class ImagePrinter:
         import platform
         import os
         if platform.system() == "Windows":
-            # Common Windows CJK fonts
-            font_paths = [
-                "C:\\Windows\\Fonts\\msyh.ttc",   # Microsoft YaHei
-                "C:\\Windows\\Fonts\\msyhbd.ttc", # Microsoft YaHei Bold
-                "C:\\Windows\\Fonts\\simhei.ttf", # SimHei
-                "C:\\Windows\\Fonts\\arial.ttf"   # Emergency Fallback
-            ]
-            font_path = "arial.ttf" 
-            for p in font_paths:
-                if os.path.exists(p):
-                    font_path = p
-                    break
+            # Primary font and Bold variant
+            font_path = "C:\\Windows\\Fonts\\msyh.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyh.ttc") else "arial.ttf"
+            font_bold_path = "C:\\Windows\\Fonts\\msyhbd.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyhbd.ttc") else font_path
         else:
             font_path = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
+            font_bold_path = font_path
 
         try:
             font_small = ImageFont.truetype(font_path, 12)
+            font_small_bold = ImageFont.truetype(font_bold_path, 12)
             font_medium = ImageFont.truetype(font_path, 20)
             font_large = ImageFont.truetype(font_path, 30)
             font_huge = ImageFont.truetype(font_path, 24)
         except:
             # Final fallback to built-in tiny font if all files fail
-            font_small = font_medium = font_large = font_huge = ImageFont.load_default()
+            font_small = font_small_bold = font_medium = font_large = font_huge = ImageFont.load_default()
 
         # FRESH START: NEW GRID LAYOUT
         
@@ -66,7 +59,7 @@ class ImagePrinter:
 
         # 4. Content for Column A, Row A (Top Left)
         # Small Label
-        draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small)
+        draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
         # Big Description
         description = data.get('description', 'VANILLA POWDER')
         # English description (now smaller)
@@ -77,7 +70,7 @@ class ImagePrinter:
 
         # 5. Content for Column A, Row B (Bottom Left)
         # Label (Centered vertically in the 180-300 range)
-        draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small)
+        draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
         
         # Generate and Paste Barcode (Height reduced to 40 for better fit)
         barcode_value = data.get('barcode_value', '12345678')
@@ -104,20 +97,20 @@ class ImagePrinter:
         col_b_x = col_split + 10
         
         # Row A: PRICE (0 to 75)
-        draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small)
+        draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
         price = data.get('unit_price_integer', '0.00')
         draw.text((col_b_x, 35), price, fill=0, font=font_medium)
 
         # Row B: EXPIRY (75 to 150)
-        draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small)
+        draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small_bold)
         expiry = data.get('remark', '')
         draw.text((col_b_x, 110), expiry, fill=0, font=font_medium)
 
         # Row C: NET WEIGHT (150 to 225)
-        draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small)
+        draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
 
         # Row D: BATCH (225 to 300)
-        draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small)
+        draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small_bold)
 
         return image
 
