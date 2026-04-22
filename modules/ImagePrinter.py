@@ -76,8 +76,8 @@ class ImagePrinter:
         draw.text((20, 90), "香草粉", fill=0, font=font_huge)
 
         # 5. Content for Column A, Row B (Bottom Left)
-        # Label
-        draw.text((20, 250), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small)
+        # Label (Moved upwards closer to the divider line at 180px)
+        draw.text((20, 185), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small)
         
         # Generate and Paste Barcode
         barcode_value = data.get('barcode_value', '12345678')
@@ -93,12 +93,12 @@ class ImagePrinter:
             rv.seek(0)
             bc_img = Image.open(rv).convert('1')
             bc_img = bc_img.resize((300, 60))
-            image.paste(bc_img, (20, 280))
+            image.paste(bc_img, (20, 205))
         except:
-            draw.text((20, 280), "[BARCODE ERROR]", fill=0, font=font_small)
+            draw.text((20, 205), "[BARCODE ERROR]", fill=0, font=font_small)
 
-        # Barcode Value Text
-        draw.text((20, 350), barcode_value, fill=0, font=font_medium)
+        # Barcode Value Text (Positioned right below the barcode)
+        draw.text((20, 270), barcode_value, fill=0, font=font_medium)
 
         # 6. Column B (Right Side)
         col_b_x = col_split + 10
