@@ -76,10 +76,10 @@ class ImagePrinter:
         draw.text((20, 90), "香草粉", fill=0, font=font_huge)
 
         # 5. Content for Column A, Row B (Bottom Left)
-        # Label (Moved upwards closer to the divider line at 180px)
-        draw.text((20, 185), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small)
+        # Label (Centered vertically in the 180-300 range)
+        draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small)
         
-        # Generate and Paste Barcode
+        # Generate and Paste Barcode (Height reduced to 40 for better fit)
         barcode_value = data.get('barcode_value', '12345678')
         try:
             from barcode import Code128
@@ -92,33 +92,32 @@ class ImagePrinter:
             })
             rv.seek(0)
             bc_img = Image.open(rv).convert('1')
-            bc_img = bc_img.resize((300, 60))
-            image.paste(bc_img, (20, 205))
+            bc_img = bc_img.resize((300, 40))
+            image.paste(bc_img, (20, 220))
         except:
-            draw.text((20, 205), "[BARCODE ERROR]", fill=0, font=font_small)
+            draw.text((20, 220), "[BARCODE ERROR]", fill=0, font=font_small)
 
-        # Barcode Value Text (Positioned right below the barcode)
-        draw.text((20, 270), barcode_value, fill=0, font=font_medium)
+        # Barcode Value Text (Positioned horizontally middle of Row B)
+        draw.text((20, 265), barcode_value, fill=0, font=font_medium)
 
-        # 6. Column B (Right Side)
+        # 6. Column B (Right Side) - Each row is 75px tall (300/4)
         col_b_x = col_split + 10
         
-        # Row A: PRICE
+        # Row A: PRICE (0 to 75)
         draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small)
         price = data.get('unit_price_integer', '0.00')
-        # Using medium font for the value to make it readable
-        draw.text((col_b_x, 45), price, fill=0, font=font_medium)
+        draw.text((col_b_x, 35), price, fill=0, font=font_medium)
 
-        # Row B: EXPIRY
-        draw.text((col_b_x, 110), "GUNA SBL / EXP", fill=0, font=font_small)
+        # Row B: EXPIRY (75 to 150)
+        draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small)
         expiry = data.get('remark', '')
-        draw.text((col_b_x, 145), expiry, fill=0, font=font_medium)
+        draw.text((col_b_x, 110), expiry, fill=0, font=font_medium)
 
-        # Row C: NET WEIGHT
-        draw.text((col_b_x, 210), "BERAT BERSIH / NET WT", fill=0, font=font_small)
+        # Row C: NET WEIGHT (150 to 225)
+        draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small)
 
-        # Row D: BATCH
-        draw.text((col_b_x, 310), "LOT / BATCH", fill=0, font=font_small)
+        # Row D: BATCH (225 to 300)
+        draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small)
 
         return image
 
