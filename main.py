@@ -470,26 +470,16 @@ class BarcodeApp(QMainWindow):
             }
         """)
         
-        # Add widgets to pagination layout
+        # Add pagination widgets
         pagination_layout.addWidget(self.prev_button)
         pagination_layout.addWidget(self.page_label)
         pagination_layout.addWidget(self.next_button)
-        pagination_layout.addStretch(1)  # Push the combo box to the right
+        pagination_layout.addStretch(1)  
         pagination_layout.addWidget(items_per_page_label)
         pagination_layout.addWidget(self.items_per_page_combo)
+        pagination_layout.addSpacing(20) # Space before action buttons
         
-        # Add pagination layout to the grid layout (row 2)
-        grid_layout.addLayout(pagination_layout, 2, 0, 1, 3)
-        self.logger.debug("Pagination controls added to layout.")
-
-        # === Buttons Section ===
-        buttons_layout = QHBoxLayout()
-
-        # Print Button
-        self.print_button = QPushButton('Print Barcode', self)
-        self.print_button.setObjectName("btn_print")
-       
-        # Reload Button
+        # Moved Reload and Print buttons here
         self.reload_button = QPushButton('Reload Database', self)
         self.reload_button.setStyleSheet("""
         QPushButton {
@@ -507,6 +497,20 @@ class BarcodeApp(QMainWindow):
             color: white;
         }
         """)
+        self.print_button = QPushButton('Print Barcode', self)
+        self.print_button.setObjectName("btn_print")
+        self.reload_button.setCursor(Qt.PointingHandCursor)
+        self.print_button.setCursor(Qt.PointingHandCursor)
+        
+        pagination_layout.addWidget(self.reload_button)
+        pagination_layout.addWidget(self.print_button)
+       
+        # Add pagination layout to the grid layout (row 2)
+        grid_layout.addLayout(pagination_layout, 2, 0, 1, 3)
+        self.logger.debug("Pagination controls added to layout.")
+
+        # === Buttons Section ===
+        buttons_layout = QHBoxLayout()
         
         # Progress Bar
         self.progressBar = QProgressBar(self)
@@ -532,8 +536,6 @@ class BarcodeApp(QMainWindow):
         """)
         
         # Set cursors
-        self.print_button.setCursor(Qt.PointingHandCursor)
-        self.reload_button.setCursor(Qt.PointingHandCursor)
         self.update_button.setCursor(Qt.PointingHandCursor)
         
         # Connect signals
@@ -541,12 +543,10 @@ class BarcodeApp(QMainWindow):
         self.reload_button.clicked.connect(self.handle_config_change)
         self.update_button.clicked.connect(self.runUpdater)
         
-        # Add widgets to buttons layout
+        # Add widgets to buttons layout (Now only for background tasks like Update)
         buttons_layout.addWidget(self.update_button)
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(self.progressBar)
-        buttons_layout.addWidget(self.reload_button)
-        buttons_layout.addWidget(self.print_button)
 
         # Add buttons layout to the grid layout (row 3)
         grid_layout.addLayout(buttons_layout, 3, 0, 1, 3)
