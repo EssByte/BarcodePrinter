@@ -18,7 +18,7 @@ from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 from modules.Configurations import BarcodeConfig
 from modules.ImagePrinter import ImagePrinter
-from modules.funbake_dialog import FunBakeDialog
+from modules.label_details_dialog import LabelDetailsDialog
 from remark import RemarkDialog
 from version import __version__
 import subprocess
@@ -1081,32 +1081,16 @@ class BarcodeApp(QMainWindow):
             QMessageBox.warning(self, 'Selection Error', 'No items selected for printing.')
             return
 
-        # Unified Popup Logic
-        template_name = self.barcode_size.currentText()
-        remark_text = ""
-        net_weight_val = ""
-        batch_val = ""
-
-        if "Fun Bake" in template_name:
-            # Combined Fun Bake Details + Remark Popup
-            fb_dialog = FunBakeDialog(self)
-            if fb_dialog.exec_() == FunBakeDialog.Accepted:
-                fb_data = fb_dialog.get_data()
-                net_weight_val = fb_data['weight']
-                batch_val = fb_data['batch']
-                remark_text = fb_data['remark'] # Remark is the Expiry in our graphic label
-            else:
-                self.logger.info("Fun Bake details canceled.")
-                return 
+        # Unified Label Details Popup (for all templates)
+        details_dialog = LabelDetailsDialog(self)
+        if details_dialog.exec_() == LabelDetailsDialog.Accepted:
+            details_data = details_dialog.get_data()
+            remark_text = details_data['remark']
+            net_weight_val = details_data['weight']
+            batch_val = details_data['batch']
         else:
-            # Standard Remark popup for other templates
-            remark_dialog = RemarkDialog()
-            remark_dialog.exec_()
-            if remark_dialog.get_accepted():
-                remark_text = remark_dialog.get_remark()
-            else:
-                self.logger.info("Print canceled via remark dialog.")
-                return 
+            self.logger.info("Printing canceled by user.")
+            return 
 
         printer = None  # Ensure we initialize the printer variable
         try:
@@ -1188,6 +1172,8 @@ class BarcodeApp(QMainWindow):
                             remark=remark_text,
                             barcode_value=barcode_value,
                             unit_price_integer=unit_price_integer,
+                            weight=net_weight_val,
+                            batch=batch_val,
                             copies=copies,
                         )
                 else:
@@ -1208,6 +1194,8 @@ class BarcodeApp(QMainWindow):
                         remark=remark_text,
                         barcode_value=barcode_value,
                         unit_price_integer=unit_price_integer,
+                        weight=net_weight_val,
+                        batch=batch_val,
                         copies=copies,
                     )
                     # Add remark to ZPL command (only if not Fun Bake, as it's built-in)
