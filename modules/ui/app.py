@@ -1,0 +1,510 @@
+import os
+import sys
+import usb
+import usb.core
+import usb.util
+import usb.backend.libusb1
+import requests
+import pyodbc
+import sqlite3
+from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView
+from PyQt5.QtCore import Qt, QTimer, QSettings
+from PyQt5.QtGui import QIcon, QBrush, QColor
+
+from modules import Configurations
+from modules.logger_config import setup_logger
+from modules.SendCommand import SendCommand
+from modules.Configurations import BarcodeConfig
+from modules.ImagePrinter import ImagePrinter
+from modules.label_details_dialog import LabelDetailsDialog
+from modules.threads import FetchItemsThread, FilterItemsBinaryThread
+from modules.utils import resource_path, split_description, replace_placeholders
+from remark import RemarkDialog
+from dashboard import DashboardWindow
+from check_password import PasswordCheck
+from version import __version__
+
+class BarcodeApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.logger = setup_logger('BarcodeApp')
+        self.logger.info("Initializing BarcodeApp...")
+        self.config = BarcodeConfig()
+
+        self.current_page = 1
+        self.items_per_page = 100  
+        self.total_pages = 1
+        self.current_displayed_items = []
+    
+        self.initUI()
+        self.input_timer = QTimer()
+        self.input_timer.setSingleShot(True)
+        self.input_timer.timeout.connect(self.filter_items_binary)
+        self.config.setting_changed.connect(self.handle_config_change)
+        
+        # Load local backend
+        backend_lib = resource_path('libusb-1.0.ddl', self.logger)
+        self.backend = usb.backend.libusb1.get_backend(find_library=backend_lib)
+        
+        self.setWindowIcon(QIcon(resource_path("images/logo.ico")))
+        self.db_connected = False
+        self.connection = None
+        self.sqlite_connection = None
+        self.warning_shown = False
+        self.settings = QSettings("MyCompany", "MyApp")
+        self.restore_column_widths() 
+        self.connect_to_database()
+        self.loadStylesheet()
+        self.showMaximized()
+        self.fetch_items_thread = None
+        self.items = []
+
+        self.start_fetch_items()
+
+    def update_logging(self):
+        self.logger = setup_logger('BarcodeApp')
+        self.logger.info("Logging configuration updated.")
+    
+    def start_timer(self):
+        self.input_timer.start(400)
+
+    def handle_config_change(self):
+        self.logger.info("Configuration file changed. Reloading...")
+        try:
+            self.progressBar.setVisible(True)
+            self.progressBar.setValue(10)
+            self.update_logging()
+            self.progressBar.setValue(23)
+            self.check_version()
+            self.progressBar.setValue(35)
+
+            if self.db_connected and self.connection:
+                self.connection.close()
+            self.progressBar.setValue(50)
+
+            self.connect_to_database()
+            self.progressBar.setValue(74)
+            self.start_fetch_items()
+            self.progressBar.setValue(100)
+            self.progressBar.setVisible(False)
+        except Exception as e:
+            self.logger.error(f"Failed to reload configuration: {e}")
+            QMessageBox.critical(self, 'Error', f"Failed to reload configuration: {e}")
+            
+    def runUpdater(self):
+        try:
+            self.logger.info("Starting updater...")
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            # Adjusted paths for modular structure
+            updater_script = os.path.join(os.path.dirname(current_dir), "..", "updater.py")
+            
+            if os.path.exists(updater_script):
+                self.close()
+                subprocess.Popen([sys.executable, updater_script])
+            else:
+                updater_exe = os.path.join(os.getcwd(), "Updater.exe")
+                if os.path.exists(updater_exe):
+                    self.close()
+                    subprocess.Popen([updater_exe])
+                else:
+                    subprocess.Popen([r"C:\barcode\Updater.exe"])
+                    self.close()
+        except Exception as e:
+            self.logger.error(f"Failed to start updater: {e}")
+            QMessageBox.critical(self, "Updater Error", f"Failed to start updater: {e}")
+            
+    def initUI(self):
+        self.setWindowTitle('Barcode Printer')
+        self.setGeometry(200, 200, 1400, 600)
+        self.setWindowIcon(QIcon(resource_path("logo.ico")))
+
+        central_widget = QWidget(self)
+        central_widget.setObjectName("central_widget")
+        self.setCentralWidget(central_widget)
+
+        grid_layout = QGridLayout(central_widget)
+        menu_bar = self.menuBar()
+
+        dashboard_menu = menu_bar.addMenu("Dashboard")
+        dashboard_action = QAction("Open Dashboard", self)
+        dashboard_action.triggered.connect(self.open_dashboard)
+        dashboard_menu.addAction(dashboard_action)
+
+        file_menu = menu_bar.addMenu('Settings')
+        settings_action = QAction('Open Settings', self)
+        settings_action.triggered.connect(self.open_settings)
+        file_menu.addAction(settings_action)
+
+        # Search UI
+        search_layout = QHBoxLayout()
+        search_label = QLabel("Search:")
+        self.item_code_input = QLineEdit(self)
+        self.item_code_input.setPlaceholderText('Enter Item Code')
+        self.item_code_input.textChanged.connect(self.start_timer)
+        self.item_code_input.returnPressed.connect(lambda: self.filter_items(False))
+
+        self.search_for_uom = QPushButton("Get UOM", self)
+        self.search_for_uom.setCursor(Qt.PointingHandCursor)
+        self.search_for_uom.clicked.connect(lambda: self.filter_items(True))
+        
+        self.search_by_description = QPushButton("Search", self)
+        self.search_by_description.setObjectName("btn_search")
+        self.search_by_description.setCursor(Qt.PointingHandCursor)
+        self.search_by_description.clicked.connect(lambda: self.filter_items(False))
+
+        self.barcode_size = QComboBox(self)
+        self.options = ["size1", "size2", "size3", "Fun Bake", "Fun Bake (QR)", "Fun Bake (Graphic)"]
+        self.barcode_size.addItems(self.options)
+        self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
+        
+        self.sqlite_switch = QCheckBox("Use SQLite")
+        self.sqlite_switch.setChecked(self.config.get_useSqlite())
+        self.sqlite_switch.stateChanged.connect(self.toggle_database_mode)
+
+        if self.config.get_use_zpl():
+            self.barcode_size.setCurrentText(self.config.get_zplSize())
+        else:
+            self.barcode_size.setCurrentText(self.config.get_tpslSize())
+        
+        search_layout.addWidget(search_label)
+        search_layout.addWidget(self.item_code_input)
+        search_layout.addWidget(self.sqlite_switch)
+        search_layout.addWidget(self.barcode_size)
+        search_layout.addWidget(self.search_for_uom)
+        search_layout.addWidget(self.search_by_description)
+        grid_layout.addLayout(search_layout, 0, 0, 1, 3)
+
+        # Table UI
+        self.item_table = QTableWidget(self)
+        self.item_table.setColumnCount(10)
+        self.item_table.setHorizontalHeaderLabels(["*", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost", "Barcode", "Location", "Price", "Copies"])
+        self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.item_table.setSelectionMode(QTableWidget.NoSelection)
+        self.item_table.verticalHeader().setDefaultSectionSize(45)
+        self.item_table.setColumnWidth(0, 50)
+        self.item_table.setColumnWidth(9, 100)
+        self.item_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
+        grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
+
+        # Pagination & Action Buttons
+        pagination_layout = QHBoxLayout()
+        self.prev_button = QPushButton('Previous', self)
+        self.prev_button.clicked.connect(self.previous_page)
+        self.page_label = QLabel('Page 1 of 1')
+        self.next_button = QPushButton('Next', self)
+        self.next_button.clicked.connect(self.next_page)
+        
+        self.items_per_page_combo = QComboBox(self)
+        self.items_per_page_combo.addItems(['50', '100', '200', '500'])
+        self.items_per_page_combo.setCurrentText(str(self.items_per_page))
+        self.items_per_page_combo.currentTextChanged.connect(self.change_items_per_page)
+
+        self.reload_button = QPushButton('Reload Database', self)
+        self.reload_button.clicked.connect(self.handle_config_change)
+        self.print_button = QPushButton('Print Barcode', self)
+        self.print_button.setObjectName("btn_print")
+        self.print_button.clicked.connect(self.print_barcode)
+
+        pagination_layout.addWidget(self.prev_button)
+        pagination_layout.addWidget(self.page_label)
+        pagination_layout.addWidget(self.next_button)
+        pagination_layout.addStretch(1)
+        pagination_layout.addWidget(QLabel('Items per page:'))
+        pagination_layout.addWidget(self.items_per_page_combo)
+        pagination_layout.addSpacing(20)
+        pagination_layout.addWidget(self.reload_button)
+        pagination_layout.addWidget(self.print_button)
+        grid_layout.addLayout(pagination_layout, 2, 0, 1, 3)
+
+        # Bottom Bar
+        buttons_layout = QHBoxLayout()
+        self.update_button = QPushButton('Update', self)
+        self.update_button.clicked.connect(self.runUpdater)
+        self.progressBar = QProgressBar(self)
+        self.progressBar.setVisible(False)
+        buttons_layout.addWidget(self.update_button)
+        buttons_layout.addStretch(1)
+        buttons_layout.addWidget(self.progressBar)
+        grid_layout.addLayout(buttons_layout, 3, 0, 1, 3)
+
+        self.check_version()
+        self.update_pagination_buttons()
+
+    def loadStylesheet(self):
+        try:
+            # Reusing the existing premium stylesheet
+            stylesheet = """
+            QMainWindow { background-color: #f0f2f5; }
+            QWidget#central_widget { background-color: #f0f2f5; }
+            QLabel { font-family: 'Segoe UI'; color: #2c3e50; font-size: 14px; font-weight: 500; }
+            QLineEdit { background-color: #ffffff; border: 2px solid #e0e6ed; border-radius: 8px; padding: 10px 15px; font-size: 14px; }
+            QLineEdit:focus { border: 2px solid #3498db; }
+            QTableWidget { background-color: #ffffff; border: 1px solid #e0e6ed; border-radius: 12px; gridline-color: transparent; }
+            QTableWidget::item { padding: 10px; border-bottom: 1px solid #f1f3f5; }
+            QHeaderView::section { background-color: #f8fafc; padding: 12px; border: none; border-bottom: 2px solid #3498db; font-weight: bold; }
+            QHeaderView::section:vertical { border-right: 2px solid #3498db; padding: 5px; }
+            QPushButton { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 16px; font-weight: 600; }
+            QPushButton:hover { background-color: #f9fafb; border-color: #3498db; color: #3498db; }
+            QPushButton#btn_print { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3498db, stop:1 #2980b9); color: white; border: none; }
+            QPushButton#btn_search { background-color: #2ecc71; color: white; border: none; }
+            QComboBox { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; }
+            QProgressBar { border: 1px solid #d1d5db; border-radius: 5px; text-align: center; }
+            QProgressBar::chunk { background-color: #3498db; border-radius: 4px; }
+            QMenuBar { background-color: #ffffff; border-bottom: 1px solid #e0e6ed; padding: 5px; }
+            """
+            self.setStyleSheet(stylesheet)
+        except Exception as e:
+            self.logger.error(f"Failed to apply stylesheet: {e}")
+
+    def change_items_per_page(self, new_value):
+        self.items_per_page = int(new_value)
+        self.current_page = 1
+        if hasattr(self, 'current_displayed_items'):
+            self.display_items(self.current_displayed_items)
+
+    def update_pagination_buttons(self):
+        self.prev_button.setEnabled(self.current_page > 1)
+        self.next_button.setEnabled(self.current_page < self.total_pages)
+        self.page_label.setText(f'Page {self.current_page} of {self.total_pages}')
+
+    def previous_page(self):
+        if self.current_page > 1:
+            self.current_page -= 1
+            self.display_items(self.current_displayed_items)
+
+    def next_page(self):
+        if self.current_page < self.total_pages:
+            self.current_page += 1
+            self.display_items(self.current_displayed_items)
+                
+    def toggle_database_mode(self):
+        self.config.set_useSqlite(self.sqlite_switch.isChecked())
+
+    def handle_barcode_size(self):
+        selected_item = self.barcode_size.currentText()
+        if not self.config.get_use_zpl():
+            self.config.set_tpslSize(selected_item)
+        else:
+            self.config.set_zplSize(selected_item)
+    
+    def check_version(self):
+        # Implementation from main.py, could also move to utils
+        repo_owner = "PersonX-46"
+        repo_name = "BarcodePrinter"
+        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
+        try:
+            response = requests.get(api_url)
+            response.raise_for_status()
+            tag_name = response.json()["tag_name"]
+            self.update_button.setVisible(tag_name > __version__)
+        except Exception as e:
+            self.logger.error(f"Version check failed: {e}")
+
+    def connect_to_database(self):
+        if not self.config.get_useSqlite():
+            try:
+                drv = '{ODBC Driver 17 for SQL Server}'
+                conn_str = f'DRIVER={drv};SERVER={self.config.get_server()};DATABASE={self.config.get_database()};UID={self.config.get_username()};PWD={self.config.get_password()};'
+                if self.config.get_trusted_connection():
+                    conn_str += 'Trusted_Connection=yes;'
+                self.connection = pyodbc.connect(conn_str)
+                self.db_connected = True
+            except Exception as e:
+                self.logger.error(f"SQL connection failed: {e}")
+                self.db_connected = False
+        else:
+            try:
+                self.connection = sqlite3.connect(self.config.get_sqlPath())
+                self.db_connected = True
+            except Exception as e:
+                self.logger.error(f"SQLite connection failed: {e}")
+                self.db_connected = False
+
+    def start_fetch_items(self):
+        if not self.db_connected: return
+        self.fetch_items_thread = FetchItemsThread(self.connection if not self.config.get_useSqlite() else self.config.get_sqlPath(), self.config.get_location(), self.config.get_useSqlite())
+        self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
+        self.fetch_items_thread.start()
+
+    def handle_items_fetched(self, items):
+        self.items = items
+        key_idx = 0 if self.config.get_useSqlite() else 5
+        self.all_items = sorted(self.items, key=lambda x: str(x[key_idx]).lower())
+        self.display_items(self.all_items)
+
+    def display_items(self, items):
+        self.current_displayed_items = items
+        total_items = len(items)
+        self.total_pages = max(1, (total_items + self.items_per_page - 1) // self.items_per_page)
+        start_index = (self.current_page - 1) * self.items_per_page
+        page_items = items[start_index:start_index + self.items_per_page]
+        
+        self.item_table.setRowCount(len(page_items))
+        barcode_config = Configurations.BarcodeConfig()
+
+        for row, item in enumerate(page_items):
+            cb = QTableWidgetItem(); cb.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled); cb.setCheckState(Qt.Unchecked)
+            self.item_table.setItem(row, 0, cb)
+
+            if self.config.get_useSqlite():
+                bc, name, p = item; item_code = "-"; uom = "-"; unit_price = p; unit_cost = 0; loc = "-"; loc_p = p
+            else:
+                item_code, name, uom, unit_price, unit_cost, barcode, loc, loc_p = item
+                bc = item_code if barcode is None else barcode
+
+            values = [item_code, name, uom, f"RM {float(unit_price):.2f}", '***' if barcode_config.get_hide_cost() else f"RM {float(unit_cost):.2f}", bc, loc, f"RM {float(loc_p):.2f}"]
+            for col, val in enumerate(values, start=1):
+                ti = QTableWidgetItem(str(val)); ti.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled); ti.setTextAlignment(Qt.AlignCenter)
+                self.item_table.setItem(row, col, ti)
+            
+            cp = QTableWidgetItem("1"); cp.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled); cp.setTextAlignment(Qt.AlignCenter)
+            self.item_table.setItem(row, 9, cp)
+            if row % 2 == 0:
+                for c in range(10): self.item_table.item(row, c).setBackground(QBrush(QColor(248, 250, 252)))
+
+        self.update_pagination_buttons()
+        self.restore_column_widths()
+
+    def filter_items_binary(self):
+        search_text = self.item_code_input.text().strip().lower()
+        self.current_page = 1
+        if not search_text: self.display_items(self.all_items); return
+        self.display_items([item for item in self.all_items if search_text in str(item).lower()])
+
+    def filter_items(self, isUOM):
+        search_text = self.item_code_input.text().strip().lower()
+        self.current_page = 1
+        keywords = search_text.split()
+        idx = 0 if self.config.get_useSqlite() else (0 if isUOM else 1)
+        filtered = [item for item in self.all_items if all(kw in str(item[idx]).lower() for kw in keywords)]
+        self.display_items(filtered)
+
+    def print_barcode(self):
+        selected_rows = [r for r in range(self.item_table.rowCount()) if self.item_table.item(r, 0).checkState() == Qt.Checked]
+        if not selected_rows: 
+            self.logger.warning("No items selected for printing.")
+            QMessageBox.warning(self, 'Selection Error', 'No items selected for printing.')
+            return
+
+        details_dialog = LabelDetailsDialog(self)
+        if details_dialog.exec_() != LabelDetailsDialog.Accepted: 
+            self.logger.info("Printing canceled by user.")
+            return
+
+        meta = details_dialog.get_data()
+        remark_text = meta['remark']
+        net_weight_val = meta['weight']
+        batch_val = meta['batch']
+        
+        send_command = SendCommand()
+        printer = None
+        
+        try:
+            # Printer Connection Detection
+            if self.config.get_use_generic_driver():
+                self.logger.info("USB mode selected. Checking printer connection...")
+                printer = usb.core.find(idVendor=self.config.get_vid(), idProduct=self.config.get_pid(), backend=self.backend)
+                if printer is None:
+                    QMessageBox.warning(self, 'Printer Error', 'Printer not found via USB.')
+                    return
+                printer.set_configuration()
+            else:
+                self.logger.info("Checking wireless/win32 settings...")
+                ip, port = self.config.get_ip_address().split(":") if self.config.get_wireless_mode() else (None, None)
+
+            # Process selected items
+            for row in selected_rows:
+                desc = self.item_table.item(row, 2).text().replace('"', '')
+                price = self.item_table.item(row, 8).text()
+                bc = self.item_table.item(row, 6).text()
+                qty = self.item_table.item(row, 9).text()
+                
+                self.logger.info(f"Preparing print for: {desc} ({bc})")
+                d1, d2 = split_description(desc)
+                
+                # Template Selection
+                sz = self.barcode_size.currentText()
+                printer_clear = "CLS"
+                print_data = ""
+                
+                if "Graphic" in sz:
+                    image_printer = ImagePrinter()
+                    im = image_printer.render_fun_bake_label({
+                        'description': desc, 
+                        'barcode_value': bc, 
+                        'remark': remark_text, 
+                        'unit_price_integer': price, 
+                        'net_weight': net_weight_val, 
+                        'batch': batch_val
+                    })
+                    print_data = image_printer.get_full_command(im, copies=int(qty))
+                    printer_clear = b""
+                else:
+                    tmpl = self.get_current_template()
+                    print_data = replace_placeholders(
+                        tmpl, self.logger, 
+                        companyName=self.config.get_company_name(), 
+                        description=desc, 
+                        description_1=d1, 
+                        description_2=d2, 
+                        remark=remark_text, 
+                        barcode_value=bc, 
+                        unit_price_integer=price, 
+                        weight=net_weight_val, 
+                        batch=batch_val, 
+                        copies=qty
+                    )
+                    if self.config.get_use_zpl():
+                        printer_clear = "^XA^CLS^XZ"
+                        if remark_text and "Fun Bake" not in sz:
+                            # Dynamic remark overlay for standard ZPL templates
+                            print_data += f"\n^FO10,180^A0N,15,20^FDRemark: {remark_text}^FS"
+
+                # Send Command to Output
+                if self.config.get_use_generic_driver():
+                    payload = print_data.encode('utf-8') if isinstance(print_data, str) else print_data
+                    printer.write(0x01, payload) # Standard USB OUT endpoint
+                elif self.config.get_wireless_mode():
+                    send_command.send_wireless_command(ip, port, printer_clear)
+                    send_command.send_wireless_command(ip, port, print_data)
+                else:
+                    send_command.send_win32print(self.config.get_printer_name(), printer_clear)
+                    send_command.send_win32print(self.config.get_printer_name(), print_data)
+
+            QMessageBox.information(self, 'Success', 'Successfully sent all items to the printer!')
+
+        except Exception as e:
+            self.logger.error(f"Printing failed: {e}")
+            QMessageBox.critical(self, 'Printing Error', f"An error occurred: {e}")
+        finally:
+            if printer: usb.util.dispose_resources(printer)
+
+    def get_current_template(self):
+        sz = self.barcode_size.currentText()
+        if self.config.get_use_zpl():
+            if "Fun Bake" in sz: return self.config.get_zpl_funbake_template()
+            return self.config.get_zpl_template()
+        else:
+            if "Fun Bake" in sz: return self.config.get_tpsl_funbake_template()
+            return self.config.get_tpsl_template()
+
+    def save_column_widths(self):
+        for i in range(self.item_table.columnCount()):
+            self.settings.setValue(f"column_width_{i}", self.item_table.columnWidth(i))
+
+    def restore_column_widths(self):
+        for i in range(self.item_table.columnCount()):
+            w = self.settings.value(f"column_width_{i}", type=int)
+            if w: self.item_table.setColumnWidth(i, w)
+            
+    def open_settings(self): 
+        self.settings_window = PasswordCheck()
+        self.settings_window.show()
+
+    def open_dashboard(self): 
+        self.dashboard_window = DashboardWindow()
+        self.dashboard_window.show()
+
+    def closeEvent(self, e): 
+        self.save_column_widths()
+        super().closeEvent(e)
