@@ -386,6 +386,11 @@ class BarcodeApp(QMainWindow):
         self.item_table.setSelectionMode(QTableWidget.NoSelection)
 
         # Add table to the grid layout
+        self.item_table.verticalHeader().setDefaultSectionSize(45)  # Increased row height
+        self.item_table.verticalHeader().setVisible(True)         # Ensure row numbers are visible
+        self.item_table.setColumnWidth(0, 50)                       # Static width for the first column
+        self.item_table.horizontalHeader().setSectionResizeMode(0, 1) # Fixed mode (QHeaderView.Fixed = 1)
+        
         grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
         self.logger.debug("Item table added to layout.")
 
@@ -688,6 +693,13 @@ class BarcodeApp(QMainWindow):
                 font-size: 13px;
                 color: #475569;
                 text-transform: uppercase;
+            }
+            
+            QHeaderView::section:vertical {
+                border-bottom: 1px solid #f1f3f5;
+                border-right: 2px solid #3498db;
+                padding: 5px;
+                text-align: center;
             }
 
             /* Buttons */
