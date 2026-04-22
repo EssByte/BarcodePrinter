@@ -1081,28 +1081,32 @@ class BarcodeApp(QMainWindow):
             QMessageBox.warning(self, 'Selection Error', 'No items selected for printing.')
             return
 
-        # Show the Remark Dialog
-        remark_dialog = RemarkDialog()
-        remark_dialog.exec_()  # Show the dialog and wait for user input
-
-        # Check if the user clicked "Write" or "Cancel"
-        if remark_dialog.get_accepted():
-            remark_text = remark_dialog.get_remark()  # Get the remark text
-        else:
-            remark_text = ""  # User clicked "Cancel," so no remark
-
-        # Show Fun Bake details popup IF a Fun Bake template is selected
+        # Unified Popup Logic
+        template_name = self.barcode_size.currentText()
+        remark_text = ""
         net_weight_val = ""
         batch_val = ""
-        if "Fun Bake" in self.barcode_size.currentText():
+
+        if "Fun Bake" in template_name:
+            # Combined Fun Bake Details + Remark Popup
             fb_dialog = FunBakeDialog(self)
             if fb_dialog.exec_() == FunBakeDialog.Accepted:
                 fb_data = fb_dialog.get_data()
                 net_weight_val = fb_data['weight']
                 batch_val = fb_data['batch']
+                remark_text = fb_data['remark'] # Remark is the Expiry in our graphic label
             else:
-                self.logger.info("Fun Bake dialog canceled by user.")
-                return # Stop the entire print process if they cancel the mandatory details
+                self.logger.info("Fun Bake details canceled.")
+                return 
+        else:
+            # Standard Remark popup for other templates
+            remark_dialog = RemarkDialog()
+            remark_dialog.exec_()
+            if remark_dialog.get_accepted():
+                remark_text = remark_dialog.get_remark()
+            else:
+                self.logger.info("Print canceled via remark dialog.")
+                return 
 
         printer = None  # Ensure we initialize the printer variable
         try:
