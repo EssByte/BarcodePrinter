@@ -1091,6 +1091,19 @@ class BarcodeApp(QMainWindow):
         else:
             remark_text = ""  # User clicked "Cancel," so no remark
 
+        # Show Fun Bake details popup IF a Fun Bake template is selected
+        net_weight_val = ""
+        batch_val = ""
+        if "Fun Bake" in self.barcode_size.currentText():
+            fb_dialog = FunBakeDialog(self)
+            if fb_dialog.exec_() == FunBakeDialog.Accepted:
+                fb_data = fb_dialog.get_data()
+                net_weight_val = fb_data['weight']
+                batch_val = fb_data['batch']
+            else:
+                self.logger.info("Fun Bake dialog canceled by user.")
+                return # Stop the entire print process if they cancel the mandatory details
+
         printer = None  # Ensure we initialize the printer variable
         try:
             self.logger.info("USB mode selected. Checking printer connection...")
@@ -1148,23 +1161,14 @@ class BarcodeApp(QMainWindow):
                     elif self.config.get_tpslSize() == self.options[4]: # Fun Bake (QR)
                         tpsl_template = self.config.get_tpsl_funbake_image_template()
                     elif self.config.get_tpslSize() == self.options[5]: # Fun Bake (Graphic)
-                        # Show Fun Bake details popup
-                        fb_dialog = FunBakeDialog(self)
-                        fb_dialog.exec_()
-                        fb_data = fb_dialog.get_data()
-                        
-                        if not fb_data['accepted']:
-                            self.logger.info("Fun Bake dialog canceled.")
-                            continue
-
                         image_printer = ImagePrinter()
                         label_data = {
                             'description': description,
                             'barcode_value': barcode_value,
                             'remark': remark_text,
                             'unit_price_integer': unit_price_integer,
-                            'net_weight': fb_data['weight'],
-                            'batch': fb_data['batch']
+                            'net_weight': net_weight_val,
+                            'batch': batch_val
                         }
                         label_image = image_printer.render_fun_bake_label(label_data)
                         print_data = image_printer.get_full_command(label_image, copies=int(copies))
