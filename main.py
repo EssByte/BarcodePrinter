@@ -559,6 +559,17 @@ class BarcodeApp(QMainWindow):
         self.reload_button.setCursor(Qt.PointingHandCursor)
         self.update_button.setCursor(Qt.PointingHandCursor)
         
+        # Label Details Section (Net Weight & Batch)
+        self.net_weight_input = QLineEdit(self)
+        self.net_weight_input.setPlaceholderText("Net Weight (e.g. 500g)")
+        self.net_weight_input.setFixedWidth(150)
+        self.net_weight_input.setStyleSheet("background: white; border-radius: 5px; padding: 5px; border: 1px solid #ccc;")
+
+        self.batch_input = QLineEdit(self)
+        self.batch_input.setPlaceholderText("Batch (e.g. LOT123)")
+        self.batch_input.setFixedWidth(150)
+        self.batch_input.setStyleSheet("background: white; border-radius: 5px; padding: 5px; border: 1px solid #ccc;")
+
         # Connect signals
         self.print_button.clicked.connect(self.print_barcode)
         self.reload_button.clicked.connect(self.handle_config_change)
@@ -567,6 +578,15 @@ class BarcodeApp(QMainWindow):
         # Add widgets to buttons layout
         buttons_layout.addWidget(self.update_button)
         buttons_layout.addStretch(1)
+        
+        # New Inputs
+        buttons_layout.addWidget(QLabel("Net Weight:"))
+        buttons_layout.addWidget(self.net_weight_input)
+        buttons_layout.addSpacing(10)
+        buttons_layout.addWidget(QLabel("Batch:"))
+        buttons_layout.addWidget(self.batch_input)
+        buttons_layout.addSpacing(20)
+
         buttons_layout.addWidget(self.progressBar)
         buttons_layout.addWidget(self.reload_button)
         buttons_layout.addWidget(self.print_button)
@@ -1152,7 +1172,9 @@ class BarcodeApp(QMainWindow):
                             'description': description,
                             'barcode_value': barcode_value,
                             'remark': remark_text,
-                            'unit_price_integer': unit_price_integer
+                            'unit_price_integer': unit_price_integer,
+                            'net_weight': self.net_weight_input.text(),
+                            'batch': self.batch_input.text()
                         }
                         label_image = image_printer.render_fun_bake_label(label_data)
                         print_data = image_printer.get_full_command(label_image, copies=int(copies))
