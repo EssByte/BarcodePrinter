@@ -378,6 +378,24 @@ class BarcodeApp(QMainWindow):
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
+        
+        # Moved Weight and Batch to the top for better visibility
+        search_layout.addSpacing(10)
+        search_layout.addWidget(QLabel("Weight:"))
+        self.net_weight_input = QLineEdit(self)
+        self.net_weight_input.setPlaceholderText("500g")
+        self.net_weight_input.setFixedWidth(70)
+        self.net_weight_input.setStyleSheet("background: white; border-radius: 4px; padding: 2px;")
+        search_layout.addWidget(self.net_weight_input)
+
+        search_layout.addWidget(QLabel("Batch:"))
+        self.batch_input = QLineEdit(self)
+        self.batch_input.setPlaceholderText("LOT123")
+        self.batch_input.setFixedWidth(70)
+        self.batch_input.setStyleSheet("background: white; border-radius: 4px; padding: 2px;")
+        search_layout.addWidget(self.batch_input)
+        search_layout.addSpacing(10)
+
         search_layout.addWidget(self.sqlite_switch)
         search_layout.addWidget(self.barcode_size)
         search_layout.addWidget(self.search_for_uom)
@@ -559,17 +577,6 @@ class BarcodeApp(QMainWindow):
         self.reload_button.setCursor(Qt.PointingHandCursor)
         self.update_button.setCursor(Qt.PointingHandCursor)
         
-        # Label Details Section (Net Weight & Batch)
-        self.net_weight_input = QLineEdit(self)
-        self.net_weight_input.setPlaceholderText("Net Weight (e.g. 500g)")
-        self.net_weight_input.setFixedWidth(150)
-        self.net_weight_input.setStyleSheet("background: white; border-radius: 5px; padding: 5px; border: 1px solid #ccc;")
-
-        self.batch_input = QLineEdit(self)
-        self.batch_input.setPlaceholderText("Batch (e.g. LOT123)")
-        self.batch_input.setFixedWidth(150)
-        self.batch_input.setStyleSheet("background: white; border-radius: 5px; padding: 5px; border: 1px solid #ccc;")
-
         # Connect signals
         self.print_button.clicked.connect(self.print_barcode)
         self.reload_button.clicked.connect(self.handle_config_change)
@@ -578,15 +585,6 @@ class BarcodeApp(QMainWindow):
         # Add widgets to buttons layout
         buttons_layout.addWidget(self.update_button)
         buttons_layout.addStretch(1)
-        
-        # New Inputs
-        buttons_layout.addWidget(QLabel("Net Weight:"))
-        buttons_layout.addWidget(self.net_weight_input)
-        buttons_layout.addSpacing(10)
-        buttons_layout.addWidget(QLabel("Batch:"))
-        buttons_layout.addWidget(self.batch_input)
-        buttons_layout.addSpacing(20)
-
         buttons_layout.addWidget(self.progressBar)
         buttons_layout.addWidget(self.reload_button)
         buttons_layout.addWidget(self.print_button)
