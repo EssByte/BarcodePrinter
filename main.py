@@ -18,6 +18,7 @@ from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 from modules.Configurations import BarcodeConfig
 from modules.ImagePrinter import ImagePrinter
+from modules.funbake_dialog import FunBakeDialog
 from remark import RemarkDialog
 from version import __version__
 import subprocess
@@ -378,24 +379,6 @@ class BarcodeApp(QMainWindow):
         # Add widgets to the search layout
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
-        
-        # Moved Weight and Batch to the top for better visibility
-        search_layout.addSpacing(10)
-        search_layout.addWidget(QLabel("Weight:"))
-        self.net_weight_input = QLineEdit(self)
-        self.net_weight_input.setPlaceholderText("500g")
-        self.net_weight_input.setFixedWidth(70)
-        self.net_weight_input.setStyleSheet("background: white; border-radius: 4px; padding: 2px;")
-        search_layout.addWidget(self.net_weight_input)
-
-        search_layout.addWidget(QLabel("Batch:"))
-        self.batch_input = QLineEdit(self)
-        self.batch_input.setPlaceholderText("LOT123")
-        self.batch_input.setFixedWidth(70)
-        self.batch_input.setStyleSheet("background: white; border-radius: 4px; padding: 2px;")
-        search_layout.addWidget(self.batch_input)
-        search_layout.addSpacing(10)
-
         search_layout.addWidget(self.sqlite_switch)
         search_layout.addWidget(self.barcode_size)
         search_layout.addWidget(self.search_for_uom)
@@ -1165,14 +1148,23 @@ class BarcodeApp(QMainWindow):
                     elif self.config.get_tpslSize() == self.options[4]: # Fun Bake (QR)
                         tpsl_template = self.config.get_tpsl_funbake_image_template()
                     elif self.config.get_tpslSize() == self.options[5]: # Fun Bake (Graphic)
+                        # Show Fun Bake details popup
+                        fb_dialog = FunBakeDialog(self)
+                        fb_dialog.exec_()
+                        fb_data = fb_dialog.get_data()
+                        
+                        if not fb_data['accepted']:
+                            self.logger.info("Fun Bake dialog canceled.")
+                            continue
+
                         image_printer = ImagePrinter()
                         label_data = {
                             'description': description,
                             'barcode_value': barcode_value,
                             'remark': remark_text,
                             'unit_price_integer': unit_price_integer,
-                            'net_weight': self.net_weight_input.text(),
-                            'batch': self.batch_input.text()
+                            'net_weight': fb_data['weight'],
+                            'batch': fb_data['batch']
                         }
                         label_image = image_printer.render_fun_bake_label(label_data)
                         print_data = image_printer.get_full_command(label_image, copies=int(copies))
