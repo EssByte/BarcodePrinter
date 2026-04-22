@@ -283,6 +283,7 @@ class BarcodeApp(QMainWindow):
 
         # Create a central widget to hold the main layout
         central_widget = QWidget(self)
+        central_widget.setObjectName("central_widget")
         self.setCentralWidget(central_widget)  # Set central widget
 
         # Main layout for the widget
@@ -336,23 +337,8 @@ class BarcodeApp(QMainWindow):
         """)
         self.search_for_uom.clicked.connect(lambda: self.filter_items(True))
         self.search_by_description = QPushButton("Search", self)
+        self.search_by_description.setObjectName("btn_search")
         self.search_by_description.setCursor(Qt.PointingHandCursor)
-        self.search_by_description.setStyleSheet("""
-        QPushButton {
-            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
-            color: white;
-            border-top-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            font-style: italic;
-            font-weight: bold;
-            qproperty-cursor: pointingHandCursor;
-        }
-        QPushButton:hover {
-            background: white;
-            border: 2px solid rgb(53, 132, 228);
-            color: black;
-        }
-        """)
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
@@ -496,23 +482,8 @@ class BarcodeApp(QMainWindow):
 
         # Print Button
         self.print_button = QPushButton('Print Barcode', self)
-        self.print_button.setStyleSheet("""
-        QPushButton {
-            background: white;
-            border: 2px solid rgb(53, 132, 228);
-            color: black;
-            border-top-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            font-style: italic;
-            font-weight: bold;
-            qproperty-cursor: pointingHandCursor;
-        }
-        QPushButton:hover {
-            background: qlineargradient(spread:pad, x1:0.148, y1:1, x2:1, y2:1, stop:0.233503 rgba(53, 132, 228, 255), stop:1 rgba(26, 95, 180, 255));
-            color: white;
-        }
-        """)
-        
+        self.print_button.setObjectName("btn_print")
+       
         # Reload Button
         self.reload_button = QPushButton('Reload Database', self)
         self.reload_button.setStyleSheet("""
@@ -657,24 +628,146 @@ class BarcodeApp(QMainWindow):
 
     def loadStylesheet(self):
         try:
-            # Define the stylesheet for the application
+            # Modern, Premium Stylesheet
             stylesheet = """
-            QLabel { font-size: 20px; font-weight: bold; }
-            QLineEdit { font-size: 18px; padding: 8px; border: 2px solid rgb(53, 132, 228);border-radius: 10px; }
-            QTableWidget { font-size: 16px; padding: 4px; border: 1px solid black; border-radius: 12px; }
-            QPushButton { padding: 10px 20px; font-size: 20px; margin: 10px; }
-            QPushButton:hover { background-color: rgb(0, 106, 255); }
-            QPushButton:pressed { background-color: #000099; }
-            QHeaderView::section { font-size: 16px; font-weight: bold; padding: 10px; }
+            QMainWindow {
+                background-color: #f0f2f5;
+            }
+            
+            QWidget#central_widget {
+                background-color: #f0f2f5;
+            }
+            
+            /* Typography & Labels */
+            QLabel {
+                font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+                color: #2c3e50;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            
+            /* Search & Inputs */
+            QLineEdit {
+                background-color: #ffffff;
+                border: 2px solid #e0e6ed;
+                border-radius: 8px;
+                padding: 10px 15px;
+                font-size: 14px;
+                color: #3e4b5b;
+                selection-background-color: #3498db;
+            }
+            QLineEdit:focus {
+                border: 2px solid #3498db;
+                background-color: #fdfdfd;
+            }
+            
+            /* Table Styling */
+            QTableWidget {
+                background-color: #ffffff;
+                border: 1px solid #e0e6ed;
+                border-radius: 12px;
+                gridline-color: transparent;
+                font-size: 13px;
+                outline: none;
+            }
+            QTableWidget::item {
+                padding: 10px;
+                border-bottom: 1px solid #f1f3f5;
+            }
+            QTableWidget::item:selected {
+                background-color: #e3f2fd;
+                color: #1976d2;
+            }
+            
+            QHeaderView::section {
+                background-color: #f8fafc;
+                padding: 12px;
+                border: none;
+                border-bottom: 2px solid #3498db;
+                font-weight: bold;
+                font-size: 13px;
+                color: #475569;
+                text-transform: uppercase;
+            }
+
+            /* Buttons */
+            QPushButton {
+                background-color: #ffffff;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                padding: 8px 16px;
+                font-weight: 600;
+                color: #374151;
+                font-size: 13px;
+            }
+            QPushButton:hover {
+                background-color: #f9fafb;
+                border-color: #3498db;
+                color: #3498db;
+            }
+            
+            /* Specialized Action Buttons */
+            QPushButton#btn_print {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3498db, stop:1 #2980b9);
+                color: white;
+                border: none;
+                font-size: 14px;
+            }
+            QPushButton#btn_print:hover {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #4aa3df, stop:1 #2c8ed0);
+            }
+            
+            QPushButton#btn_search {
+                background-color: #2ecc71;
+                color: white;
+                border: none;
+            }
+            QPushButton#btn_search:hover {
+                background-color: #27ae60;
+            }
+
+            /* Combo Boxes */
+            QComboBox {
+                background-color: #ffffff;
+                border: 1px solid #d1d5db;
+                border-radius: 8px;
+                padding: 8px;
+                min-width: 100px;
+            }
+            QComboBox::drop-down {
+                border: none;
+            }
+            
+            /* Progress Bar */
+            QProgressBar {
+                border: 1px solid #d1d5db;
+                border-radius: 5px;
+                text-align: center;
+                background-color: #ffffff;
+            }
+            QProgressBar::chunk {
+                background-color: #3498db;
+                border-radius: 4px;
+            }
+
+            /* Menubar */
+            QMenuBar {
+                background-color: #ffffff;
+                border-bottom: 1px solid #e0e6ed;
+                padding: 5px;
+            }
+            QMenuBar::item {
+                background-color: transparent;
+                padding: 8px 15px;
+                border-radius: 4px;
+            }
+            QMenuBar::item:selected {
+                background-color: #f1f5f9;
+            }
             """
-            
-            # Applying the stylesheet to the application
             self.setStyleSheet(stylesheet)
-            
-            # Log successful application of the stylesheet
-            self.logger.info("Stylesheet applied successfully.")
+            self.logger.info("Premium stylesheet applied successfully.")
         except Exception as e:
-            # Log if there was an error while applying the stylesheet
             self.logger.error(f"Failed to apply stylesheet: {e}")
             QMessageBox.critical(self, 'Stylesheet Error', f"Failed to apply stylesheet: {e}")
 
@@ -917,10 +1010,10 @@ class BarcodeApp(QMainWindow):
                 copies_item.setTextAlignment(Qt.AlignCenter)
                 self.item_table.setItem(row_number, 9, copies_item)
 
-                # Background color for even rows
+                # Background color for even rows (Subtle modern alternate)
                 if row_number % 2 == 0:
                     for col_number in range(self.item_table.columnCount()):
-                        self.item_table.item(row_number, col_number).setBackground(QBrush(QColor(230, 238, 255)))
+                        self.item_table.item(row_number, col_number).setBackground(QBrush(QColor(248, 250, 252)))
 
             # Update pagination controls
             self.update_pagination_buttons()
