@@ -70,22 +70,31 @@ class BarcodeApp(QMainWindow):
         self.input_timer.start(400)
 
     def handle_config_change(self):
-        self.logger.info("Database reload requested. Initializing scan...")
+        self.logger.info("Database reload requested. Initializing background scan...")
         try:
             self.show_loading("SCANNING DATABASE...")
             self.update_logging()
             self.check_version()
-
-            if self.db_connected and self.connection:
-                try: self.connection.close()
-                except: pass
-
-            self.connect_to_database()
             self.start_fetch_items()
         except Exception as e:
             self.hide_loading()
-            self.logger.error(f"Failed to reload configuration: {e}")
-            QMessageBox.critical(self, 'Error', f"Failed to reload configuration: {e}")
+            self.logger.error(f"Failed to reload: {e}")
+            QMessageBox.critical(self, 'Error', f"Failed to reload: {e}")
+
+    def connect_to_database(self):
+        # Connection is now handled in FetchItemsThread for background performance
+        pass
+
+    def start_fetch_items(self):
+        self.fetch_items_thread = FetchItemsThread(self.config.get_location(), self.config.get_useSqlite())
+        self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
+        self.fetch_items_thread.error_occurred.connect(self.handle_fetch_error)
+        self.fetch_items_thread.start()
+
+    def handle_fetch_error(self, err_msg):
+        self.hide_loading()
+        self.logger.error(err_msg)
+        QMessageBox.critical(self, 'Database Error', err_msg)
            
     def runUpdater(self):
         try:
