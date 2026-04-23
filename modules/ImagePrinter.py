@@ -122,9 +122,9 @@ class ImagePrinter:
                 from barcode import Code128
                 rv = io.BytesIO()
                 Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 10.0, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
-                rv.seek(0); bc_img = Image.open(rv).convert('1'); bc_img = bc_img.resize((300, 40)); image.paste(bc_img, (50, 220))
+                rv.seek(0); bc_img = Image.open(rv).convert('1'); bc_img = bc_img.resize((300, 40)); image.paste(bc_img, (80, 220))
             except: pass
-            draw.text((50, 265), barcode_value, fill=0, font=font_medium)
+            draw.text((80, 265), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 10
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
