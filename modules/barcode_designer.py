@@ -2,7 +2,7 @@ import json
 import os
 from PyQt5.QtWidgets import (QGraphicsView, QGraphicsScene, QGraphicsTextItem, 
                              QGraphicsItem, QGraphicsRectItem, QMenu, QAction)
-from PyQt5.QtGui import QFont, QColor, QPen, QBrush
+from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal
 
 class DraggableItem(QGraphicsTextItem):
@@ -26,7 +26,7 @@ class BarcodeDesigner(QGraphicsView):
         self.config_path = config_path
         self.scene = QGraphicsScene(0, 0, 800, 300) # 75mm x 50mm approx
         self.setScene(self.scene)
-        self.setRenderHint(self.viewport().painter().Antialiasing)
+        self.setRenderHint(QPainter.Antialiasing)
         
         # Draw Label Boundary
         self.boundary = QGraphicsRectItem(0, 0, 800, 300)
