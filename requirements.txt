@@ -1,5 +1,8 @@
 PyQt5
-libusb
 pyusb
-auto-py-to-exe
+requests
 pyodbc
+Pillow
+python-barcode
+pyinstaller
+pywin32
