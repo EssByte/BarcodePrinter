@@ -27,6 +27,24 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --console --icon=images/logo.ico --add-data "ui;ui" --add-data "images;images" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
 
+    - name: Get Version
+      id: get_version
+      run: |
+        $version = (Get-Content version.py) -replace '__version__ = "', '' -replace '"', ''
+        echo "VERSION=$version" >> $env:GITHUB_ENV
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ env.VERSION }}-${{ github.run_number }}
+        name: Barcode Printer v${{ env.VERSION }} (Build ${{ github.run_number }})
+        draft: false
+        prerelease: false
+        files: dist/main.exe
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
