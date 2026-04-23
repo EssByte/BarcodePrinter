@@ -328,7 +328,7 @@ class SettingsWindow(QMainWindow):
         
         layout.addWidget(self.template_stack)
         
-        self.options = ["size1", "size2", "size3", "Fun Bake"]
+        self.options = ["size1", "size2", "size3"]
         self.combo_tpsl_size.addItems(self.options)
         self.combo_zpl_size.addItems(self.options)
         
