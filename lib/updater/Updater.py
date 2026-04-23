@@ -4,8 +4,47 @@ import sys
 import requests
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QProgressBar, QFrame, QMessageBox)
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QColor
+
+class UpdateThread(QThread):
+    progress = pyqtSignal(int)
+    status = pyqtSignal(str)
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+    version_found = pyqtSignal(str)
+
+    def __init__(self, mode, repo_owner, repo_name, install_path):
+        super().__init__()
+        self.mode = mode # 'check' or 'download'
+        self.repo_owner = repo_owner
+        self.repo_name = repo_name
+        self.install_path = install_path
+
+    def run(self):
+        try:
+            if self.mode == 'check':
+                api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
+                res = requests.get(api_url).json()
+                tag = res.get("tag_name", "Unknown")
+                self.version_found.emit(tag)
+            else:
+                os.makedirs(self.install_path, exist_ok=True)
+                files = ["BarcodePrinter.exe", "Updater.exe", "libusb-1.0.dll"]
+                for i, f_name in enumerate(files):
+                    self.status.emit(f"Downloading {f_name}...")
+                    url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/{f_name}"
+                    path = os.path.join(self.install_path, f_name)
+                    resp = requests.get(url, stream=True)
+                    resp.raise_for_status()
+                    self.progress.emit(10 + i * 30)
+                    with open(path, "wb") as f:
+                        for chunk in resp.iter_content(8192):
+                            if chunk: f.write(chunk)
+                self.progress.emit(100)
+                self.finished.emit()
+        except Exception as e:
+            self.error.emit(str(e))
 
 class Updater(QWidget):
     def __init__(self):
@@ -13,6 +52,7 @@ class Updater(QWidget):
         self.repo_owner = "PersonX-46"
         self.repo_name = "BarcodePrinter"
         self.install_path = r"C:\barcode"
+        self.thread = None
         
         self.initUI()
         
@@ -102,44 +142,40 @@ class Updater(QWidget):
             self.download_update()
 
     def check_version(self):
-        api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
-        try:
-            res = requests.get(api_url).json()
-            tag = res.get("tag_name", "Unknown")
-            self.lbl_version.setText(f"Latest Version: {tag}")
-            self.lbl_status.setText("A new update is available.")
-            self.btn_update.setText("Update Now")
-            self.is_checked = True
-        except:
-            self.lbl_status.setText("Failed to connect to server.")
+        self.btn_update.setEnabled(False)
+        self.lbl_status.setText("Checking for updates...")
+        self.thread = UpdateThread('check', self.repo_owner, self.repo_name, self.install_path)
+        self.thread.version_found.connect(self.on_version_found)
+        self.thread.error.connect(self.on_error)
+        self.thread.start()
+
+    def on_version_found(self, tag):
+        self.btn_update.setEnabled(True)
+        self.lbl_version.setText(f"Latest Version: {tag}")
+        self.lbl_status.setText("A new update is available.")
+        self.btn_update.setText("Update Now")
+        self.is_checked = True
 
     def download_update(self):
         self.btn_update.setEnabled(False)
         self.pbar.setVisible(True)
-        self.pbar.setValue(10)
-        
-        try:
-            os.makedirs(self.install_path, exist_ok=True)
-            files = ["BarcodePrinter.exe", "Updater.exe"]
-            
-            for i, f_name in enumerate(files):
-                self.lbl_status.setText(f"Downloading {f_name}...")
-                url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/{f_name}"
-                path = os.path.join(self.install_path, f_name)
-                
-                resp = requests.get(url, stream=True)
-                with open(path, "wb") as f:
-                    for chunk in resp.iter_content(8192):
-                        if chunk: f.write(chunk)
-                self.pbar.setValue(50 + i * 40)
-            
-            self.lbl_status.setText("Update complete!")
-            QMessageBox.information(self, "Success", "Application updated successfully.")
-            subprocess.Popen([os.path.join(self.install_path, "BarcodePrinter.exe")])
-            self.close()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Update failed: {str(e)}")
-            self.btn_update.setEnabled(True)
+        self.thread = UpdateThread('download', self.repo_owner, self.repo_name, self.install_path)
+        self.thread.progress.connect(self.pbar.setValue)
+        self.thread.status.connect(self.lbl_status.setText)
+        self.thread.finished.connect(self.on_finished)
+        self.thread.error.connect(self.on_error)
+        self.thread.start()
+
+    def on_finished(self):
+        self.lbl_status.setText("Update complete!")
+        QMessageBox.information(self, "Success", "Application updated successfully.")
+        subprocess.Popen([os.path.join(self.install_path, "BarcodePrinter.exe")])
+        self.close()
+
+    def on_error(self, message):
+        self.lbl_status.setText(f"Error: {message}")
+        self.lbl_status.setStyleSheet("color: #ef4444;")
+        self.btn_update.setEnabled(True)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

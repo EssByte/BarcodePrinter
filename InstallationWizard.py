@@ -4,8 +4,66 @@ import requests
 import subprocess
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QPushButton, QProgressBar, QFrame, QStackedWidget)
-from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, pyqtProperty
+from PyQt5.QtCore import Qt, QPropertyAnimation, QEasingCurve, QRect, QTimer, pyqtProperty, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QPixmap, QColor, QPainter, QLinearGradient
+
+class InstallThread(QThread):
+    progress = pyqtSignal(int)
+    status = pyqtSignal(str)
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, repo_owner, repo_name, install_path):
+        super().__init__()
+        self.repo_owner = repo_owner
+        self.repo_name = repo_name
+        self.install_path = install_path
+
+    def run(self):
+        try:
+            self.status.emit("Connecting to GitHub...")
+            self.progress.emit(5)
+            
+            os.makedirs(self.install_path, exist_ok=True)
+            
+            # Download Files
+            files = ["BarcodePrinter.exe", "Updater.exe", "libusb-1.0.dll"]
+            for i, filename in enumerate(files):
+                self.status.emit(f"Downloading {filename}...")
+                url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/{filename}"
+                path = os.path.join(self.install_path, filename)
+                
+                response = requests.get(url, stream=True)
+                response.raise_for_status()
+                
+                # Update progress per file
+                self.progress.emit(20 + i * 20)
+                with open(path, "wb") as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        if chunk: f.write(chunk)
+                
+            self.status.emit("Creating shortcuts...")
+            self.create_shortcut()
+            self.progress.emit(95)
+            self.finished.emit()
+            
+        except Exception as e:
+            self.error.emit(str(e))
+
+    def create_shortcut(self):
+        try:
+            import winshell
+            from win32com.client import Dispatch
+            desktop = winshell.desktop()
+            path = os.path.join(desktop, "Barcode Printer.lnk")
+            target = os.path.join(self.install_path, "BarcodePrinter.exe")
+            shell = Dispatch('WScript.Shell')
+            shortcut = shell.CreateShortCut(path)
+            shortcut.Targetpath = target
+            shortcut.WorkingDirectory = self.install_path
+            shortcut.IconLocation = target
+            shortcut.save()
+        except: pass
 
 class AnimatedLabel(QLabel):
     def __init__(self, text, parent=None):
@@ -134,41 +192,17 @@ class InstallationWizard(QWidget):
             self.run_app()
 
     def start_installation(self):
-        try:
-            self.lbl_status.setText("Connecting to GitHub...")
-            self.pbar.setValue(5)
-            QApplication.processEvents()
-            
-            os.makedirs(self.install_path, exist_ok=True)
-            
-            # Download Files
-            files = ["BarcodePrinter.exe", "Updater.exe", "libusb-1.0.dll"]
-            total_files = len(files)
-            
-            for i, filename in enumerate(files):
-                self.lbl_status.setText(f"Downloading {filename}...")
-                url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/{filename}"
-                path = os.path.join(self.install_path, filename)
-                
-                response = requests.get(url, stream=True)
-                response.raise_for_status()
-                
-                # Mock progress for each file
-                self.pbar.setValue(20 + i * 20)
-                with open(path, "wb") as f:
-                    for chunk in response.iter_content(chunk_size=8192):
-                        if chunk: f.write(chunk)
-                
-            self.lbl_status.setText("Creating shortcuts...")
-            self.create_shortcut()
-            self.pbar.setValue(90)
-            
-            QTimer.singleShot(1000, self.finish_install)
-            
-        except Exception as e:
-            self.lbl_status.setText(f"Error: {str(e)}")
-            self.lbl_status.setStyleSheet("color: #ef4444;")
-            self.btn_close.setVisible(True)
+        self.thread = InstallThread(self.repo_owner, self.repo_name, self.install_path)
+        self.thread.progress.connect(self.pbar.setValue)
+        self.thread.status.connect(self.lbl_status.setText)
+        self.thread.finished.connect(self.finish_install)
+        self.thread.error.connect(self.on_error)
+        self.thread.start()
+
+    def on_error(self, message):
+        self.lbl_status.setText(f"Error: {message}")
+        self.lbl_status.setStyleSheet("color: #ef4444;")
+        self.btn_close.setVisible(True)
 
     def create_shortcut(self):
         # Programmatic shortcut creation (Windows only)
