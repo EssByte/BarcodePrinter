@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QLabel, QLineEdit, QPushButton, QFrame, QStackedWidget, 
                              QListWidget, QListWidgetItem, QCheckBox, QRadioButton, 
                              QButtonGroup, QComboBox, QTextEdit, QGraphicsDropShadowEffect,
-                             QFileDialog, QMessageBox, QSpacerItem, QSizePolicy)
+                             QFileDialog, QMessageBox, QSpacerItem, QSizePolicy, QGridLayout)
 from PyQt5.QtGui import QIcon, QFont, QColor, QPixmap
 from PyQt5.QtCore import Qt, QSize, QTimer
 
