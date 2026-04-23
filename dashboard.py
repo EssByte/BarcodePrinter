@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame, QPushButton, QGraphicsDropShadowEffect
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame, QPushButton, QGraphicsDropShadowEffect, QLineEdit
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QColor
 from PyQt5.QtCore import Qt, QTimer, QDateTime, QSize
 import usb.backend
@@ -71,27 +71,37 @@ class DashboardWindow(QMainWindow):
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(30)
         
-        # Connectivity Card (Vibrant Orange Border)
+        # 1. Connectivity Card
         self.card_net = self.create_status_card("CONNECTIVITY", "Public Network Access", "lbl_resultConnectivity", "#f59e0b")
         self.grid_layout.addWidget(self.card_net, 0, 0)
         
-        # Database Card (Vibrant Purple Border)
+        # 2. Database Card
         self.card_db = self.create_status_card("DATABASE", "SQL Server Status", "lbl_resultDatabase", "#8b5cf6")
         self.grid_layout.addWidget(self.card_db, 0, 1)
         
-        # Printer Card (Vibrant Green Border)
+        # 3. Printer Card
         self.card_printer = self.create_status_card("HARDWARE", "Connected Printers", "lbl_resultConnectedDevice", "#10b981")
+        # Technical sub-labels to prevent crashes and show info
+        self.et_printerVid = QLineEdit(); self.et_printerVid.setVisible(False)
+        self.et_printerPid = QLineEdit(); self.et_printerPid.setVisible(False)
         self.grid_layout.addWidget(self.card_printer, 1, 0)
         
-        # Configuration Card (Vibrant Blue Border)
+        # 4. Configuration Card
         self.card_config = self.create_status_card("CONFIG FILE", "Schema Integrity", "lbl_resultConfiguration", "#3b82f6")
+        self.et_enterToSearch = QLineEdit(); self.et_enterToSearch.setVisible(False)
+        self.et_itemCount = QLineEdit(); self.et_itemCount.setVisible(False)
         self.grid_layout.addWidget(self.card_config, 1, 1)
         
-        # Logging Card (Vibrant Pink Border)
-        self.card_log = self.create_status_card("LOGGING", "Audit Trail Status", "lbl_loggingResult", "#ec4899")
+        # 5. Logging Card
+        self.card_log = self.create_status_card("SYSTEM LOGGING", "Audit Trail Status", "lbl_loggingResult", "#ec4899")
+        # The logic expects a button here
+        self.btn_checkLogging = QPushButton("Status Check")
+        self.btn_checkLogging.setFixedSize(140, 35)
+        self.btn_checkLogging.setStyleSheet("background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 5px; font-weight: bold;")
+        self.card_log.layout().insertWidget(1, self.btn_checkLogging)
         self.grid_layout.addWidget(self.card_log, 2, 0)
 
-        # Security Card
+        # 6. Security Card
         self.card_sec = self.create_status_card("SECURITY", "Encryption Engine", "lbl_security_status", "#ef4444")
         self.grid_layout.addWidget(self.card_sec, 2, 1)
 
