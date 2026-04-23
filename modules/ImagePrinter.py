@@ -44,7 +44,7 @@ class ImagePrinter:
             font_small = font_small_bold = font_medium = font_large = font_huge = ImageFont.load_default()
 
         # --- EXPERIMENTAL: LOAD DESIGN FROM DESIGNER ---
-        design_path = r'C:\barcode\barcode_design.json'
+        design_path = os.path.join(os.path.expanduser("~"), ".barcode_design.json")
         design = {}
         if os.path.exists(design_path):
             try:
