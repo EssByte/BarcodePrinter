@@ -1,5 +1,4 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame, QPushButton, QGraphicsDropShadowEffect, QLineEdit
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame, QPushButton, QGraphicsDropShadowEffect, QLineEdit, QProgressBar
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QColor
 from PyQt5.QtCore import Qt, QTimer, QDateTime, QSize
 import usb.backend
@@ -65,9 +64,6 @@ class DashboardWindow(QMainWindow):
         self.main_layout.addLayout(self.header_layout)
 
         # --- Status Cards Grid ---
-        # Fixed naming to match logic methods:
-        # lbl_resultConnectivity, lbl_resultDatabase, lbl_resultConnectedDevice, lbl_resultConfiguration, lbl_loggingResult
-        
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(30)
         
@@ -81,7 +77,6 @@ class DashboardWindow(QMainWindow):
         
         # 3. Printer Card
         self.card_printer = self.create_status_card("HARDWARE", "Connected Printers", "lbl_resultConnectedDevice", "#10b981")
-        # Technical sub-labels to prevent crashes and show info
         self.et_printerVid = QLineEdit(); self.et_printerVid.setVisible(False)
         self.et_printerPid = QLineEdit(); self.et_printerPid.setVisible(False)
         self.grid_layout.addWidget(self.card_printer, 1, 0)
@@ -94,7 +89,6 @@ class DashboardWindow(QMainWindow):
         
         # 5. Logging Card
         self.card_log = self.create_status_card("SYSTEM LOGGING", "Audit Trail Status", "lbl_loggingResult", "#ec4899")
-        # The logic expects a button here
         self.btn_checkLogging = QPushButton("Status Check")
         self.btn_checkLogging.setFixedSize(140, 35)
         self.btn_checkLogging.setStyleSheet("background: rgba(255,255,255,0.2); border: 1px solid white; color: white; border-radius: 5px; font-weight: bold;")
@@ -123,6 +117,7 @@ class DashboardWindow(QMainWindow):
                 border: 2px solid #60a5fa;
             }
             QPushButton:hover { background-color: #2563eb; border-color: #3b82f6; }
+            QPushButton:disabled { background-color: #1e293b; border-color: #334155; color: #475569; }
         """)
         self.btn_reload.clicked.connect(self.load_data)
         
@@ -147,6 +142,9 @@ class DashboardWindow(QMainWindow):
         self.footer_layout.addWidget(self.btn_close)
         self.main_layout.addLayout(self.footer_layout)
 
+        # Loading Overlay (Starts Hidden)
+        self.setup_loading_overlay()
+
         # Timer setup
         self.update_datetime()
         self.timer = QTimer(self)
@@ -156,362 +154,81 @@ class DashboardWindow(QMainWindow):
         # Load initial diagnostics
         QTimer.singleShot(800, self.load_data)
 
+    def setup_loading_overlay(self):
+        self.loading_overlay = QFrame(self)
+        self.loading_overlay.setStyleSheet("background-color: rgba(15, 23, 42, 0.9); border-radius: 20px; border: 2px solid #3b82f6;")
+        self.loading_overlay.setFixedSize(400, 130)
+        
+        overlay_layout = QVBoxLayout(self.loading_overlay)
+        lbl_msg = QLabel("CORE SYSTEM SCAN IN PROGRESS...")
+        lbl_msg.setStyleSheet("color: white; font-weight: 800; font-size: 14px; letter-spacing: 1px; border: none;")
+        lbl_msg.setAlignment(Qt.AlignCenter)
+        
+        self.scan_pbar = QProgressBar()
+        self.scan_pbar.setRange(0, 0) # Indeterminate
+        self.scan_pbar.setTextVisible(False)
+        self.scan_pbar.setStyleSheet("""
+            QProgressBar { border: 1px solid #334155; border-radius: 5px; height: 8px; background: #1e293b; }
+            QProgressBar::chunk { background-color: #3b82f6; border-radius: 4px; }
+        """)
+        overlay_layout.addStretch()
+        overlay_layout.addWidget(lbl_msg)
+        overlay_layout.addWidget(self.scan_pbar)
+        overlay_layout.addStretch()
+        self.loading_overlay.hide()
+
     def create_status_card(self, title, subtitle, result_name, accent_color):
         card = QFrame()
         card.setObjectName("status_card")
-        # GLASSMORPHISM STYLE
-        card.setStyleSheet(f"""
-            QFrame#status_card {{ 
-                background-color: rgba(255, 255, 255, 0.95); 
-                border-left: 8px solid {accent_color};
-                border-radius: 15px; 
-            }}
-        """)
+        card.setStyleSheet(f"QFrame#status_card {{ background-color: rgba(255, 255, 255, 0.95); border-left: 8px solid {accent_color}; border-radius: 15px; }}")
         
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(25)
-        shadow.setXOffset(0)
-        shadow.setYOffset(8)
+        shadow.setBlurRadius(25); shadow.setXOffset(0); shadow.setYOffset(8)
         shadow.setColor(QColor(0, 0, 0, 80))
         card.setGraphicsEffect(shadow)
         
-        layout = QHBoxLayout(card)
-        layout.setContentsMargins(30, 30, 30, 30)
-        
+        layout = QHBoxLayout(card); layout.setContentsMargins(30, 30, 30, 30)
         text_layout = QVBoxLayout()
-        lbl_t = QLabel(title)
-        lbl_t.setStyleSheet(f"font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: 1px;")
-        lbl_s = QLabel(subtitle)
-        lbl_s.setStyleSheet("font-size: 12px; font-weight: 600; color: #64748b;")
-        text_layout.addWidget(lbl_t)
-        text_layout.addWidget(lbl_s)
-        
-        layout.addLayout(text_layout)
-        layout.addStretch()
+        lbl_t = QLabel(title); lbl_t.setStyleSheet("font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: 1px;")
+        lbl_s = QLabel(subtitle); lbl_s.setStyleSheet("font-size: 12px; font-weight: 600; color: #64748b;")
+        text_layout.addWidget(lbl_t); text_layout.addWidget(lbl_s)
+        layout.addLayout(text_layout); layout.addStretch()
         
         if result_name:
-            lbl_res = QLabel("SCAN")
-            setattr(self, result_name, lbl_res)
-            lbl_res.setStyleSheet(f"font-size: 28px; color: {accent_color}; font-weight: 900;")
+            lbl_res = QLabel("SCANNING"); setattr(self, result_name, lbl_res)
+            lbl_res.setStyleSheet(f"font-size: 24px; color: {accent_color}; font-weight: 900;")
             layout.addWidget(lbl_res)
-        else:
-            lbl_res = QLabel("✅")
-            lbl_res.setStyleSheet("font-size: 32px;")
-            layout.addWidget(lbl_res)
-            
         return card
 
-    def update_datetime(self):
-        # Get the current date and time in the desired format
-        current_datetime = QDateTime.currentDateTime().toString('dd/MM/yyyy hh:mm AP')
+    def load_data(self):
+        self.btn_reload.setEnabled(False)
+        self.loading_overlay.move(
+            (self.width() - self.loading_overlay.width()) // 2,
+            (self.height() - self.loading_overlay.height()) // 2
+        )
+        self.loading_overlay.show()
         
-        # Update the label text with the formatted date and time
-        self.lbl_datetime.setText(current_datetime)
+        from modules.threads import DiagnosticThread
+        self.diag_thread = DiagnosticThread(self.config_path, "HQ", self.backend)
+        self.diag_thread.progress.connect(self.update_diagnostic_result)
+        self.diag_thread.finished.connect(self.on_diagnostic_finished)
+        self.diag_thread.start()
+
+    def update_diagnostic_result(self, attr_name, value):
+        if hasattr(self, attr_name):
+            widget = getattr(self, attr_name)
+            widget.setText(value)
+            if value in ["✅", "Enabled"]: widget.setStyleSheet("font-size: 24px; font-weight: 900; color: #10b981;")
+            elif value in ["❌", "Disabled", "ERR"]: widget.setStyleSheet("font-size: 24px; font-weight: 900; color: #ef4444;")
+
+    def on_diagnostic_finished(self):
+        self.loading_overlay.hide()
+        self.btn_reload.setEnabled(True)
+
+    def update_datetime(self):
+        self.lbl_datetime.setText(QDateTime.currentDateTime().toString("ddd, MMMM d, yyyy HH:mm:ss"))
 
     def resource_path(self, relative_path):
-        """ Get absolute path to resource, works for dev and for PyInstaller """
-        try:
-            # Log the attempt to resolve the resource path
-            self.logger.debug(f"Attempting to resolve resource path for: {relative_path}")
-            
-            # Try to get the PyInstaller base path
-            base_path = sys._MEIPASS
-            self.logger.debug(f"PyInstaller base path resolved: {base_path}")
-        except AttributeError:
-            # Fall back to the current working directory in development mode
-            base_path = os.path.abspath(".")
-            self.logger.debug(f"Development mode detected. Base path resolved to: {base_path}")
-        except Exception as e:
-            self.logger.exception(f"Unexpected error while resolving base path: {e}")
-            raise  # Re-raise the exception if it cannot be handled
-
-        # Construct the absolute path to the resource
-        absolute_path = os.path.join(base_path, relative_path)
-        self.logger.debug(f"Absolute resource path resolved: {absolute_path}")
-        return absolute_path
-
-    def is_connected(self):
-        try:
-            # Try to connect to a public DNS server (Google's DNS: 8.8.8.8) over port 53 (DNS port)
-            socket.create_connection(("8.8.8.8", 53), timeout=5)
-            
-            # Log success if connected
-            self.logger.info("Successfully connected to the internet (8.8.8.8:53).")
-            
-            # Update the UI to reflect successful connection
-            self.lbl_resultConnectivity.setText("✅️")
-        except (socket.timeout, OSError) as e:
-            # Log failure if not connected
-            self.logger.error(f"Failed to connect to the internet: {e}")
-            
-            # Update the UI to reflect the failure
-            self.lbl_resultConnectivity.setText("❌")
-
-    def can_connect_to_database(self):
-        try:
-            # Load configuration
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
-
-            # Prepare the connection string
-            connection_string = (
-                f"DRIVER={{ODBC Driver 17 for SQL Server}};"
-                f"SERVER={config['server']};"
-                f"DATABASE={config['database']};"
-                f"UID={config['username']};"
-                f"PWD={config['password']};"
-            )
-
-            # Try to establish a connection to the database
-            with pyodbc.connect(connection_string, timeout=5) as connection:
-                # Connection successful
-                self.logger.info("Successfully connected to the database.")
-                self.lbl_resultDatabase.setText("✅️")
-
-        except FileNotFoundError:
-            self.logger.error(f"Configuration file not found at {self.config_path}")
-            QMessageBox.critical(self, 'Config Error', f'Configuration file not found at {self.config_path}')
-
-        except json.JSONDecodeError:
-            self.logger.error("Error parsing the configuration file.")
-            QMessageBox.critical(self, 'Config Error', 'Error parsing the configuration file.')
-
-        except KeyError as e:
-            self.logger.error(f"Missing key in configuration file: {e}")
-            QMessageBox.critical(self, 'Config Error', f'Missing key in configuration file: {e}')
-            
-        except pyodbc.Error as e:
-            self.logger.error(f"Database connection failed: {e}")
-            print(f"Connection failed: {e}")
-            self.lbl_resultDatabase.setText("❌")
-
-    def check_config_file(self):
-        # Log the start of the configuration file check
-        self.logger.info("Checking configuration file...")
-
-        # List of required keys in the config file
-        required_keys = [
-            "server",
-            "database",
-            "username",
-            "password",
-            "vid",
-            "pid",
-            "endpoint",
-            "companyName",
-            "location",
-            "useZPL",
-            "ip_address",
-            "wireless_mode",
-            "zplTemplate",
-            "tpslTemplate",
-            "logging"
-        ]
-
-        # Check if the file exists
-        if not os.path.isfile(self.config_path):
-            error_message = f"Configuration file not found at {self.config_path}"
-            self.logger.error(error_message)  # Log the error
-            print(f"Error: {error_message}")
-            self.lbl_resultConfiguration.setText("❌")
-            return
-
-        try:
-            # Load and parse the JSON file
-            with open(self.config_path, "r") as file:
-                config = json.load(file)
-            self.logger.info(f"Configuration file loaded successfully from {self.config_path}")
-        except json.JSONDecodeError:
-            error_message = "Configuration file is not a valid JSON."
-            self.logger.error(error_message)  # Log the error
-            print(error_message)
-            self.lbl_resultConfiguration.setText("❌")
-            return
-
-        # Check for all required keys
-        missing_keys = [key for key in required_keys if key not in config]
-        if missing_keys:
-            error_message = f"Missing required keys: {', '.join(missing_keys)}"
-            self.logger.error(error_message)  # Log the missing keys
-            print(f"Error: {error_message}")
-            self.lbl_resultConfiguration.setText("❌")
-        else:
-            self.logger.info("All required keys are present in the configuration file.")
-            self.lbl_resultConfiguration.setText("✅️")
-    
-    def count_connected_printers(self):
-        self.logger.info("Starting to count connected printers...")
-
-        try:
-            # Find all USB devices
-            devices = usb.core.find(find_all=True)
-            printer_count = 0
-
-            # Iterate over devices and check if any have the printer class (0x07)
-            for device in devices:
-                # The bDeviceClass is 7 for printers or can be 0 if the interface specifies it
-                if device.bDeviceClass == 7:
-                    printer_count += 1
-                    self.logger.debug(f"Printer found!")
-                else:
-                    # Check each configuration for interfaces specifying the printer class
-                    for config in device:
-                        for interface in config:
-                            if interface.bInterfaceClass == 7:
-                                printer_count += 1
-                                self.logger.debug(f"Printer found via interface")
-                                break  # Found a printer, exit loop
-
-            self.logger.info(f"Total connected printers: {printer_count}")
-            self.lbl_resultConnectedDevice.setText(str(printer_count))
-            
-        except usb.core.USBError as e:
-            error_message = f"USB Error: {e}"
-            self.logger.error(error_message)  # Log the error
-            print(error_message)
-            self.lbl_resultConnectedDevice.setText("-1")  # Indicate error
-
-        except Exception as e:
-            error_message = f"Error: {e}"
-            self.logger.error(error_message)  # Log the error
-            print(error_message)
-            self.lbl_resultConnectedDevice.setText("-1")  # Indicate error
-
-    def check_logging_enabled(self):
-        self.logger.info("Checking if logging is enabled...")
-
-        try:
-            # Load the JSON file
-            with open(self.config_path, 'r') as file:
-                config = json.load(file)
-
-            # Check if 'logging' key exists
-            if 'logging' not in config:
-                error_message = "Error: 'logging' key is missing in the configuration file."
-                self.logger.error(error_message)  # Log the error
-                return error_message
-
-            # Check if 'logging' value is a boolean
-            if isinstance(config['logging'], bool):
-                if config['logging']:
-                    self.lbl_loggingResult.setText("✅️")
-                    self.btn_checkLogging.setText("Enabled")
-                    self.logger.info("Logging is enabled.")
-                else:
-                    self.lbl_loggingResult.setText("❌")
-                    self.btn_checkLogging.setText("Disabled")
-                    self.logger.info("Logging is disabled.")
-            else:
-                error_message = "Error: 'logging' key must be a boolean (true or false)."
-                self.logger.error(error_message)  # Log the error
-                return error_message
-
-        except FileNotFoundError:
-            error_message = f"Error: Configuration file not found at {self.config_path}."
-            self.logger.error(error_message)  # Log the error
-            return error_message
-        except json.JSONDecodeError:
-            error_message = "Error: Configuration file is not a valid JSON."
-            self.logger.error(error_message)  # Log the error
-            return error_message
-        
-    def reload_tableview(self):
-        self.logger.info("Reloading table view with configuration data.")
-
-        try:
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
-
-                # Update UI elements with the configuration values
-                self.et_enterToSearch.setText(str(config["enterToSearch"]))
-                self.et_itemCount.setText(config['itemCount'])
-
-                self.logger.info("Table view reloaded successfully with config data.")
-
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}"
-            self.logger.error(error_message)  # Log the error
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)  # Log the error
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)  # Log the error
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-    def reload_current_printer_info(self):
-        self.logger.info("Reloading current printer information from the configuration file.")
-
-        try:
-            with open(self.config_path, 'r') as f:
-                config = json.load(f)
-
-                # Update UI elements with the configuration values for printer VID and PID
-                self.et_printerVid.setText(config["vid"])
-                self.et_printerPid.setText(config['pid'])
-
-                self.logger.info("Printer information reloaded successfully: VID and PID set in UI.")
-
-        except FileNotFoundError:
-            error_message = f"Configuration file not found at {self.config_path}"
-            self.logger.error(error_message)  # Log the error
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except json.JSONDecodeError:
-            error_message = "Error parsing the configuration file."
-            self.logger.error(error_message)  # Log the error
-            QMessageBox.critical(self, 'Config Error', error_message)
-
-        except KeyError as e:
-            error_message = f"Missing key in configuration file: {e}"
-            self.logger.error(error_message)  # Log the error
-            QMessageBox.critical(self, 'Config Error', error_message)
-    
-    def load_data(self):
-        self.logger.info("Loading data... Starting to perform various checks and reload UI components.")
-
-        try:
-            # Count connected printers
-            self.logger.info("Counting connected printers...")
-            self.count_connected_printers()
-
-            # Check network connectivity
-            self.logger.info("Checking network connectivity...")
-            self.is_connected()
-
-            # Check database connection
-            self.logger.info("Checking database connectivity...")
-            self.can_connect_to_database()
-
-            # Check configuration file
-            self.logger.info("Checking configuration file...")
-            self.check_config_file()
-
-            # Check if logging is enabled
-            self.logger.info("Checking if logging is enabled...")
-            self.check_logging_enabled()
-
-            # Reload the table view data
-            self.logger.info("Reloading table view...")
-            self.reload_tableview()
-
-            # Reload current printer information
-            self.logger.info("Reloading current printer information...")
-            self.reload_current_printer_info()
-
-            self.logger.info("Data loading process completed successfully.")
-
-        except Exception as e:
-            self.logger.error(f"Error occurred during data loading: {e}")
-            QMessageBox.critical(self, 'Error', f"An error occurred while loading data: {e}")
-
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    window = DashboardWindow()
-    window.show()
-    sys.exit(app.exec_())
+        try: base_path = sys._MEIPASS
+        except Exception: base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
