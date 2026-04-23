@@ -1,8 +1,86 @@
 import pyodbc
 import sqlite3
+import usb.core
+import socket
+import json
+import os
 from PyQt5.QtCore import QThread, pyqtSignal
 from bisect import bisect_left
 from modules.Configurations import BarcodeConfig
+
+class DiagnosticThread(QThread):
+    progress = pyqtSignal(str, str) # Result name, value
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, config_path, location, backend):
+        super().__init__()
+        self.config_path = config_path
+        self.location = location
+        self.backend = backend
+
+    def run(self):
+        try:
+            # 1. Connectivity Check
+            try:
+                socket.create_connection(("8.8.8.8", 53), timeout=3)
+                self.progress.emit("lbl_resultConnectivity", "✅")
+            except:
+                self.progress.emit("lbl_resultConnectivity", "❌")
+
+            # 2. Printer Check
+            try:
+                devices = usb.core.find(find_all=True, backend=self.backend)
+                count = 0
+                for dev in devices:
+                    if dev.bDeviceClass == 7: count += 1
+                    else:
+                        for cfg in dev:
+                            if any(intf.bInterfaceClass == 7 for intf in cfg):
+                                count += 1; break
+                self.progress.emit("lbl_resultConnectedDevice", str(count))
+            except:
+                self.progress.emit("lbl_resultConnectedDevice", "ERR")
+
+            # 3. Config Check
+            required = ["server", "database", "username", "password", "vid", "pid", "logging"]
+            if os.path.exists(self.config_path):
+                try:
+                    with open(self.config_path, 'r') as f:
+                        conf = json.load(f)
+                        missing = [k for k in required if k not in conf]
+                        self.progress.emit("lbl_resultConfiguration", "✅" if not missing else "⚠️")
+                        
+                        # Background technical updates
+                        self.progress.emit("et_printerVid", conf.get("vid", ""))
+                        self.progress.emit("et_printerPid", conf.get("pid", ""))
+                        self.progress.emit("et_itemCount", str(conf.get("itemCount", "0")))
+                except: self.progress.emit("lbl_resultConfiguration", "❌")
+            else: self.progress.emit("lbl_resultConfiguration", "❌")
+
+            # 4. Database Check
+            if os.path.exists(self.config_path):
+                try:
+                    with open(self.config_path, 'r') as f:
+                        c = json.load(f)
+                        conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={c['server']};DATABASE={c['database']};UID={c['username']};PWD={c['password']};"
+                        with pyodbc.connect(conn_str, timeout=3) as _:
+                            self.progress.emit("lbl_resultDatabase", "✅")
+                except: self.progress.emit("lbl_resultDatabase", "❌")
+
+            # 5. Logging Check
+            if os.path.exists(self.config_path):
+                try:
+                    with open(self.config_path, 'r') as f:
+                        c = json.load(f)
+                        is_enabled = c.get('logging', False)
+                        self.progress.emit("lbl_loggingResult", "✅" if is_enabled else "❌")
+                        self.progress.emit("btn_checkLogging", "Enabled" if is_enabled else "Disabled")
+                except: pass
+
+            self.finished.emit()
+        except Exception as e:
+            self.error.emit(str(e))
 
 class FilterItemsBinaryThread(QThread):
     items_filtered = pyqtSignal(list)  # Signal to emit filtered items
