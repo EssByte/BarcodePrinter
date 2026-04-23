@@ -44,8 +44,8 @@ class ImagePrinter:
 
         # FRESH START: NEW GRID LAYOUT
         
-        # 1. Split columns: Vertical line at 70% of width
-        col_split = int(width_px * 0.70)
+        # 1. Split columns: Vertical line at 60% of width
+        col_split = int(width_px * 0.60)
         draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
 
         # 2. Column A Rows (Left side): 60% / 40% split
