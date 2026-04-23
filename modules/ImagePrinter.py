@@ -65,9 +65,6 @@ class ImagePrinter:
         # English description (now smaller)
         draw.text((20, 50), description, fill=0, font=font_huge)
         
-        # Chinese Translation (now smaller and much closer)
-        draw.text((20, 90), "香草粉", fill=0, font=font_huge)
-
         # 5. Content for Column A, Row B (Bottom Left)
         # Label (Centered vertically in the 180-300 range)
         draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
