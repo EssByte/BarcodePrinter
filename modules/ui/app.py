@@ -7,7 +7,7 @@ import usb.backend.libusb1
 import requests
 import pyodbc
 import sqlite3
-from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView
+from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView, QFrame, QVBoxLayout
 from PyQt5.QtCore import Qt, QTimer, QSettings
 from PyQt5.QtGui import QIcon, QBrush, QColor
 
@@ -58,6 +58,7 @@ class BarcodeApp(QMainWindow):
         self.showMaximized()
         self.fetch_items_thread = None
         self.items = []
+        self.loading_overlay = None
 
         self.start_fetch_items()
 
@@ -69,28 +70,23 @@ class BarcodeApp(QMainWindow):
         self.input_timer.start(400)
 
     def handle_config_change(self):
-        self.logger.info("Configuration file changed. Reloading...")
+        self.logger.info("Database reload requested. Initializing scan...")
         try:
-            self.progressBar.setVisible(True)
-            self.progressBar.setValue(10)
+            self.show_loading("SCANNING DATABASE...")
             self.update_logging()
-            self.progressBar.setValue(23)
             self.check_version()
-            self.progressBar.setValue(35)
 
             if self.db_connected and self.connection:
-                self.connection.close()
-            self.progressBar.setValue(50)
+                try: self.connection.close()
+                except: pass
 
             self.connect_to_database()
-            self.progressBar.setValue(74)
             self.start_fetch_items()
-            self.progressBar.setValue(100)
-            self.progressBar.setVisible(False)
         except Exception as e:
+            self.hide_loading()
             self.logger.error(f"Failed to reload configuration: {e}")
             QMessageBox.critical(self, 'Error', f"Failed to reload configuration: {e}")
-            
+           
     def runUpdater(self):
         try:
             self.logger.info("Starting updater...")
@@ -326,7 +322,45 @@ class BarcodeApp(QMainWindow):
         self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
         self.fetch_items_thread.start()
 
+    def setup_loading_overlay(self, msg="SCANNING DATABASE..."):
+        if not self.loading_overlay:
+            self.loading_overlay = QFrame(self)
+            self.loading_overlay.setStyleSheet("background-color: rgba(15, 23, 42, 0.9); border-radius: 20px; border: 2px solid #3b82f6;")
+            self.loading_overlay.setFixedSize(400, 120)
+            
+            overlay_layout = QVBoxLayout(self.loading_overlay)
+            self.lbl_loading_msg = QLabel(msg)
+            self.lbl_loading_msg.setStyleSheet("color: white; font-weight: 800; font-size: 14px; letter-spacing: 1px; border: none;")
+            self.lbl_loading_msg.setAlignment(Qt.AlignCenter)
+            
+            self.loading_pbar = QProgressBar()
+            self.loading_pbar.setRange(0, 0)
+            self.loading_pbar.setTextVisible(False)
+            self.loading_pbar.setStyleSheet("""
+                QProgressBar { border: 1px solid #334155; border-radius: 5px; height: 8px; background: #1e293b; }
+                QProgressBar::chunk { background-color: #3b82f6; border-radius: 4px; }
+            """)
+            overlay_layout.addStretch()
+            overlay_layout.addWidget(self.lbl_loading_msg)
+            overlay_layout.addWidget(self.loading_pbar)
+            overlay_layout.addStretch()
+
+    def show_loading(self, msg="SCANNING DATABASE..."):
+        self.setup_loading_overlay(msg)
+        self.lbl_loading_msg.setText(msg)
+        self.loading_overlay.move(
+            (self.width() - self.loading_overlay.width()) // 2,
+            (self.height() - self.loading_overlay.height()) // 2
+        )
+        self.loading_overlay.show()
+        self.loading_overlay.raise_()
+
+    def hide_loading(self):
+        if self.loading_overlay:
+            self.loading_overlay.hide()
+
     def handle_items_fetched(self, items):
+        self.hide_loading()
         self.items = items
         key_idx = 0 if self.config.get_useSqlite() else 5
         self.all_items = sorted(self.items, key=lambda x: str(x[key_idx]).lower())
