@@ -127,19 +127,25 @@ class FetchItemsThread(QThread):
     items_fetched = pyqtSignal(list)
     error_occurred = pyqtSignal(str)
 
-    def __init__(self, db_source, location, use_sqlite):
+    def __init__(self, location, use_sqlite):
         super().__init__()
         self.config = BarcodeConfig()
-        self.db_source = db_source  
         self.location = location
         self.use_sqlite = use_sqlite
 
     def run(self):
         if not self.use_sqlite:
             # SQL Server (pyodbc)
+            connection = None
             cursor = None
             try:
-                connection = self.db_source 
+                drv = '{ODBC Driver 17 for SQL Server}'
+                c = self.config
+                conn_str = f'DRIVER={drv};SERVER={c.get_server()};DATABASE={c.get_database()};UID={c.get_username()};PWD={c.get_password()};'
+                if c.get_trusted_connection():
+                    conn_str += 'Trusted_Connection=yes;'
+                
+                connection = pyodbc.connect(conn_str, timeout=5)
                 cursor = connection.cursor()
                 query = f"""
                 WITH BaseItems AS (
@@ -162,15 +168,17 @@ class FetchItemsThread(QThread):
                 items = cursor.fetchall()
                 self.items_fetched.emit(items)
             except Exception as e:
-                self.error_occurred.emit(f"Error fetching from SQL: {e}")
+                self.error_occurred.emit(f"SQL Error: {e}")
             finally:
                 if cursor: cursor.close()
+                if connection: connection.close()
         else:
             # SQLite
-            cursor = None
             connection = None
+            cursor = None
             try:
-                connection = sqlite3.connect(self.db_source)
+                db_path = self.config.get_sqlPath()
+                connection = sqlite3.connect(db_path)
                 cursor = connection.cursor()
                 query = "SELECT barCode, name, price FROM Tbl_Plu;"
                 cursor.execute(query)
