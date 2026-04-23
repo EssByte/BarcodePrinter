@@ -21,25 +21,30 @@ class DashboardWindow(QMainWindow):
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.config_path = r'C:\barcode\barcode.json'
         
-        self.setWindowTitle("System Status Dashboard")
+        self.setWindowTitle("System Diagnostic Dashboard")
         self.setFixedSize(1100, 750)
-        self.setStyleSheet("QMainWindow { background-color: #f8fafc; }")
         
-        # Main Central Widget
+        # VIBRANT GRADIENT BACKGROUND
+        self.setStyleSheet("""
+            QMainWindow { 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1e3c72, stop:1 #2a5298);
+            }
+        """)
+        
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QVBoxLayout(self.central_widget)
-        self.main_layout.setContentsMargins(40, 40, 40, 40)
+        self.main_layout.setContentsMargins(50, 50, 50, 50)
         self.main_layout.setSpacing(30)
 
-        # --- Header Section ---
+        # --- Header Section (Vibrant) ---
         self.header_layout = QHBoxLayout()
         
         self.title_group = QVBoxLayout()
-        self.lbl_title = QLabel("System Control Center")
-        self.lbl_title.setStyleSheet("font-family: 'Segoe UI'; font-size: 28px; font-weight: bold; color: #1e293b;")
-        self.lbl_subtitle = QLabel("Real-time diagnostic and configuration overview")
-        self.lbl_subtitle.setStyleSheet("font-family: 'Segoe UI'; font-size: 14px; color: #64748b;")
+        self.lbl_title = QLabel("CORE SYSTEMS")
+        self.lbl_title.setStyleSheet("font-family: 'Segoe UI'; font-size: 32px; font-weight: 800; color: #ffffff; letter-spacing: 2px;")
+        self.lbl_subtitle = QLabel("REAL-TIME SYSTEM MONITOR & DIAGNOSTICS")
+        self.lbl_subtitle.setStyleSheet("font-family: 'Segoe UI'; font-size: 14px; font-weight: 600; color: #a5b4fc; letter-spacing: 1px;")
         self.title_group.addWidget(self.lbl_title)
         self.title_group.addWidget(self.lbl_subtitle)
         
@@ -49,10 +54,10 @@ class DashboardWindow(QMainWindow):
         self.time_group = QVBoxLayout()
         self.lbl_datetime = QLabel("---")
         self.lbl_datetime.setAlignment(Qt.AlignRight)
-        self.lbl_datetime.setStyleSheet("font-family: 'Segoe UI'; font-size: 16px; font-weight: 600; color: #334155;")
-        self.lbl_version = QLabel(f"Build v{__version__}")
+        self.lbl_datetime.setStyleSheet("font-family: 'Segoe UI'; font-size: 18px; font-weight: 700; color: #ffffff;")
+        self.lbl_version = QLabel(f"VERSION {__version__}")
         self.lbl_version.setAlignment(Qt.AlignRight)
-        self.lbl_version.setStyleSheet("font-family: 'Segoe UI'; font-size: 12px; color: #94a3b8;")
+        self.lbl_version.setStyleSheet("font-family: 'Segoe UI'; font-size: 12px; font-weight: bold; color: #818cf8;")
         self.time_group.addWidget(self.lbl_datetime)
         self.time_group.addWidget(self.lbl_version)
         
@@ -60,52 +65,70 @@ class DashboardWindow(QMainWindow):
         self.main_layout.addLayout(self.header_layout)
 
         # --- Status Cards Grid ---
-        self.grid_layout = QGridLayout()
-        self.grid_layout.setSpacing(25)
+        # Fixed naming to match logic methods:
+        # lbl_resultConnectivity, lbl_resultDatabase, lbl_resultConnectedDevice, lbl_resultConfiguration, lbl_loggingResult
         
-        # 1. Connectivity Card
-        self.card_net = self.create_status_card("Network Connectivity", "Internet access status", "lbl_connectivityResult")
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setSpacing(30)
+        
+        # Connectivity Card (Vibrant Orange Border)
+        self.card_net = self.create_status_card("CONNECTIVITY", "Public Network Access", "lbl_resultConnectivity", "#f59e0b")
         self.grid_layout.addWidget(self.card_net, 0, 0)
         
-        # 2. Database Card
-        self.card_db = self.create_status_card("Database Server", "SQL/SQLite connection", "lbl_databaseResult")
+        # Database Card (Vibrant Purple Border)
+        self.card_db = self.create_status_card("DATABASE", "SQL Server Status", "lbl_resultDatabase", "#8b5cf6")
         self.grid_layout.addWidget(self.card_db, 0, 1)
         
-        # 3. Printer Card
-        self.card_printer = self.create_status_card("Thermal Printer", "Connected USB hardware", "lbl_connectedDevicesResult")
+        # Printer Card (Vibrant Green Border)
+        self.card_printer = self.create_status_card("HARDWARE", "Connected Printers", "lbl_resultConnectedDevice", "#10b981")
         self.grid_layout.addWidget(self.card_printer, 1, 0)
         
-        # 4. Configuration Card
-        self.card_config = self.create_status_card("Configuration File", "JSON schema validation", "lbl_configurationFileResult")
+        # Configuration Card (Vibrant Blue Border)
+        self.card_config = self.create_status_card("CONFIG FILE", "Schema Integrity", "lbl_resultConfiguration", "#3b82f6")
         self.grid_layout.addWidget(self.card_config, 1, 1)
         
-        # 5. Logging Card
-        self.card_log = self.create_status_card("System Logging", "Operational log status", "lbl_loggingResult")
+        # Logging Card (Vibrant Pink Border)
+        self.card_log = self.create_status_card("LOGGING", "Audit Trail Status", "lbl_loggingResult", "#ec4899")
         self.grid_layout.addWidget(self.card_log, 2, 0)
 
-        # 6. Additional Card (Placeholder/Info)
-        self.card_info = self.create_status_card("Security Status", "Encrypted link active", None)
-        self.grid_layout.addWidget(self.card_info, 2, 1)
+        # Security Card
+        self.card_sec = self.create_status_card("SECURITY", "Encryption Engine", "lbl_security_status", "#ef4444")
+        self.grid_layout.addWidget(self.card_sec, 2, 1)
 
         self.main_layout.addLayout(self.grid_layout)
 
         # --- Footer Actions ---
         self.footer_layout = QHBoxLayout()
-        self.btn_reload = QPushButton("Run Full Diagnostic")
+        self.btn_reload = QPushButton("RUN SYSTEM CHECK")
         self.btn_reload.setCursor(Qt.PointingHandCursor)
-        self.btn_reload.setFixedSize(220, 50)
+        self.btn_reload.setFixedSize(250, 60)
         self.btn_reload.setStyleSheet("""
-            QPushButton { background-color: #3498db; color: white; border-radius: 10px; font-weight: bold; font-size: 14px; }
-            QPushButton:hover { background-color: #2980b9; }
+            QPushButton { 
+                background-color: #3b82f6; 
+                color: white; 
+                border-radius: 12px; 
+                font-size: 16px; 
+                font-weight: 800; 
+                letter-spacing: 1px;
+                border: 2px solid #60a5fa;
+            }
+            QPushButton:hover { background-color: #2563eb; border-color: #3b82f6; }
         """)
         self.btn_reload.clicked.connect(self.load_data)
         
-        self.btn_close = QPushButton("Close Dashboard")
+        self.btn_close = QPushButton("DISMISS")
         self.btn_close.setCursor(Qt.PointingHandCursor)
-        self.btn_close.setFixedSize(180, 50)
+        self.btn_close.setFixedSize(180, 60)
         self.btn_close.setStyleSheet("""
-            QPushButton { background-color: #ffffff; border: 1px solid #d1d5db; color: #4b5563; border-radius: 10px; font-weight: bold; }
-            QPushButton:hover { background-color: #f9fafb; border-color: #9ca3af; }
+            QPushButton { 
+                background-color: rgba(255, 255, 255, 0.1); 
+                border: 2px solid rgba(255, 255, 255, 0.3); 
+                color: white; 
+                border-radius: 12px; 
+                font-weight: bold; 
+                font-size: 14px;
+            }
+            QPushButton:hover { background-color: rgba(255, 255, 255, 0.2); }
         """)
         self.btn_close.clicked.connect(self.close)
         
@@ -121,29 +144,35 @@ class DashboardWindow(QMainWindow):
         self.timer.start(1000)
 
         # Load initial diagnostics
-        QTimer.singleShot(500, self.load_data)
+        QTimer.singleShot(800, self.load_data)
 
-    def create_status_card(self, title, subtitle, result_name):
+    def create_status_card(self, title, subtitle, result_name, accent_color):
         card = QFrame()
         card.setObjectName("status_card")
-        card.setStyleSheet("QFrame#status_card { background-color: white; border-radius: 15px; }")
+        # GLASSMORPHISM STYLE
+        card.setStyleSheet(f"""
+            QFrame#status_card {{ 
+                background-color: rgba(255, 255, 255, 0.95); 
+                border-left: 8px solid {accent_color};
+                border-radius: 15px; 
+            }}
+        """)
         
-        # Shadow
         shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(15)
+        shadow.setBlurRadius(25)
         shadow.setXOffset(0)
-        shadow.setYOffset(4)
-        shadow.setColor(QColor(0, 0, 0, 30))
+        shadow.setYOffset(8)
+        shadow.setColor(QColor(0, 0, 0, 80))
         card.setGraphicsEffect(shadow)
         
         layout = QHBoxLayout(card)
-        layout.setContentsMargins(25, 25, 25, 25)
+        layout.setContentsMargins(30, 30, 30, 30)
         
         text_layout = QVBoxLayout()
         lbl_t = QLabel(title)
-        lbl_t.setStyleSheet("font-size: 16px; font-weight: bold; color: #1e293b;")
+        lbl_t.setStyleSheet(f"font-size: 18px; font-weight: 800; color: #1e293b; letter-spacing: 1px;")
         lbl_s = QLabel(subtitle)
-        lbl_s.setStyleSheet("font-size: 12px; color: #64748b;")
+        lbl_s.setStyleSheet("font-size: 12px; font-weight: 600; color: #64748b;")
         text_layout.addWidget(lbl_t)
         text_layout.addWidget(lbl_s)
         
@@ -151,13 +180,13 @@ class DashboardWindow(QMainWindow):
         layout.addStretch()
         
         if result_name:
-            lbl_res = QLabel("Wait")
+            lbl_res = QLabel("SCAN")
             setattr(self, result_name, lbl_res)
-            lbl_res.setStyleSheet("font-size: 24px; color: #e2e8f0; font-weight: bold;")
+            lbl_res.setStyleSheet(f"font-size: 28px; color: {accent_color}; font-weight: 900;")
             layout.addWidget(lbl_res)
         else:
             lbl_res = QLabel("✅")
-            lbl_res.setStyleSheet("font-size: 24px;")
+            lbl_res.setStyleSheet("font-size: 32px;")
             layout.addWidget(lbl_res)
             
         return card
