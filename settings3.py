@@ -340,6 +340,34 @@ class SettingsWindow(QMainWindow):
 
         self.content_stack.addWidget(page)
 
+    def setup_layout_page(self):
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(30, 30, 30, 30)
+        layout.setSpacing(20)
+
+        header = QLabel("Layout Designer (Experimental)")
+        header.setStyleSheet("font-size: 24px; font-weight: 800; color: #1e293b;")
+        layout.addWidget(header)
+
+        desc = QLabel("Drag and drop elements to customize the 'Fun Bake (Graphic)' label layout. Positions are saved automatically.")
+        desc.setStyleSheet("color: #64748b; font-size: 14px;")
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+
+        # Designer Container
+        designer_frame = QFrame()
+        designer_frame.setStyleSheet("background: white; border-radius: 15px; border: 1px solid #e2e8f0;")
+        designer_layout = QVBoxLayout(designer_frame)
+        designer_layout.setContentsMargins(10, 10, 10, 10)
+
+        self.designer = BarcodeDesigner()
+        designer_layout.addWidget(self.designer)
+        layout.addWidget(designer_frame)
+        
+        layout.addStretch()
+        self.content_stack.addWidget(page)
+
     def setup_tools_page(self):
         page, layout = self.create_page("System Tools", "Driver installation and diagnostics")
         
