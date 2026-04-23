@@ -2,195 +2,147 @@ import os
 import subprocess
 import sys
 import requests
-from PyQt5.QtWidgets import QApplication, QWidget, QMessageBox, QLabel
-from PyQt5.QtGui import QIcon, QPixmap
-from PyQt5 import uic
-
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
+                             QLabel, QPushButton, QProgressBar, QFrame, QMessageBox)
+from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtGui import QIcon, QFont, QColor
 
 class Updater(QWidget):
     def __init__(self):
         super().__init__()
-        uic.loadUi(self.resource_path("updater.ui"), self)  # Load the .ui file
-        self.et_version.setText("Not available!")
-        self.et_name.setText("Not available!")
-        self.et_published.setText("Not available!")
-
-        # GitHub repository information
         self.repo_owner = "PersonX-46"
         self.repo_name = "BarcodePrinter"
-        self.download_url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/BarcodePrinter.exe"
-        self.api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
-
-        # Connect buttons
-        self.btn_close.clicked.connect(self.close_application)
-        self.btn_check.clicked.connect(self.check_version)
-        self.btn_update.clicked.connect(self.download_update)
-        self.lbl_iconTable.setPixmap(QPixmap(self.resource_path("updateicon.png")))
-        self.setWindowIcon(QIcon(self.resource_path("logo.ico")))
-        self.lbl_iconLogo = self.findChild(QLabel, 'lbl_iconLogo')
-        self.lbl_iconLogo.setPixmap(QPixmap(self.resource_path("logo.jpeg")))
-        self.progressBar.setVisible(False)
-
-    def close_application(self):
-        """Close the updater application."""
-        subprocess.Popen([r"C:\barcode\BarcodePrinter.exe"])
-        self.close()
-        self.close()
+        self.install_path = r"C:\barcode"
+        
+        self.initUI()
+        
+    def initUI(self):
+        self.setWindowTitle("System Update")
+        self.setFixedSize(500, 350)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        
+        # Main Frame
+        self.main_frame = QFrame(self)
+        self.main_frame.setGeometry(0, 0, 500, 350)
+        self.main_frame.setStyleSheet("""
+            QFrame { 
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1e293b, stop:1 #0f172a);
+                border-radius: 15px; border: 1px solid #334155;
+            }
+        """)
+        
+        layout = QVBoxLayout(self.main_frame)
+        layout.setContentsMargins(30, 30, 30, 30)
+        
+        # Title
+        title = QLabel("Software Update")
+        title.setStyleSheet("color: #3b82f6; font-size: 22px; font-weight: 800;")
+        title.setAlignment(Qt.AlignCenter)
+        layout.addWidget(title)
+        
+        layout.addSpacing(20)
+        
+        # Details
+        self.info_frame = QFrame()
+        self.info_frame.setStyleSheet("background: rgba(255,255,255,0.05); border-radius: 10px; border: none;")
+        info_lay = QVBoxLayout(self.info_frame)
+        
+        self.lbl_version = QLabel("Latest Version: Fetching...")
+        self.lbl_version.setStyleSheet("color: #f1f5f9; font-weight: bold; border: none;")
+        info_lay.addWidget(self.lbl_version)
+        
+        self.lbl_status = QLabel("Ready to check for updates.")
+        self.lbl_status.setStyleSheet("color: #94a3b8; font-size: 13px; border: none;")
+        info_lay.addWidget(self.lbl_status)
+        
+        layout.addWidget(self.info_frame)
+        
+        layout.addSpacing(20)
+        
+        # Progress
+        self.pbar = QProgressBar()
+        self.pbar.setFixedHeight(8)
+        self.pbar.setVisible(False)
+        self.pbar.setStyleSheet("""
+            QProgressBar { border: none; border-radius: 4px; background: #334155; text-align: center; color: transparent; }
+            QProgressBar::chunk { background: #3b82f6; border-radius: 4px; }
+        """)
+        layout.addWidget(self.pbar)
+        
+        layout.addStretch()
+        
+        # Buttons
+        btn_lay = QHBoxLayout()
+        self.btn_close = QPushButton("Later")
+        self.btn_close.setStyleSheet("QPushButton { background: transparent; color: #64748b; border: 1px solid #334155; padding: 10px 20px; border-radius: 8px; } QPushButton:hover { color: white; border-color: #475569; }")
+        self.btn_close.clicked.connect(self.close)
+        
+        self.btn_update = QPushButton("Check for Updates")
+        self.btn_update.setStyleSheet("""
+            QPushButton { 
+                background: #3b82f6; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold;
+            }
+            QPushButton:hover { background: #2563eb; }
+            QPushButton:disabled { background: #334155; color: #64748b; }
+        """)
+        self.btn_update.clicked.connect(self.handle_action)
+        
+        btn_lay.addWidget(self.btn_close)
+        btn_lay.addStretch()
+        btn_lay.addWidget(self.btn_update)
+        layout.addLayout(btn_lay)
+        
+        self.is_checked = False
+        
+    def handle_action(self):
+        if not self.is_checked:
+            self.check_version()
+        else:
+            self.download_update()
 
     def check_version(self):
-        """Fetch the latest release details from GitHub."""
+        api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
         try:
-            self.log_message("Fetching version details from GitHub...")
-            response = requests.get(self.api_url)
-            response.raise_for_status()
-
-            release_data = response.json()
-            tag_name = release_data["tag_name"]
-            tag_title = release_data["name"]
-            published_at = release_data["published_at"]
-
-            # Display version details in the text fields
-            self.et_version.setText(tag_name)
-            self.et_name.setText(tag_title)
-            self.et_published.setText(published_at)
-
-            self.log_message("Version details updated successfully.")
-        except requests.RequestException as e:
-            error_message = f"Failed to fetch version details:\n{e}"
-            self.log_message(error_message)
-            QMessageBox.critical(self, "Version Check Error", error_message)
+            res = requests.get(api_url).json()
+            tag = res.get("tag_name", "Unknown")
+            self.lbl_version.setText(f"Latest Version: {tag}")
+            self.lbl_status.setText("A new update is available.")
+            self.btn_update.setText("Update Now")
+            self.is_checked = True
+        except:
+            self.lbl_status.setText("Failed to connect to server.")
 
     def download_update(self):
-        """Download the latest version of the BarcodePrinter.exe from GitHub."""
+        self.btn_update.setEnabled(False)
+        self.pbar.setVisible(True)
+        self.pbar.setValue(10)
+        
         try:
-            self.progressBar.setVisible(True)
-            self.log_message("Starting update download...")
+            os.makedirs(self.install_path, exist_ok=True)
+            files = ["BarcodePrinter.exe", "Updater.exe"]
             
-            # Define the target directory
-            target_dir = r"C:\barcode"
+            for i, f_name in enumerate(files):
+                self.lbl_status.setText(f"Downloading {f_name}...")
+                url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/{f_name}"
+                path = os.path.join(self.install_path, f_name)
+                
+                resp = requests.get(url, stream=True)
+                with open(path, "wb") as f:
+                    for chunk in resp.iter_content(8192):
+                        if chunk: f.write(chunk)
+                self.pbar.setValue(50 + i * 40)
             
-            # Create directory if it doesn't exist
-            os.makedirs(target_dir, exist_ok=True)
-            
-            # Download BarcodePrinter.exe
-            barcode_printer_url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/BarcodePrinter.exe"
-            barcode_printer_path = os.path.join(target_dir, "BarcodePrinter.exe")
-            
-            self.download_file_with_progress(barcode_printer_url, barcode_printer_path, "Barcode Printer", 0, 50)
-            
-            # Download Updater.exe
-            updater_url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/Updater.exe"
-            updater_path = os.path.join(target_dir, "Updater.exe")
-            
-            self.download_file_with_progress(updater_url, updater_path, "Updater", 50, 100)
-            
-            self.progressBar.setValue(100)
-            self.log_message(f"Update downloaded successfully to {target_dir}.")
-            
-            QMessageBox.information(self, "Update Complete", 
-                                "Both BarcodePrinter.exe and Updater.exe have been updated successfully!")
-            
-            # Restart the main application
-            self.restart_application()
-            
-        except requests.RequestException as e:
-            error_message = f"Failed to download update:\n{e}"
-            self.log_message(error_message)
-            self.progressBar.setVisible(False)
-            QMessageBox.critical(self, "Download Error", error_message)
-        except Exception as e:
-            error_message = f"Unexpected error during download:\n{e}"
-            self.log_message(error_message)
-            self.progressBar.setVisible(False)
-            QMessageBox.critical(self, "Download Error", error_message)
-
-    def download_file_with_progress(self, url, file_path, display_name, progress_start, progress_end):
-        """Download a single file with progress tracking"""
-        self.log_message(f"Downloading {display_name}...")
-        
-        response = requests.get(url, stream=True)
-        response.raise_for_status()
-        
-        total_size = int(response.headers.get('content-length', 0))
-        downloaded_size = 0
-        
-        with open(file_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
-                    downloaded_size += len(chunk)
-                    
-                    if total_size > 0:
-                        file_progress = (downloaded_size / total_size)
-                        overall_progress = progress_start + (file_progress * (progress_end - progress_start))
-                        self.progressBar.setValue(int(overall_progress))
-                    
-                    QApplication.processEvents()
-        
-        self.log_message(f"{display_name} downloaded successfully to {file_path}")
-
-    def restart_application(self):
-        """Restart the main BarcodePrinter application"""
-        try:
-            main_app_path = r"C:\barcode\BarcodePrinter.exe"
-            if os.path.exists(main_app_path):
-                subprocess.Popen([main_app_path])
+            self.lbl_status.setText("Update complete!")
+            QMessageBox.information(self, "Success", "Application updated successfully.")
+            subprocess.Popen([os.path.join(self.install_path, "BarcodePrinter.exe")])
             self.close()
         except Exception as e:
-            self.log_message(f"Error restarting application: {e}")
-            self.close()
-
-    def update_download_status(self, downloaded, total, progress):
-        """Update the download status display."""
-        status_text = f"Downloading... {self.format_bytes(downloaded)}"
-        if total > 0:
-            status_text += f" / {self.format_bytes(total)} ({progress}%)"
-        
-        # Update a status label if you have one
-        if hasattr(self, 'lbl_status'):
-            self.lbl_status.setText(status_text)
-        
-        self.log_message(status_text)
-
-    def format_bytes(self, size):
-        """Format bytes to human readable format."""
-        for unit in ['B', 'KB', 'MB', 'GB']:
-            if size < 1024.0:
-                return f"{size:.1f} {unit}"
-            size /= 1024.0
-        return f"{size:.1f} TB"
-
-    def download_failed(self, error_message):
-        """Handle download failure."""
-        self.progressBar.setVisible(False)
-        self.btn_update.setEnabled(True)
-        self.btn_check.setEnabled(True)
-        
-        if hasattr(self, 'lbl_status'):
-            self.lbl_status.setText("Download failed")
-        
-        QMessageBox.critical(self, "Download Error", error_message)
-    def log_message(self, message):
-        """Log messages to the console or a logger."""
-        print(message)  # Replace with a proper logger if needed
-
-    def resource_path(self, relative_path):
-        try:
-            # Attempt to get the PyInstaller base path
-            base_path = sys._MEIPASS
-        except AttributeError:
-            # Fall back to the current working directory in development mode
-            base_path = os.path.abspath(".")
-        except Exception as e:
-            raise
-
-        # Construct the absolute path to the resource
-        absolute_path = os.path.join(base_path, relative_path)
-        return absolute_path
-
+            QMessageBox.critical(self, "Error", f"Update failed: {str(e)}")
+            self.btn_update.setEnabled(True)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    updater = Updater()
-    updater.show()
+    win = Updater()
+    win.show()
     sys.exit(app.exec_())

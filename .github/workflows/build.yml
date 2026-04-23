@@ -23,9 +23,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Build with PyInstaller
+    - name: Build Barcode Printer
       run: |
-        pyinstaller --noconfirm --onefile --console --icon=images/logo.ico --add-data "ui;ui" --add-data "images;images" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
+        pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --add-data "ui;ui" --add-data "images;images" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
+
+    - name: Build Updater
+      run: |
+        pyinstaller --noconfirm --onefile --console --name "Updater" --icon=images/logo.ico --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
+
+    - name: Build Installation Wizard
+      run: |
+        pyinstaller --noconfirm --onefile --console --name "InstallationWizard" --icon=images/logo.ico --hidden-import=PyQt5 --hidden-import=requests --hidden-import=winshell --hidden-import=win32com InstallationWizard.py
 
     - name: Get Version
       id: get_version
@@ -41,12 +49,15 @@ jobs:
         name: Barcode Printer v${{ env.VERSION }} (Build ${{ github.run_number }})
         draft: false
         prerelease: false
-        files: dist/main.exe
+        files: |
+          dist/BarcodePrinter.exe
+          dist/Updater.exe
+          dist/InstallationWizard.exe
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: BarcodePrinter-EXE
-        path: dist/main.exe
+        name: Barcode-Suite-EXEs
+        path: dist/*.exe

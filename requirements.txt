@@ -6,3 +6,4 @@ Pillow
 python-barcode
 pyinstaller
 pywin32
+winshell
