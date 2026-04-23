@@ -57,7 +57,7 @@ class BarcodeDesigner(QGraphicsView):
             "expiry": ("EXP: 01/01/2025", (500, 80)),
             "weight": ("NET WT: 500g", (500, 140)),
             "batch": ("BATCH: LOT123", (500, 200)),
-            "barcode": ("[ BARCODE AREA ]", (20, 220))
+            "barcode": ("[ BARCODE AREA ]", (50, 220))
         }
         
         for key, (text, pos) in default_elements.items():
