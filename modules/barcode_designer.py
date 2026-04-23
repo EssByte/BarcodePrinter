@@ -21,7 +21,7 @@ class DraggableItem(QGraphicsTextItem):
         return super().itemChange(change, value)
 
 class BarcodeDesigner(QGraphicsView):
-    def __init__(self, config_path=r'C:\barcode\barcode_design.json'):
+    def __init__(self, config_path=os.path.join(os.path.expanduser("~"), ".barcode_design.json")):
         super().__init__()
         self.config_path = config_path
         self.scene = QGraphicsScene(0, 0, 800, 300) # 75mm x 50mm approx
