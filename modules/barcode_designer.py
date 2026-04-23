@@ -32,7 +32,19 @@ class BarcodeDesigner(QGraphicsView):
         self.boundary = QGraphicsRectItem(0, 0, 800, 300)
         self.boundary.setPen(QPen(QColor("#cbd5e1"), 2, Qt.DashLine))
         self.scene.addItem(self.boundary)
-        
+
+        # --- Add Reference Grid Lines ---
+        grid_pen = QPen(QColor("#e2e8f0"), 1)
+        # 1. Vertical Split at 60%
+        col_split = 480
+        self.scene.addLine(col_split, 0, col_split, 300, grid_pen)
+        # 2. Left Row Split at 60%
+        self.scene.addLine(0, 180, col_split, 180, grid_pen)
+        # 3. Right Row Splits (25%, 50%, 75%)
+        for i in range(1, 4):
+            y = i * 75
+            self.scene.addLine(col_split, y, 800, y, grid_pen)
+       
         self.items = {}
         self.init_default_items()
         self.load_design()
