@@ -7,6 +7,7 @@ import usb.backend.libusb1
 import requests
 import pyodbc
 import sqlite3
+import subprocess
 from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView, QFrame, QVBoxLayout
 from PyQt5.QtCore import Qt, QTimer, QSettings
 from PyQt5.QtGui import QIcon, QBrush, QColor
@@ -35,6 +36,8 @@ class BarcodeApp(QMainWindow):
         self.items_per_page = 100  
         self.total_pages = 1
         self.current_displayed_items = []
+        self.items = []
+        self.loading_overlay = None
     
         self.initUI()
         self.input_timer = QTimer()
@@ -47,20 +50,15 @@ class BarcodeApp(QMainWindow):
         self.backend = usb.backend.libusb1.get_backend(find_library=backend_lib)
         
         self.setWindowIcon(QIcon(resource_path("images/logo.ico")))
-        self.db_connected = False
-        self.connection = None
-        self.sqlite_connection = None
-        self.warning_shown = False
+        self.db_connected = False # Kept for UI legacy checks if any
         self.settings = QSettings("MyCompany", "MyApp")
         self.restore_column_widths() 
-        self.connect_to_database()
         self.loadStylesheet()
         self.showMaximized()
         self.fetch_items_thread = None
-        self.items = []
-        self.loading_overlay = None
 
-        self.start_fetch_items()
+        # Initial background scan
+        self.handle_config_change() 
 
     def update_logging(self):
         self.logger = setup_logger('BarcodeApp')
@@ -81,11 +79,8 @@ class BarcodeApp(QMainWindow):
             self.logger.error(f"Failed to reload: {e}")
             QMessageBox.critical(self, 'Error', f"Failed to reload: {e}")
 
-    def connect_to_database(self):
-        # Connection is now handled in FetchItemsThread for background performance
-        pass
-
     def start_fetch_items(self):
+        # Entirely background now
         self.fetch_items_thread = FetchItemsThread(self.config.get_location(), self.config.get_useSqlite())
         self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
         self.fetch_items_thread.error_occurred.connect(self.handle_fetch_error)
@@ -95,12 +90,18 @@ class BarcodeApp(QMainWindow):
         self.hide_loading()
         self.logger.error(err_msg)
         QMessageBox.critical(self, 'Database Error', err_msg)
-           
+
+    def handle_items_fetched(self, items):
+        self.hide_loading()
+        self.items = items
+        key_idx = 0 if self.config.get_useSqlite() else 5
+        self.all_items = sorted(self.items, key=lambda x: str(x[key_idx]).lower())
+        self.display_items(self.all_items)
+            
     def runUpdater(self):
         try:
             self.logger.info("Starting updater...")
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            # Adjusted paths for modular structure
             updater_script = os.path.join(os.path.dirname(current_dir), "..", "updater.py")
             
             if os.path.exists(updater_script):
@@ -121,7 +122,6 @@ class BarcodeApp(QMainWindow):
     def initUI(self):
         self.setWindowTitle('Barcode Printer')
         self.setGeometry(200, 200, 1400, 600)
-        self.setWindowIcon(QIcon(resource_path("logo.ico")))
 
         central_widget = QWidget(self)
         central_widget.setObjectName("central_widget")
@@ -225,19 +225,52 @@ class BarcodeApp(QMainWindow):
         buttons_layout = QHBoxLayout()
         self.update_button = QPushButton('Update', self)
         self.update_button.clicked.connect(self.runUpdater)
-        self.progressBar = QProgressBar(self)
-        self.progressBar.setVisible(False)
         buttons_layout.addWidget(self.update_button)
         buttons_layout.addStretch(1)
-        buttons_layout.addWidget(self.progressBar)
         grid_layout.addLayout(buttons_layout, 3, 0, 1, 3)
 
         self.check_version()
         self.update_pagination_buttons()
 
+    def setup_loading_overlay(self, msg="SCANNING DATABASE..."):
+        if not self.loading_overlay:
+            self.loading_overlay = QFrame(self)
+            self.loading_overlay.setStyleSheet("background-color: rgba(15, 23, 42, 0.9); border-radius: 20px; border: 2px solid #3b82f6;")
+            self.loading_overlay.setFixedSize(400, 120)
+            
+            overlay_layout = QVBoxLayout(self.loading_overlay)
+            self.lbl_loading_msg = QLabel(msg)
+            self.lbl_loading_msg.setStyleSheet("color: white; font-weight: 800; font-size: 14px; letter-spacing: 1px; border: none;")
+            self.lbl_loading_msg.setAlignment(Qt.AlignCenter)
+            
+            self.loading_pbar = QProgressBar()
+            self.loading_pbar.setRange(0, 0)
+            self.loading_pbar.setTextVisible(False)
+            self.loading_pbar.setStyleSheet("""
+                QProgressBar { border: 1px solid #334155; border-radius: 5px; height: 8px; background: #1e293b; }
+                QProgressBar::chunk { background-color: #3b82f6; border-radius: 4px; }
+            """)
+            overlay_layout.addStretch()
+            overlay_layout.addWidget(self.lbl_loading_msg)
+            overlay_layout.addWidget(self.loading_pbar)
+            overlay_layout.addStretch()
+
+    def show_loading(self, msg="SCANNING DATABASE..."):
+        self.setup_loading_overlay(msg)
+        self.lbl_loading_msg.setText(msg)
+        self.loading_overlay.move(
+            (self.width() - self.loading_overlay.width()) // 2,
+            (self.height() - self.loading_overlay.height()) // 2
+        )
+        self.loading_overlay.show()
+        self.loading_overlay.raise_()
+
+    def hide_loading(self):
+        if self.loading_overlay:
+            self.loading_overlay.hide()
+
     def loadStylesheet(self):
         try:
-            # Reusing the existing premium stylesheet
             stylesheet = """
             QMainWindow { background-color: #f0f2f5; }
             QWidget#central_widget { background-color: #f0f2f5; }
@@ -293,7 +326,6 @@ class BarcodeApp(QMainWindow):
             self.config.set_zplSize(selected_item)
     
     def check_version(self):
-        # Implementation from main.py, could also move to utils
         repo_owner = "PersonX-46"
         repo_name = "BarcodePrinter"
         api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
@@ -304,76 +336,6 @@ class BarcodeApp(QMainWindow):
             self.update_button.setVisible(tag_name > __version__)
         except Exception as e:
             self.logger.error(f"Version check failed: {e}")
-
-    def connect_to_database(self):
-        if not self.config.get_useSqlite():
-            try:
-                drv = '{ODBC Driver 17 for SQL Server}'
-                conn_str = f'DRIVER={drv};SERVER={self.config.get_server()};DATABASE={self.config.get_database()};UID={self.config.get_username()};PWD={self.config.get_password()};'
-                if self.config.get_trusted_connection():
-                    conn_str += 'Trusted_Connection=yes;'
-                self.connection = pyodbc.connect(conn_str)
-                self.db_connected = True
-            except Exception as e:
-                self.logger.error(f"SQL connection failed: {e}")
-                self.db_connected = False
-        else:
-            try:
-                self.connection = sqlite3.connect(self.config.get_sqlPath())
-                self.db_connected = True
-            except Exception as e:
-                self.logger.error(f"SQLite connection failed: {e}")
-                self.db_connected = False
-
-    def start_fetch_items(self):
-        if not self.db_connected: return
-        self.fetch_items_thread = FetchItemsThread(self.connection if not self.config.get_useSqlite() else self.config.get_sqlPath(), self.config.get_location(), self.config.get_useSqlite())
-        self.fetch_items_thread.items_fetched.connect(self.handle_items_fetched)
-        self.fetch_items_thread.start()
-
-    def setup_loading_overlay(self, msg="SCANNING DATABASE..."):
-        if not self.loading_overlay:
-            self.loading_overlay = QFrame(self)
-            self.loading_overlay.setStyleSheet("background-color: rgba(15, 23, 42, 0.9); border-radius: 20px; border: 2px solid #3b82f6;")
-            self.loading_overlay.setFixedSize(400, 120)
-            
-            overlay_layout = QVBoxLayout(self.loading_overlay)
-            self.lbl_loading_msg = QLabel(msg)
-            self.lbl_loading_msg.setStyleSheet("color: white; font-weight: 800; font-size: 14px; letter-spacing: 1px; border: none;")
-            self.lbl_loading_msg.setAlignment(Qt.AlignCenter)
-            
-            self.loading_pbar = QProgressBar()
-            self.loading_pbar.setRange(0, 0)
-            self.loading_pbar.setTextVisible(False)
-            self.loading_pbar.setStyleSheet("""
-                QProgressBar { border: 1px solid #334155; border-radius: 5px; height: 8px; background: #1e293b; }
-                QProgressBar::chunk { background-color: #3b82f6; border-radius: 4px; }
-            """)
-            overlay_layout.addStretch()
-            overlay_layout.addWidget(self.lbl_loading_msg)
-            overlay_layout.addWidget(self.loading_pbar)
-            overlay_layout.addStretch()
-
-    def show_loading(self, msg="SCANNING DATABASE..."):
-        self.setup_loading_overlay(msg)
-        self.lbl_loading_msg.setText(msg)
-        self.loading_overlay.move(
-            (self.width() - self.loading_overlay.width()) // 2,
-            (self.height() - self.loading_overlay.height()) // 2
-        )
-        self.loading_overlay.show()
-        self.loading_overlay.raise_()
-
-    def hide_loading(self):
-        if self.loading_overlay:
-            self.loading_overlay.hide()
-
-    def handle_items_fetched(self, items):
-        self.hide_loading()
-        self.items = items
-        key_idx = 0 if self.config.get_useSqlite() else 5
-        self.all_items = sorted(self.items, key=lambda x: str(x[key_idx]).lower())
-        self.display_items(self.all_items)
 
     def display_items(self, items):
         self.current_displayed_items = items
@@ -425,14 +387,11 @@ class BarcodeApp(QMainWindow):
     def print_barcode(self):
         selected_rows = [r for r in range(self.item_table.rowCount()) if self.item_table.item(r, 0).checkState() == Qt.Checked]
         if not selected_rows: 
-            self.logger.warning("No items selected for printing.")
             QMessageBox.warning(self, 'Selection Error', 'No items selected for printing.')
             return
 
         details_dialog = LabelDetailsDialog(self)
-        if details_dialog.exec_() != LabelDetailsDialog.Accepted: 
-            self.logger.info("Printing canceled by user.")
-            return
+        if details_dialog.exec_() != LabelDetailsDialog.Accepted: return
 
         meta = details_dialog.get_data()
         remark_text = meta['remark']
@@ -443,29 +402,22 @@ class BarcodeApp(QMainWindow):
         printer = None
         
         try:
-            # Printer Connection Detection
             if self.config.get_use_generic_driver():
-                self.logger.info("USB mode selected. Checking printer connection...")
                 printer = usb.core.find(idVendor=self.config.get_vid(), idProduct=self.config.get_pid(), backend=self.backend)
                 if printer is None:
                     QMessageBox.warning(self, 'Printer Error', 'Printer not found via USB.')
                     return
                 printer.set_configuration()
             else:
-                self.logger.info("Checking wireless/win32 settings...")
                 ip, port = self.config.get_ip_address().split(":") if self.config.get_wireless_mode() else (None, None)
 
-            # Process selected items
             for row in selected_rows:
                 desc = self.item_table.item(row, 2).text().replace('"', '')
                 price = self.item_table.item(row, 8).text()
                 bc = self.item_table.item(row, 6).text()
                 qty = self.item_table.item(row, 9).text()
                 
-                self.logger.info(f"Preparing print for: {desc} ({bc})")
                 d1, d2 = split_description(desc)
-                
-                # Template Selection
                 sz = self.barcode_size.currentText()
                 printer_clear = "CLS"
                 print_data = ""
@@ -473,12 +425,8 @@ class BarcodeApp(QMainWindow):
                 if "Graphic" in sz:
                     image_printer = ImagePrinter()
                     im = image_printer.render_fun_bake_label({
-                        'description': desc, 
-                        'barcode_value': bc, 
-                        'remark': remark_text, 
-                        'unit_price_integer': price, 
-                        'net_weight': net_weight_val, 
-                        'batch': batch_val
+                        'description': desc, 'barcode_value': bc, 'remark': remark_text, 
+                        'unit_price_integer': price, 'net_weight': net_weight_val, 'batch': batch_val
                     })
                     print_data = image_printer.get_full_command(im, copies=int(qty))
                     printer_clear = b""
@@ -486,27 +434,14 @@ class BarcodeApp(QMainWindow):
                     tmpl = self.get_current_template()
                     print_data = replace_placeholders(
                         tmpl, self.logger, 
-                        companyName=self.config.get_company_name(), 
-                        description=desc, 
-                        description_1=d1, 
-                        description_2=d2, 
-                        remark=remark_text, 
-                        barcode_value=bc, 
-                        unit_price_integer=price, 
-                        weight=net_weight_val, 
-                        batch=batch_val, 
-                        copies=qty
+                        companyName=self.config.get_company_name(), description=desc, description_1=d1, description_2=d2, 
+                        remark=remark_text, barcode_value=bc, unit_price_integer=price, weight=net_weight_val, batch=batch_val, copies=qty
                     )
-                    if self.config.get_use_zpl():
-                        printer_clear = "^XA^CLS^XZ"
-                        if remark_text and "Fun Bake" not in sz:
-                            # Dynamic remark overlay for standard ZPL templates
-                            print_data += f"\n^FO10,180^A0N,15,20^FDRemark: {remark_text}^FS"
+                    if self.config.get_use_zpl(): printer_clear = "^XA^CLS^XZ"
 
-                # Send Command to Output
                 if self.config.get_use_generic_driver():
                     payload = print_data.encode('utf-8') if isinstance(print_data, str) else print_data
-                    printer.write(0x01, payload) # Standard USB OUT endpoint
+                    printer.write(0x01, payload)
                 elif self.config.get_wireless_mode():
                     send_command.send_wireless_command(ip, port, printer_clear)
                     send_command.send_wireless_command(ip, port, print_data)
@@ -515,9 +450,7 @@ class BarcodeApp(QMainWindow):
                     send_command.send_win32print(self.config.get_printer_name(), print_data)
 
             QMessageBox.information(self, 'Success', 'Successfully sent all items to the printer!')
-
         except Exception as e:
-            self.logger.error(f"Printing failed: {e}")
             QMessageBox.critical(self, 'Printing Error', f"An error occurred: {e}")
         finally:
             if printer: usb.util.dispose_resources(printer)
