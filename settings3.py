@@ -10,6 +10,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QFileDialog, QMessageBox, QSpacerItem, QSizePolicy, QGridLayout)
 from PyQt5.QtGui import QIcon, QFont, QColor, QPixmap
 from PyQt5.QtCore import Qt, QSize, QTimer
+from modules.barcode_designer import BarcodeDesigner
 
 from modules.logger_config import setup_logger
 from version import __version__
@@ -111,6 +112,7 @@ class SettingsWindow(QMainWindow):
             ("Printer Setup", "printer"),
             ("General", "settings"),
             ("Label Templates", "command"),
+            ("Layout Designer", "layout"),
             ("System Tools", "drivers")
         ]
         for text, icon_name in items:
@@ -135,6 +137,7 @@ class SettingsWindow(QMainWindow):
         self.setup_printer_page()
         self.setup_general_page()
         self.setup_templates_page()
+        self.setup_layout_page()
         self.setup_tools_page()
 
         # Connect Navigation
