@@ -1,8 +1,7 @@
 import sys
-from PyQt5.QtCore import QTimer, QDateTime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PyQt5.QtGui import QPixmap, QIcon
-from PyQt5 import QtWidgets, uic
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QLabel, QFrame, QPushButton, QGraphicsDropShadowEffect
+from PyQt5.QtGui import QPixmap, QIcon, QFont, QColor
+from PyQt5.QtCore import Qt, QTimer, QDateTime, QSize
 import usb.backend
 import usb.backend.libusb1
 import json
@@ -17,94 +16,151 @@ class DashboardWindow(QMainWindow):
     def __init__(self):
         super(DashboardWindow, self).__init__()
         
-        self.logger = setup_logger('DashboardLogger')  # Use a logger specific to the DashboardWindow
+        self.logger = setup_logger('DashboardLogger')
         self.logger.info("Initializing DashboardWindow...")
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.config_path = r'C:\barcode\barcode.json'
-        # Load the UI file first
-        uic.loadUi(self.resource_path("ui/dashboard.ui"), self)
-        self.setWindowIcon(QIcon(self.resource_path("images/logo.ico")))
-        self.setWindowTitle("Dashboard")
-        self.setFixedSize(1212, 760)
-
-        # Alternatively, set the maximum size equal to the minimum size to prevent maximizing
-        self.setMaximumSize(1212, 760)
-        self.setMinimumSize(1212, 760)
-
-        background = QPixmap(self.resource_path("images/background.jpg"))
-
-        #Initialize widgets
-        self.lbl_bg = self.findChild(QtWidgets.QLabel, "lbl_background")
-        self.lbl_bg.setPixmap(background)
-        self.lbl_dashboardIcon = self.findChild(QtWidgets.QLabel, "dashboard_icon")
-        self.lbl_dashboardIcon.setPixmap(QPixmap(self.resource_path("images/dashboard.png")))
-        self.lbl_resultConnectedDevice = self.findChild(QtWidgets.QLabel, "lbl_connectedDevicesResult")
-        self.lbl_resultConnectivity = self.findChild(QtWidgets.QLabel, "lbl_connectivityResult")
-        self.lbl_resultDatabase = self.findChild(QtWidgets.QLabel, "lbl_databaseResult")
-        self.lbl_resultConfiguration = self.findChild(QtWidgets.QLabel, "lbl_configurationFileResult")
-        self.lbl_loggingResult = self.findChild(QtWidgets.QLabel, "lbl_loggingResult")
-        self.lbl_datetime = self.findChild(QtWidgets.QLabel, "lbl_datetime")
-        self.lbl_version = self.findChild(QtWidgets.QLabel, "lbl_version")
-        self.lbl_version.setText(f"Version {__version__}")
-        self.btn_checkConnectedDevices = self.findChild(QtWidgets.QPushButton, "btn_checkConnectedDevices")
-        self.btn_checkConnectedDevices.clicked.connect(self.count_connected_printers)
-        self.btn_ping = self.findChild(QtWidgets.QPushButton, "btn_ping")
-        self.btn_ping.clicked.connect(self.is_connected)
-        self.btn_reloadDatabase = self.findChild(QtWidgets.QPushButton, "btn_reloadDatabase")
-        self.btn_reloadDatabase.clicked.connect(self.can_connect_to_database)
-        self.btn_checkConfiguration = self.findChild(QtWidgets.QPushButton, "btn_checkConfiguration")
-        self.btn_checkConfiguration.clicked.connect(self.check_config_file)
-        self.btn_checkLogging = self.findChild(QtWidgets.QPushButton, "btn_checkLogging")
-        self.btn_checkLogging.clicked.connect(self.check_logging_enabled)
-        self.btn_reloadTableView = self.findChild(QtWidgets.QPushButton, "btn_reloadTableView")
-        self.btn_reloadTableView.clicked.connect(self.reload_tableview)
-        self.btn_reloadPrinterInformation = self.findChild(QtWidgets.QPushButton, "btn_reloadPrinterInformation")
-        self.btn_reloadPrinterInformation.clicked.connect(self.reload_current_printer_info)
-        self.et_enterToSearch = self.findChild(QtWidgets.QLineEdit, "et_enterToSearch")
-        self.et_itemCount = self.findChild(QtWidgets.QLineEdit, "et_itemCount")
-        self.et_printerVid = self.findChild(QtWidgets.QLineEdit, "et_printerVid")
-        self.et_printerPid = self.findChild(QtWidgets.QLineEdit, "et_printerPid")
-        self.btn_close = self.findChild(QtWidgets.QPushButton, "btn_close")
-        self.btn_close.clicked.connect(self.close)
-        self.btn_reload = self.findChild(QtWidgets.QPushButton, "btn_reload")
-        self.btn_reload.clicked.connect(self.load_data)
-        self.btn_about = self.findChild(QtWidgets.QPushButton, "btn_about")
-
-        #Icon section
-        self.logo_icon = self.findChild(QtWidgets.QLabel, "lbl_iconLogo")
-        logoIcon = QPixmap(self.resource_path("images/logo.jpeg"))
-        databaseIcon = QPixmap(self.resource_path("images/database.png"))
-        printerIcon = QPixmap(self.resource_path("images/printer.png"))
-        otherSettingsIcon = QPixmap(self.resource_path("images/settings.png"))
-        loggingIcon = QPixmap(self.resource_path("images/log.png"))
-        connectivityIcon = QPixmap(self.resource_path("images/connect.png"))
-        tableIcon  = QPixmap(self.resource_path("images/table.png"))
-        self.logo_icon.setPixmap(logoIcon)
-
-        self.icon_database = self.findChild(QtWidgets.QLabel, "lbl_iconDatabase")
-        self.icon_printer = self.findChild(QtWidgets.QLabel, "lbl_iconPrinter")
-        self.icon_other_settings = self.findChild(QtWidgets.QLabel, "lbl_iconOtherSettings")
-        self.icon_logging = self.findChild(QtWidgets.QLabel, "lbl_iconLogging")
-        self.icon_connectivity = self.findChild(QtWidgets.QLabel, "lbl_iconConnectivity")
-        self.icon_table = self.findChild(QtWidgets.QLabel, "lbl_iconTable")
-        self.icon_printer2 = self.findChild(QtWidgets.QLabel, "lbl_iconPrinter_2")
         
-        self.icon_database.setPixmap(databaseIcon)
-        self.icon_printer.setPixmap(printerIcon)
-        self.icon_other_settings.setPixmap(otherSettingsIcon)
-        self.icon_logging.setPixmap(loggingIcon)
-        self.icon_connectivity.setPixmap(connectivityIcon)
-        self.icon_table.setPixmap(tableIcon)
-        self.icon_printer2.setPixmap(printerIcon)
+        self.setWindowTitle("System Status Dashboard")
+        self.setFixedSize(1100, 750)
+        self.setStyleSheet("QMainWindow { background-color: #f8fafc; }")
+        
+        # Main Central Widget
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.main_layout = QVBoxLayout(self.central_widget)
+        self.main_layout.setContentsMargins(40, 40, 40, 40)
+        self.main_layout.setSpacing(30)
 
-        self.load_data()
+        # --- Header Section ---
+        self.header_layout = QHBoxLayout()
+        
+        self.title_group = QVBoxLayout()
+        self.lbl_title = QLabel("System Control Center")
+        self.lbl_title.setStyleSheet("font-family: 'Segoe UI'; font-size: 28px; font-weight: bold; color: #1e293b;")
+        self.lbl_subtitle = QLabel("Real-time diagnostic and configuration overview")
+        self.lbl_subtitle.setStyleSheet("font-family: 'Segoe UI'; font-size: 14px; color: #64748b;")
+        self.title_group.addWidget(self.lbl_title)
+        self.title_group.addWidget(self.lbl_subtitle)
+        
+        self.header_layout.addLayout(self.title_group)
+        self.header_layout.addStretch()
+        
+        self.time_group = QVBoxLayout()
+        self.lbl_datetime = QLabel("---")
+        self.lbl_datetime.setAlignment(Qt.AlignRight)
+        self.lbl_datetime.setStyleSheet("font-family: 'Segoe UI'; font-size: 16px; font-weight: 600; color: #334155;")
+        self.lbl_version = QLabel(f"Build v{__version__}")
+        self.lbl_version.setAlignment(Qt.AlignRight)
+        self.lbl_version.setStyleSheet("font-family: 'Segoe UI'; font-size: 12px; color: #94a3b8;")
+        self.time_group.addWidget(self.lbl_datetime)
+        self.time_group.addWidget(self.lbl_version)
+        
+        self.header_layout.addLayout(self.time_group)
+        self.main_layout.addLayout(self.header_layout)
 
+        # --- Status Cards Grid ---
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setSpacing(25)
+        
+        # 1. Connectivity Card
+        self.card_net = self.create_status_card("Network Connectivity", "Internet access status", "lbl_connectivityResult")
+        self.grid_layout.addWidget(self.card_net, 0, 0)
+        
+        # 2. Database Card
+        self.card_db = self.create_status_card("Database Server", "SQL/SQLite connection", "lbl_databaseResult")
+        self.grid_layout.addWidget(self.card_db, 0, 1)
+        
+        # 3. Printer Card
+        self.card_printer = self.create_status_card("Thermal Printer", "Connected USB hardware", "lbl_connectedDevicesResult")
+        self.grid_layout.addWidget(self.card_printer, 1, 0)
+        
+        # 4. Configuration Card
+        self.card_config = self.create_status_card("Configuration File", "JSON schema validation", "lbl_configurationFileResult")
+        self.grid_layout.addWidget(self.card_config, 1, 1)
+        
+        # 5. Logging Card
+        self.card_log = self.create_status_card("System Logging", "Operational log status", "lbl_loggingResult")
+        self.grid_layout.addWidget(self.card_log, 2, 0)
+
+        # 6. Additional Card (Placeholder/Info)
+        self.card_info = self.create_status_card("Security Status", "Encrypted link active", None)
+        self.grid_layout.addWidget(self.card_info, 2, 1)
+
+        self.main_layout.addLayout(self.grid_layout)
+
+        # --- Footer Actions ---
+        self.footer_layout = QHBoxLayout()
+        self.btn_reload = QPushButton("Run Full Diagnostic")
+        self.btn_reload.setCursor(Qt.PointingHandCursor)
+        self.btn_reload.setFixedSize(220, 50)
+        self.btn_reload.setStyleSheet("""
+            QPushButton { background-color: #3498db; color: white; border-radius: 10px; font-weight: bold; font-size: 14px; }
+            QPushButton:hover { background-color: #2980b9; }
+        """)
+        self.btn_reload.clicked.connect(self.load_data)
+        
+        self.btn_close = QPushButton("Close Dashboard")
+        self.btn_close.setCursor(Qt.PointingHandCursor)
+        self.btn_close.setFixedSize(180, 50)
+        self.btn_close.setStyleSheet("""
+            QPushButton { background-color: #ffffff; border: 1px solid #d1d5db; color: #4b5563; border-radius: 10px; font-weight: bold; }
+            QPushButton:hover { background-color: #f9fafb; border-color: #9ca3af; }
+        """)
+        self.btn_close.clicked.connect(self.close)
+        
+        self.footer_layout.addWidget(self.btn_reload)
+        self.footer_layout.addStretch()
+        self.footer_layout.addWidget(self.btn_close)
+        self.main_layout.addLayout(self.footer_layout)
+
+        # Timer setup
         self.update_datetime()
-
-        # Set up a QTimer to update the datetime every 60 seconds (or as needed)
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_datetime)
-        self.timer.start(60000)  # Update every 60 seconds
+        self.timer.start(1000)
+
+        # Load initial diagnostics
+        QTimer.singleShot(500, self.load_data)
+
+    def create_status_card(self, title, subtitle, result_name):
+        card = QFrame()
+        card.setObjectName("status_card")
+        card.setStyleSheet("QFrame#status_card { background-color: white; border-radius: 15px; }")
+        
+        # Shadow
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setXOffset(0)
+        shadow.setYOffset(4)
+        shadow.setColor(QColor(0, 0, 0, 30))
+        card.setGraphicsEffect(shadow)
+        
+        layout = QHBoxLayout(card)
+        layout.setContentsMargins(25, 25, 25, 25)
+        
+        text_layout = QVBoxLayout()
+        lbl_t = QLabel(title)
+        lbl_t.setStyleSheet("font-size: 16px; font-weight: bold; color: #1e293b;")
+        lbl_s = QLabel(subtitle)
+        lbl_s.setStyleSheet("font-size: 12px; color: #64748b;")
+        text_layout.addWidget(lbl_t)
+        text_layout.addWidget(lbl_s)
+        
+        layout.addLayout(text_layout)
+        layout.addStretch()
+        
+        if result_name:
+            lbl_res = QLabel("Wait")
+            setattr(self, result_name, lbl_res)
+            lbl_res.setStyleSheet("font-size: 24px; color: #e2e8f0; font-weight: bold;")
+            layout.addWidget(lbl_res)
+        else:
+            lbl_res = QLabel("✅")
+            lbl_res.setStyleSheet("font-size: 24px;")
+            layout.addWidget(lbl_res)
+            
+        return card
 
     def update_datetime(self):
         # Get the current date and time in the desired format
