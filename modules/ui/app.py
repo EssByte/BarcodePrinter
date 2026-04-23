@@ -37,6 +37,7 @@ class BarcodeApp(QMainWindow):
         self.total_pages = 1
         self.current_displayed_items = []
         self.items = []
+        self.all_items = []
         self.loading_overlay = None
     
         self.initUI()
