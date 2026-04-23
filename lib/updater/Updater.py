@@ -3,9 +3,9 @@ import subprocess
 import sys
 import requests
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
-                             QLabel, QPushButton, QProgressBar, QFrame, QMessageBox)
-from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal
-from PyQt5.QtGui import QIcon, QFont, QColor
+                             QLabel, QPushButton, QProgressBar, QFrame, QMessageBox, QStackedWidget)
+from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve
+from PyQt5.QtGui import QIcon, QFont, QColor, QPainter, QLinearGradient
 
 class UpdateThread(QThread):
     progress = pyqtSignal(int)
@@ -53,129 +53,147 @@ class Updater(QWidget):
         self.repo_name = "BarcodePrinter"
         self.install_path = r"C:\barcode"
         self.thread = None
+        self.is_checked = False
         
         self.initUI()
+        self.check_version() # Auto check on start
         
     def initUI(self):
-        self.setWindowTitle("System Update")
-        self.setFixedSize(500, 350)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setFixedSize(500, 350)
         
-        # Main Frame
+        # Main Background
         self.main_frame = QFrame(self)
         self.main_frame.setGeometry(0, 0, 500, 350)
         self.main_frame.setStyleSheet("""
             QFrame { 
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #1e293b, stop:1 #0f172a);
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #0f172a, stop:1 #1e293b);
                 border-radius: 15px; border: 1px solid #334155;
             }
         """)
         
-        layout = QVBoxLayout(self.main_frame)
-        layout.setContentsMargins(30, 30, 30, 30)
+        self.layout = QVBoxLayout(self.main_frame)
+        self.layout.setContentsMargins(30, 30, 30, 30)
         
-        # Title
-        title = QLabel("Software Update")
-        title.setStyleSheet("color: #3b82f6; font-size: 22px; font-weight: 800;")
-        title.setAlignment(Qt.AlignCenter)
-        layout.addWidget(title)
+        # Header
+        self.header = QLabel("System Updater")
+        self.header.setStyleSheet("color: #3b82f6; font-size: 22px; font-weight: 800;")
+        self.header.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.header)
         
-        layout.addSpacing(20)
+        self.layout.addSpacing(20)
         
-        # Details
-        self.info_frame = QFrame()
-        self.info_frame.setStyleSheet("background: rgba(255,255,255,0.05); border-radius: 10px; border: none;")
-        info_lay = QVBoxLayout(self.info_frame)
+        # Stacked Widget
+        self.stack = QStackedWidget()
         
-        self.lbl_version = QLabel("Latest Version: Fetching...")
-        self.lbl_version.setStyleSheet("color: #f1f5f9; font-weight: bold; border: none;")
-        info_lay.addWidget(self.lbl_version)
+        # Page 1: Checking/Info
+        self.page_info = QWidget()
+        info_lay = QVBoxLayout(self.page_info)
+        info_lay.setAlignment(Qt.AlignCenter)
         
-        self.lbl_status = QLabel("Ready to check for updates.")
-        self.lbl_status.setStyleSheet("color: #94a3b8; font-size: 13px; border: none;")
+        self.lbl_status = QLabel("Checking for updates...")
+        self.lbl_status.setStyleSheet("color: #94a3b8; font-size: 16px;")
+        self.lbl_status.setAlignment(Qt.AlignCenter)
         info_lay.addWidget(self.lbl_status)
         
-        layout.addWidget(self.info_frame)
+        self.lbl_version = QLabel("")
+        self.lbl_version.setStyleSheet("color: #3b82f6; font-weight: bold; font-size: 14px;")
+        self.lbl_version.setAlignment(Qt.AlignCenter)
+        info_lay.addWidget(self.lbl_version)
         
-        layout.addSpacing(20)
+        self.stack.addWidget(self.page_info)
         
-        # Progress
+        # Page 2: Downloading
+        self.page_dl = QWidget()
+        dl_lay = QVBoxLayout(self.page_dl)
+        dl_lay.setAlignment(Qt.AlignCenter)
+        
+        self.lbl_dl_status = QLabel("Downloading...")
+        self.lbl_dl_status.setStyleSheet("color: #3b82f6; font-weight: bold;")
+        self.lbl_dl_status.setAlignment(Qt.AlignCenter)
+        dl_lay.addWidget(self.lbl_dl_status)
+        
         self.pbar = QProgressBar()
-        self.pbar.setFixedHeight(8)
-        self.pbar.setVisible(False)
+        self.pbar.setFixedHeight(10)
         self.pbar.setStyleSheet("""
-            QProgressBar { border: none; border-radius: 4px; background: #334155; text-align: center; color: transparent; }
-            QProgressBar::chunk { background: #3b82f6; border-radius: 4px; }
+            QProgressBar { border: none; border-radius: 5px; background: #334155; text-align: center; color: transparent; }
+            QProgressBar::chunk { background: #3b82f6; border-radius: 5px; }
         """)
-        layout.addWidget(self.pbar)
+        dl_lay.addWidget(self.pbar)
         
-        layout.addStretch()
+        self.stack.addWidget(self.page_dl)
         
-        # Buttons
-        btn_lay = QHBoxLayout()
+        self.layout.addWidget(self.stack)
+        
+        # Footer
+        self.footer = QHBoxLayout()
         self.btn_close = QPushButton("Later")
         self.btn_close.setStyleSheet("QPushButton { background: transparent; color: #64748b; border: 1px solid #334155; padding: 10px 20px; border-radius: 8px; } QPushButton:hover { color: white; border-color: #475569; }")
         self.btn_close.clicked.connect(self.close)
         
-        self.btn_update = QPushButton("Check for Updates")
-        self.btn_update.setStyleSheet("""
+        self.btn_action = QPushButton("Check Now")
+        self.btn_action.setEnabled(False)
+        self.btn_action.setStyleSheet("""
             QPushButton { 
                 background: #3b82f6; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold;
             }
             QPushButton:hover { background: #2563eb; }
             QPushButton:disabled { background: #334155; color: #64748b; }
         """)
-        self.btn_update.clicked.connect(self.handle_action)
+        self.btn_action.clicked.connect(self.handle_action)
         
-        btn_lay.addWidget(self.btn_close)
-        btn_lay.addStretch()
-        btn_lay.addWidget(self.btn_update)
-        layout.addLayout(btn_lay)
-        
-        self.is_checked = False
-        
+        self.footer.addWidget(self.btn_close)
+        self.footer.addStretch()
+        self.footer.addWidget(self.btn_action)
+        self.layout.addLayout(self.footer)
+
     def handle_action(self):
         if not self.is_checked:
             self.check_version()
         else:
+            self.stack.setCurrentIndex(1)
+            self.btn_action.setEnabled(False)
+            self.btn_close.setVisible(False)
             self.download_update()
 
     def check_version(self):
-        self.btn_update.setEnabled(False)
-        self.lbl_status.setText("Checking for updates...")
+        self.btn_action.setEnabled(False)
+        self.lbl_status.setText("Scanning for updates...")
         self.thread = UpdateThread('check', self.repo_owner, self.repo_name, self.install_path)
         self.thread.version_found.connect(self.on_version_found)
         self.thread.error.connect(self.on_error)
         self.thread.start()
 
     def on_version_found(self, tag):
-        self.btn_update.setEnabled(True)
-        self.lbl_version.setText(f"Latest Version: {tag}")
-        self.lbl_status.setText("A new update is available.")
-        self.btn_update.setText("Update Now")
+        self.btn_action.setEnabled(True)
+        self.lbl_version.setText(f"Latest: {tag}")
+        self.lbl_status.setText("Update Available")
+        self.lbl_status.setStyleSheet("color: #f1f5f9; font-size: 18px; font-weight: bold;")
+        self.btn_action.setText("Update Now")
         self.is_checked = True
 
     def download_update(self):
-        self.btn_update.setEnabled(False)
-        self.pbar.setVisible(True)
         self.thread = UpdateThread('download', self.repo_owner, self.repo_name, self.install_path)
         self.thread.progress.connect(self.pbar.setValue)
-        self.thread.status.connect(self.lbl_status.setText)
+        self.thread.status.connect(self.lbl_dl_status.setText)
         self.thread.finished.connect(self.on_finished)
         self.thread.error.connect(self.on_error)
         self.thread.start()
 
     def on_finished(self):
-        self.lbl_status.setText("Update complete!")
+        self.lbl_dl_status.setText("System Updated!")
         QMessageBox.information(self, "Success", "Application updated successfully.")
         subprocess.Popen([os.path.join(self.install_path, "BarcodePrinter.exe")])
         self.close()
 
     def on_error(self, message):
+        self.stack.setCurrentIndex(0)
         self.lbl_status.setText(f"Error: {message}")
-        self.lbl_status.setStyleSheet("color: #ef4444;")
-        self.btn_update.setEnabled(True)
+        self.lbl_status.setStyleSheet("color: #ef4444; font-size: 14px;")
+        self.btn_action.setEnabled(True)
+        self.btn_action.setText("Retry")
+        self.btn_close.setVisible(True)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
