@@ -57,12 +57,18 @@ class LabelDetailsDialog(QDialog):
         
         self.btn_ok = QPushButton("Confirm & Print", self)
         self.btn_ok.setCursor(Qt.PointingHandCursor)
+        self.btn_ok.setDefault(True) # Make Enter key trigger this button
         self.btn_ok.setStyleSheet("""
             QPushButton { background-color: #3498db; color: white; border: none; }
             QPushButton:hover { background-color: #2980b9; }
         """)
         self.btn_ok.clicked.connect(self.on_ok)
         
+        # Connect enter key on all fields
+        self.et_weight.returnPressed.connect(self.on_ok)
+        self.et_remark.returnPressed.connect(self.on_ok)
+        self.et_batch.returnPressed.connect(self.on_ok)
+
         self.btn_layout.addWidget(self.btn_cancel)
         self.btn_layout.addWidget(self.btn_ok)
         self.layout.addLayout(self.btn_layout)
