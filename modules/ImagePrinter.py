@@ -3,6 +3,7 @@ from barcode.writer import ImageWriter
 from PIL import Image, ImageDraw, ImageFont
 import io
 import os
+import json
 
 class ImagePrinter:
     def __init__(self, dpi=203):
@@ -42,76 +43,98 @@ class ImagePrinter:
             # Final fallback to built-in tiny font if all files fail
             font_small = font_small_bold = font_medium = font_large = font_huge = ImageFont.load_default()
 
-        # FRESH START: NEW GRID LAYOUT
-        
-        # 1. Split columns: Vertical line at 60% of width
-        col_split = int(width_px * 0.60)
-        draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
+        # --- EXPERIMENTAL: LOAD DESIGN FROM DESIGNER ---
+        design_path = r'C:\barcode\barcode_design.json'
+        design = {}
+        if os.path.exists(design_path):
+            try:
+                with open(design_path, 'r') as f:
+                    design = json.load(f)
+            except: pass
 
-        # 2. Column A Rows (Left side): 60% / 40% split
-        row_a_split = int(height_px * 0.60)
-        draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
+        if design:
+            # RENDER FROM CUSTOM DESIGN
+            # 1. Product Name
+            pos = design.get("product_name", [20, 20])
+            draw.text((pos[0], pos[1]), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
+            
+            # 2. Product Code & Barcode
+            pos_label = design.get("product_code", [20, 180])
+            draw.text((pos_label[0], pos_label[1]), "PRODUCT CODE", fill=0, font=font_small_bold)
+            
+            barcode_value = data.get('barcode_value', '12345678')
+            pos_bc = design.get("barcode", [20, 220])
+            try:
+                from barcode import Code128
+                from barcode.writer import ImageWriter
+                import io
+                rv = io.BytesIO()
+                Code128(barcode_value, writer=ImageWriter()).write(rv, options={
+                    "write_text": False, "module_height": 10.0, "quiet_zone": 1.0, 
+                    "background": "white", "foreground": "black"
+                })
+                rv.seek(0)
+                bc_img = Image.open(rv).convert('1')
+                bc_img = bc_img.resize((300, 40))
+                image.paste(bc_img, (int(pos_bc[0]), int(pos_bc[1])))
+                # Barcode Value Text below barcode
+                draw.text((int(pos_bc[0]), int(pos_bc[1]) + 45), barcode_value, fill=0, font=font_medium)
+            except: pass
 
-        # 3. Column B Rows (Right side): 4 equal rows (25% each)
-        for i in range(1, 4):
-            row_y = int(height_px * (i * 0.25))
-            draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
+            # 3. Price
+            pos = design.get("price", [500, 20])
+            draw.text((pos[0], pos[1]), "PRICE (RM)", fill=0, font=font_small_bold)
+            draw.text((pos[0], pos[1] + 25), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
 
-        # 4. Content for Column A, Row A (Top Left)
-        # Small Label
-        draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-        # Big Description
-        description = data.get('description', 'VANILLA POWDER')
-        # English description (now smaller)
-        draw.text((20, 50), description, fill=0, font=font_huge)
-        
-        # 5. Content for Column A, Row B (Bottom Left)
-        # Label (Centered vertically in the 180-300 range)
-        draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
-        
-        # Generate and Paste Barcode (Height reduced to 40 for better fit)
-        barcode_value = data.get('barcode_value', '12345678')
-        try:
-            from barcode import Code128
-            from barcode.writer import ImageWriter
-            import io
-            rv = io.BytesIO()
-            Code128(barcode_value, writer=ImageWriter()).write(rv, options={
-                "write_text": False, "module_height": 10.0, "quiet_zone": 1.0, 
-                "background": "white", "foreground": "black"
-            })
-            rv.seek(0)
-            bc_img = Image.open(rv).convert('1')
-            bc_img = bc_img.resize((300, 40))
-            image.paste(bc_img, (20, 220))
-        except:
-            draw.text((20, 220), "[BARCODE ERROR]", fill=0, font=font_small)
+            # 4. Expiry
+            pos = design.get("expiry", [500, 80])
+            draw.text((pos[0], pos[1]), "EXPIRY", fill=0, font=font_small_bold)
+            draw.text((pos[0], pos[1] + 25), data.get('remark', ''), fill=0, font=font_medium)
 
-        # Barcode Value Text (Positioned horizontally middle of Row B)
-        draw.text((20, 265), barcode_value, fill=0, font=font_medium)
+            # 5. Weight
+            pos = design.get("weight", [500, 140])
+            draw.text((pos[0], pos[1]), "NET WEIGHT", fill=0, font=font_small_bold)
+            draw.text((pos[0], pos[1] + 25), data.get('net_weight', ''), fill=0, font=font_medium)
 
-        # 6. Column B (Right Side) - Each row is 75px tall (300/4)
-        col_b_x = col_split + 10
-        
-        # Row A: PRICE (0 to 75)
-        draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
-        price = data.get('unit_price_integer', '0.00')
-        draw.text((col_b_x, 35), price, fill=0, font=font_medium)
+            # 6. Batch
+            pos = design.get("batch", [500, 200])
+            draw.text((pos[0], pos[1]), "BATCH", fill=0, font=font_small_bold)
+            draw.text((pos[0], pos[1] + 25), data.get('batch', ''), fill=0, font=font_medium)
 
-        # Row B: EXPIRY (75 to 150)
-        draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small_bold)
-        expiry = data.get('remark', '')
-        draw.text((col_b_x, 110), expiry, fill=0, font=font_medium)
+        else:
+            # ORIGINAL GRID LAYOUT FALLBACK
+            # 1. Split columns: Vertical line at 60% of width
+            col_split = int(width_px * 0.60)
+            draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
+            # 2. Column A Rows (Left side): 60% / 40% split
+            row_a_split = int(height_px * 0.60)
+            draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
+            for i in range(1, 4):
+                row_y = int(height_px * (i * 0.25))
+                draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
-        # Row C: NET WEIGHT (150 to 225)
-        draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
-        weight = data.get('net_weight', '')
-        draw.text((col_b_x, 185), weight, fill=0, font=font_medium)
+            description = data.get('description', 'NAMA PRODUK')
+            draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
+            draw.text((20, 50), description, fill=0, font=font_huge)
+            draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            barcode_value = data.get('barcode_value', '12345678')
+            try:
+                from barcode import Code128
+                rv = io.BytesIO()
+                Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 10.0, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
+                rv.seek(0); bc_img = Image.open(rv).convert('1'); bc_img = bc_img.resize((300, 40)); image.paste(bc_img, (20, 220))
+            except: pass
+            draw.text((20, 265), barcode_value, fill=0, font=font_medium)
 
-        # Row D: BATCH (225 to 300)
-        draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small_bold)
-        batch = data.get('batch', '')
-        draw.text((col_b_x, 260), batch, fill=0, font=font_medium)
+            col_b_x = col_split + 10
+            draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 35), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
+            draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 110), data.get('remark', ''), fill=0, font=font_medium)
+            draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 185), data.get('net_weight', ''), fill=0, font=font_medium)
+            draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 260), data.get('batch', ''), fill=0, font=font_medium)
 
         # Rotate 180 degrees (correction for upside-down printing)
         image = image.rotate(180)

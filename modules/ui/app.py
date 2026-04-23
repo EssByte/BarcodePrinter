@@ -158,7 +158,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["size1", "size2", "size3", "Fun Bake", "Fun Bake (QR)", "Fun Bake (Graphic)"]
+        self.options = ["size1", "size2", "size3", "Fun Bake (Graphic)"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
         
