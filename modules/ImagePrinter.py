@@ -54,6 +54,18 @@ class ImagePrinter:
 
         if design:
             # RENDER FROM CUSTOM DESIGN
+            # DRAW REFERENCE LINES
+            col_split = int(width_px * 0.60)
+            row_a_split = int(height_px * 0.60)
+            
+            # 1. Vertical Split
+            draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
+            # 2. Left Column Horizontal Split
+            draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
+            # 3. Right Column Horizontal Splits
+            for i in range(1, 4):
+                draw.line([(col_split, i * 75), (width_px, i * 75)], fill=0, width=2)
+
             # 1. Product Name
             pos = design.get("product_name", [20, 20])
             draw.text((pos[0], pos[1]), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
