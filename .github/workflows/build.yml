@@ -55,6 +55,7 @@ jobs:
           dist/BarcodePrinter.exe
           dist/Updater.exe
           dist/InstallationWizard.exe
+          libusb-1.0.dll
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
