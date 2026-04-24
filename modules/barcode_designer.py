@@ -24,12 +24,12 @@ class BarcodeDesigner(QGraphicsView):
     def __init__(self, config_path=os.path.join(os.path.expanduser("~"), ".barcode_design.json")):
         super().__init__()
         self.config_path = config_path
-        self.scene = QGraphicsScene(0, 0, 600, 400) # 75mm x 50mm approx at 203 DPI
+        self.scene = QGraphicsScene(0, 0, 800, 300) # 75mm x 50mm approx
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
         
         # Draw Label Boundary
-        self.boundary = QGraphicsRectItem(0, 0, 600, 400)
+        self.boundary = QGraphicsRectItem(0, 0, 800, 300)
         self.boundary.setPen(QPen(QColor("#cbd5e1"), 2, Qt.DashLine))
         self.scene.addItem(self.boundary)
 
