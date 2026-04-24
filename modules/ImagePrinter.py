@@ -82,12 +82,14 @@ class ImagePrinter:
                 import io
                 rv = io.BytesIO()
                 Code128(barcode_value, writer=ImageWriter()).write(rv, options={
-                    "write_text": False, "module_height": 10.0, "quiet_zone": 1.0, 
+                    "write_text": False, "module_height": 5.0, "module_width": 0.2, "quiet_zone": 1.0, 
                     "background": "white", "foreground": "black"
                 })
                 rv.seek(0)
                 bc_img = Image.open(rv).convert('1')
-                bc_img = bc_img.resize((300, 40))
+                bw, bh = bc_img.size
+                new_bw = int(bw * (40 / bh))
+                bc_img = bc_img.resize((new_bw, 40))
                 image.paste(bc_img, (int(pos_bc[0]), int(pos_bc[1])))
                 # Barcode Value Text below barcode
                 draw.text((int(pos_bc[0]), int(pos_bc[1]) + 45), barcode_value, fill=0, font=font_medium)
@@ -133,8 +135,8 @@ class ImagePrinter:
             try:
                 from barcode import Code128
                 rv = io.BytesIO()
-                Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 10.0, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
-                rv.seek(0); bc_img = Image.open(rv).convert('1'); bc_img = bc_img.resize((300, 40)); image.paste(bc_img, (80, 220))
+                Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 5.0, "module_width": 0.2, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
+                rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (40/bh)); bc_img = bc_img.resize((nbw, 40)); image.paste(bc_img, (80, 220))
             except: pass
             draw.text((80, 265), barcode_value, fill=0, font=font_medium)
 
