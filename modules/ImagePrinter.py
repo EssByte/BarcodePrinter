@@ -67,15 +67,15 @@ class ImagePrinter:
                 draw.line([(col_split, i * 75), (width_px, i * 75)], fill=0, width=2)
 
             # 1. Product Name
-            pos = design.get("product_name", [20, 20])
+            pos = design.get("product_name", [80, 20])
             draw.text((pos[0], pos[1]), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
             
             # 2. Product Code & Barcode
-            pos_label = design.get("product_code", [20, 180])
+            pos_label = design.get("product_code", [80, 180])
             draw.text((pos_label[0], pos_label[1]), "PRODUCT CODE", fill=0, font=font_small_bold)
             
             barcode_value = data.get('barcode_value', '12345678')
-            pos_bc = design.get("barcode", [20, 220])
+            pos_bc = design.get("barcode", [80, 220])
             try:
                 from barcode import Code128
                 from barcode.writer import ImageWriter
@@ -126,9 +126,9 @@ class ImagePrinter:
                 draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
             description = data.get('description', 'NAMA PRODUK')
-            draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            draw.text((20, 50), description, fill=0, font=font_huge)
-            draw.text((20, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            draw.text((80, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
+            draw.text((80, 50), description, fill=0, font=font_huge)
+            draw.text((80, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
                 from barcode import Code128
