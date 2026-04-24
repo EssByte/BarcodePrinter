@@ -55,7 +55,7 @@ class ImagePrinter:
         if design:
             # RENDER FROM CUSTOM DESIGN
             # DRAW REFERENCE LINES
-            col_split = int(width_px * 0.70)
+            col_split = int(width_px * 0.60)
             row_a_split = int(height_px * 0.60)
             
             # 1. Vertical Split
@@ -99,29 +99,29 @@ class ImagePrinter:
             except: pass
 
             # 3. Price
-            pos = design.get("price", [570, 20])
+            pos = design.get("price", [490, 20])
             draw.text((pos[0], pos[1]), "PRICE (RM)", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
 
             # 4. Expiry
-            pos = design.get("expiry", [570, 80])
+            pos = design.get("expiry", [490, 80])
             draw.text((pos[0], pos[1]), "EXPIRY", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('remark', ''), fill=0, font=font_medium)
 
             # 5. Weight
-            pos = design.get("weight", [570, 140])
+            pos = design.get("weight", [490, 140])
             draw.text((pos[0], pos[1]), "NET WEIGHT", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('net_weight', ''), fill=0, font=font_medium)
 
             # 6. Batch
-            pos = design.get("batch", [570, 200])
+            pos = design.get("batch", [490, 200])
             draw.text((pos[0], pos[1]), "BATCH", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('batch', ''), fill=0, font=font_medium)
 
         else:
             # ORIGINAL GRID LAYOUT FALLBACK
-            # 1. Split columns: Vertical line at 70% of width
-            col_split = int(width_px * 0.70)
+            # 1. Split columns: Vertical line at 60% of width
+            col_split = int(width_px * 0.60)
             draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
             # 2. Column A Rows (Left side): 60% / 40% split
             row_a_split = int(height_px * 0.60)
