@@ -194,7 +194,7 @@ class ImagePrinter:
             # but we log it to console
             print(f"Warning: Failed to save debug image to 'images/' folder: {e}")
 
-        bitmap_data = self.to_tpsl_bitmap(image, 0, 0)
+        bitmap_data = self.to_tpsl_bitmap(image, 50, 50)
         
         header = (
             "SPEED 2.0\r\n"
