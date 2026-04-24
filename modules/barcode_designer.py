@@ -35,8 +35,8 @@ class BarcodeDesigner(QGraphicsView):
 
         # --- Add Reference Grid Lines ---
         grid_pen = QPen(QColor("#e2e8f0"), 1)
-        # 1. Vertical Split at 50%
-        col_split = 400
+        # 1. Vertical Split at 60%
+        col_split = 480
         self.scene.addLine(col_split, 0, col_split, 300, grid_pen)
         # 2. Left Row Split at 60%
         self.scene.addLine(0, 180, col_split, 180, grid_pen)
