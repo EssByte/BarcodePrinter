@@ -56,7 +56,7 @@ class ImagePrinter:
             # RENDER FROM CUSTOM DESIGN
             # DRAW REFERENCE LINES
             col_split = int(width_px * 0.60)
-            row_a_split = int(height_px * 0.60)
+            row_a_split = int(height_px * 0.50)
             
             # 1. Vertical Split
             draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
@@ -72,11 +72,11 @@ class ImagePrinter:
             draw.text((pos[0], pos[1] + 40), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
             
             # 2. Product Code & Barcode
-            pos_label = design.get("product_code", [10, 220])
+            pos_label = design.get("product_code", [10, 170])
             draw.text((pos_label[0], pos_label[1]), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             
             barcode_value = data.get('barcode_value', '12345678')
-            pos_bc = design.get("barcode", [10, 260])
+            pos_bc = design.get("barcode", [10, 210])
             try:
                 from barcode import Code128
                 from barcode.writer import ImageWriter
@@ -123,8 +123,8 @@ class ImagePrinter:
             # 1. Split columns: Vertical line at 60% of width
             col_split = int(width_px * 0.60)
             draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
-            # 2. Column A Rows (Left side): 60% / 40% split
-            row_a_split = int(height_px * 0.60)
+            # 2. Column A Rows (Left side): 50% / 50% split
+            row_a_split = int(height_px * 0.50)
             draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
             for i in range(1, 4):
                 row_y = int(height_px * (i * 0.25))
@@ -133,7 +133,7 @@ class ImagePrinter:
             description = data.get('description', 'NAMA PRODUK')
             draw.text((10, 40), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
             draw.text((10, 80), description, fill=0, font=font_huge)
-            draw.text((10, 220), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            draw.text((10, 170), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
                 from barcode import Code128
@@ -142,9 +142,9 @@ class ImagePrinter:
                 rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (60/bh))
                 if nbw > 250:
                     nbw = 250
-                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 250))
+                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 200))
             except: pass
-            draw.text((10, 320), barcode_value, fill=0, font=font_medium)
+            draw.text((10, 265), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 10
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
