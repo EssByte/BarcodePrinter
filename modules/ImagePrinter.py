@@ -16,7 +16,7 @@ class ImagePrinter:
         Renders the full Fun Bake label (75mm x 50mm) as an image.
         Padded to 608px width (76 bytes) for perfect alignment.
         """
-        width_px = 800 
+        width_px = 400 
         height_px = 300
         
         # Create a white 1-bit image (1 = White)
@@ -99,22 +99,22 @@ class ImagePrinter:
             except: pass
 
             # 3. Price
-            pos = design.get("price", [490, 20])
+            pos = design.get("price", [250, 20])
             draw.text((pos[0], pos[1]), "PRICE (RM)", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
 
             # 4. Expiry
-            pos = design.get("expiry", [490, 80])
+            pos = design.get("expiry", [250, 80])
             draw.text((pos[0], pos[1]), "EXPIRY", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('remark', ''), fill=0, font=font_medium)
 
             # 5. Weight
-            pos = design.get("weight", [490, 140])
+            pos = design.get("weight", [250, 140])
             draw.text((pos[0], pos[1]), "NET WEIGHT", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('net_weight', ''), fill=0, font=font_medium)
 
             # 6. Batch
-            pos = design.get("batch", [490, 200])
+            pos = design.get("batch", [250, 200])
             draw.text((pos[0], pos[1]), "BATCH", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('batch', ''), fill=0, font=font_medium)
 
