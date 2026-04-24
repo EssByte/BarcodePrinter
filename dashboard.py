@@ -66,8 +66,6 @@ class DashboardWindow(QMainWindow):
         # --- Status Cards Grid ---
         self.grid_layout = QGridLayout()
         self.grid_layout.setSpacing(30)
-        self.grid_layout.setColumnStretch(0, 7)
-        self.grid_layout.setColumnStretch(1, 3)
         
         # 1. Connectivity Card
         self.card_net = self.create_status_card("CONNECTIVITY", "Public Network Access", "lbl_resultConnectivity", "#f59e0b")
