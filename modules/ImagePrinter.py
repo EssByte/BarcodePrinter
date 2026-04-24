@@ -16,8 +16,8 @@ class ImagePrinter:
         Renders the full Fun Bake label (75mm x 50mm) as an image.
         Padded to 608px width (76 bytes) for perfect alignment.
         """
-        width_px = 800 
-        height_px = 300
+        width_px = 600 
+        height_px = 400
         
         # Create a white 1-bit image (1 = White)
         image = Image.new('1', (width_px, height_px), 1)
@@ -64,7 +64,7 @@ class ImagePrinter:
             draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
             # 3. Right Column Horizontal Splits
             for i in range(1, 4):
-                draw.line([(col_split, i * 75), (width_px, i * 75)], fill=0, width=2)
+                draw.line([(col_split, i * 100), (width_px, i * 100)], fill=0, width=2)
 
             # 1. Product Name
             pos = design.get("product_name", [10, 40])
@@ -72,11 +72,11 @@ class ImagePrinter:
             draw.text((pos[0], pos[1] + 40), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
             
             # 2. Product Code & Barcode
-            pos_label = design.get("product_code", [10, 170])
+            pos_label = design.get("product_code", [10, 220])
             draw.text((pos_label[0], pos_label[1]), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             
             barcode_value = data.get('barcode_value', '12345678')
-            pos_bc = design.get("barcode", [10, 210])
+            pos_bc = design.get("barcode", [10, 250])
             try:
                 from barcode import Code128
                 from barcode.writer import ImageWriter
@@ -95,26 +95,26 @@ class ImagePrinter:
                 bc_img = bc_img.resize((new_bw, 60))
                 image.paste(bc_img, (int(pos_bc[0]), int(pos_bc[1])))
                 # Barcode Value Text below barcode
-                draw.text((int(pos_bc[0]), int(pos_bc[1]) + 65), barcode_value, fill=0, font=font_medium)
+                draw.text((int(pos_bc[0]), int(pos_bc[1]) + 70), barcode_value, fill=0, font=font_medium)
             except: pass
 
             # 3. Price
-            pos = design.get("price", [490, 20])
+            pos = design.get("price", [370, 20])
             draw.text((pos[0], pos[1]), "PRICE (RM)", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
 
             # 4. Expiry
-            pos = design.get("expiry", [490, 80])
+            pos = design.get("expiry", [370, 120])
             draw.text((pos[0], pos[1]), "EXPIRY", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('remark', ''), fill=0, font=font_medium)
 
             # 5. Weight
-            pos = design.get("weight", [490, 140])
+            pos = design.get("weight", [370, 220])
             draw.text((pos[0], pos[1]), "NET WEIGHT", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('net_weight', ''), fill=0, font=font_medium)
 
             # 6. Batch
-            pos = design.get("batch", [490, 200])
+            pos = design.get("batch", [370, 320])
             draw.text((pos[0], pos[1]), "BATCH", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('batch', ''), fill=0, font=font_medium)
 
@@ -133,7 +133,7 @@ class ImagePrinter:
             description = data.get('description', 'NAMA PRODUK')
             draw.text((10, 40), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
             draw.text((10, 80), description, fill=0, font=font_huge)
-            draw.text((10, 170), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            draw.text((10, 220), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
                 from barcode import Code128
@@ -142,19 +142,19 @@ class ImagePrinter:
                 rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (60/bh))
                 if nbw > 250:
                     nbw = 250
-                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 200))
+                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 250))
             except: pass
-            draw.text((10, 265), barcode_value, fill=0, font=font_medium)
+            draw.text((10, 320), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 10
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
             draw.text((col_b_x, 35), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
-            draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 110), data.get('remark', ''), fill=0, font=font_medium)
-            draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 185), data.get('net_weight', ''), fill=0, font=font_medium)
-            draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 260), data.get('batch', ''), fill=0, font=font_medium)
+            draw.text((col_b_x, 110), "GUNA SBL / EXP", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 135), data.get('remark', ''), fill=0, font=font_medium)
+            draw.text((col_b_x, 210), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 235), data.get('net_weight', ''), fill=0, font=font_medium)
+            draw.text((col_b_x, 310), "LOT / BATCH", fill=0, font=font_small_bold)
+            draw.text((col_b_x, 335), data.get('batch', ''), fill=0, font=font_medium)
 
         # Rotate 180 degrees (correction for upside-down printing)
         image = image.rotate(180)
