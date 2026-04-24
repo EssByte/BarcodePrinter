@@ -88,11 +88,11 @@ class ImagePrinter:
                 rv.seek(0)
                 bc_img = Image.open(rv).convert('1')
                 bw, bh = bc_img.size
-                new_bw = int(bw * (40 / bh))
-                bc_img = bc_img.resize((new_bw, 40))
+                new_bw = int(bw * (60 / bh))
+                bc_img = bc_img.resize((new_bw, 60))
                 image.paste(bc_img, (int(pos_bc[0]), int(pos_bc[1])))
                 # Barcode Value Text below barcode
-                draw.text((int(pos_bc[0]), int(pos_bc[1]) + 45), barcode_value, fill=0, font=font_medium)
+                draw.text((int(pos_bc[0]), int(pos_bc[1]) + 65), barcode_value, fill=0, font=font_medium)
             except: pass
 
             # 3. Price
@@ -136,9 +136,9 @@ class ImagePrinter:
                 from barcode import Code128
                 rv = io.BytesIO()
                 Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 5.0, "module_width": 0.2, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
-                rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (40/bh)); bc_img = bc_img.resize((nbw, 40)); image.paste(bc_img, (80, 220))
+                rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (60/bh)); bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (80, 220))
             except: pass
-            draw.text((80, 265), barcode_value, fill=0, font=font_medium)
+            draw.text((80, 285), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 10
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
