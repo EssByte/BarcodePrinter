@@ -72,7 +72,7 @@ class ImagePrinter:
             draw.text((pos[0], pos[1] + 30), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
             
             # 2. Product Code & Barcode
-            pos_label = design.get("product_code", [40, 180])
+            pos_label = design.get("product_code", [80, 180])
             draw.text((pos_label[0], pos_label[1]), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             
             barcode_value = data.get('barcode_value', '12345678')
@@ -129,9 +129,9 @@ class ImagePrinter:
                 draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
             description = data.get('description', 'NAMA PRODUK')
-            draw.text((40, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
+            draw.text((80, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
             draw.text((40, 50), description, fill=0, font=font_huge)
-            draw.text((40, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            draw.text((80, 200), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
                 from barcode import Code128
