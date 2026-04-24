@@ -55,7 +55,7 @@ class ImagePrinter:
         if design:
             # RENDER FROM CUSTOM DESIGN
             # DRAW REFERENCE LINES
-            col_split = int(width_px * 0.60)
+            col_split = int(width_px * 0.50)
             row_a_split = int(height_px * 0.60)
             
             # 1. Vertical Split
@@ -118,8 +118,8 @@ class ImagePrinter:
 
         else:
             # ORIGINAL GRID LAYOUT FALLBACK
-            # 1. Split columns: Vertical line at 60% of width
-            col_split = int(width_px * 0.60)
+            # 1. Split columns: Vertical line at 50% of width
+            col_split = int(width_px * 0.50)
             draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
             # 2. Column A Rows (Left side): 60% / 40% split
             row_a_split = int(height_px * 0.60)
