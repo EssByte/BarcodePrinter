@@ -16,7 +16,7 @@ class ImagePrinter:
         Renders the full Fun Bake label (75mm x 50mm) as an image.
         Padded to 608px width (76 bytes) for perfect alignment.
         """
-        width_px = 600 
+        width_px = 700 
         height_px = 300
         
         # Create a white 1-bit image (1 = White)
