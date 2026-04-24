@@ -67,16 +67,16 @@ class ImagePrinter:
                 draw.line([(col_split, i * 75), (width_px, i * 75)], fill=0, width=2)
 
             # 1. Product Name
-            pos = design.get("product_name", [10, 20])
+            pos = design.get("product_name", [10, 5])
             draw.text((pos[0], pos[1]), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 40), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
             
             # 2. Product Code & Barcode
-            pos_label = design.get("product_code", [10, 160])
+            pos_label = design.get("product_code", [10, 155])
             draw.text((pos_label[0], pos_label[1]), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             
             barcode_value = data.get('barcode_value', '12345678')
-            pos_bc = design.get("barcode", [10, 190])
+            pos_bc = design.get("barcode", [10, 175])
             try:
                 from barcode import Code128
                 from barcode.writer import ImageWriter
@@ -131,9 +131,9 @@ class ImagePrinter:
                 draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
             description = data.get('description', 'NAMA PRODUK')
-            draw.text((10, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            draw.text((10, 60), description, fill=0, font=font_huge)
-            draw.text((10, 160), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            draw.text((10, 5), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
+            draw.text((10, 45), description, fill=0, font=font_huge)
+            draw.text((10, 155), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
                 from barcode import Code128
@@ -142,9 +142,9 @@ class ImagePrinter:
                 rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (60/bh))
                 if nbw > 250:
                     nbw = 250
-                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 190))
+                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 175))
             except: pass
-            draw.text((10, 255), barcode_value, fill=0, font=font_medium)
+            draw.text((10, 240), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 10
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
