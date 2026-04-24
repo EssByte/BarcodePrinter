@@ -17,7 +17,7 @@ class ImagePrinter:
         Padded to 608px width (76 bytes) for perfect alignment.
         """
         width_px = 700 
-        height_px = 400
+        height_px = 330
         
         # Create a white 1-bit image (1 = White)
         image = Image.new('1', (width_px, height_px), 1)
