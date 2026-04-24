@@ -120,8 +120,8 @@ class ImagePrinter:
 
         else:
             # ORIGINAL GRID LAYOUT FALLBACK
-            # 1. Split columns: Vertical line at 60% of width
-            col_split = int(width_px * 0.60)
+            # 1. Split columns: Vertical line at 55% of width
+            col_split = int(width_px * 0.55)
             draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
             # 2. Column A Rows (Left side): 50% / 50% split
             row_a_split = int(height_px * 0.50)
@@ -146,7 +146,7 @@ class ImagePrinter:
             except: pass
             draw.text((10, 240), barcode_value, fill=0, font=font_medium)
 
-            col_b_x = col_split + 10
+            col_b_x = col_split + 5
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
             draw.text((col_b_x, 35), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
             draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small_bold)
