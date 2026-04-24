@@ -51,8 +51,8 @@ class BarcodeDesigner(QGraphicsView):
 
     def init_default_items(self):
         default_elements = {
-            "product_name": ("PRODUCT NAME", (80, 20)),
-            "product_code": ("PRODUCT CODE", (80, 180)),
+            "product_name": ("PRODUCT NAME", (10, 20)),
+            "product_code": ("PRODUCT CODE", (10, 180)),
             "price": ("PRICE: RM 0.00", (500, 20)),
             "expiry": ("EXP: 01/01/2025", (500, 80)),
             "weight": ("NET WT: 500g", (500, 140)),
