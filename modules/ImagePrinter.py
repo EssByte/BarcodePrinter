@@ -99,22 +99,22 @@ class ImagePrinter:
             except: pass
 
             # 3. Price
-            pos = design.get("price", [250, 20])
+            pos = design.get("price", [200, 20])
             draw.text((pos[0], pos[1]), "PRICE (RM)", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
 
             # 4. Expiry
-            pos = design.get("expiry", [250, 80])
+            pos = design.get("expiry", [200, 80])
             draw.text((pos[0], pos[1]), "EXPIRY", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('remark', ''), fill=0, font=font_medium)
 
             # 5. Weight
-            pos = design.get("weight", [250, 140])
+            pos = design.get("weight", [200, 140])
             draw.text((pos[0], pos[1]), "NET WEIGHT", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('net_weight', ''), fill=0, font=font_medium)
 
             # 6. Batch
-            pos = design.get("batch", [250, 200])
+            pos = design.get("batch", [200, 200])
             draw.text((pos[0], pos[1]), "BATCH", fill=0, font=font_small_bold)
             draw.text((pos[0], pos[1] + 25), data.get('batch', ''), fill=0, font=font_medium)
 
