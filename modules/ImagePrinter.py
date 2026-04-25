@@ -135,9 +135,9 @@ class ImagePrinter:
                 draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
 
             description = data.get('description', 'NAMA PRODUK')
-            draw.text((10, 5), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            draw.text((10, 45), description, fill=0, font=font_huge)
-            draw.text((10, 155), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
+            draw.text((20, 5), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
+            draw.text((20, 45), description, fill=0, font=font_huge)
+            draw.text((20, 155), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
                 from barcode import Code128
@@ -146,12 +146,12 @@ class ImagePrinter:
                 rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (60/bh))
                 if nbw > 250:
                     nbw = 250
-                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 175))
+                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (20, 175))
             except Exception as e:
                 import traceback
                 traceback.print_exc()
                 print("BARCODE ERROR 2:", e)
-            draw.text((10, 240), barcode_value, fill=0, font=font_medium)
+            draw.text((20, 240), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 5
             draw.text((col_b_x, 10), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
