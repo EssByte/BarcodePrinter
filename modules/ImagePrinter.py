@@ -4,6 +4,7 @@ from PIL import Image, ImageDraw, ImageFont
 import io
 import os
 import json
+import textwrap
 
 class ImagePrinter:
     def __init__(self, dpi=203):
@@ -69,7 +70,9 @@ class ImagePrinter:
             # 1. Product Name
             pos = design.get("product_name", [10, 5])
             draw.text((pos[0], pos[1]), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            draw.text((pos[0], pos[1] + 40), data.get('description', 'PRODUCT NAME'), fill=0, font=font_huge)
+            desc_lines = textwrap.wrap(data.get('description', 'PRODUCT NAME'), width=22)
+            for i, line in enumerate(desc_lines[:2]):
+                draw.text((pos[0], pos[1] + 40 + i * 30), line, fill=0, font=font_huge)
             
             # 2. Product Code & Barcode
             pos_label = design.get("product_code", [10, 155])
@@ -136,7 +139,9 @@ class ImagePrinter:
 
             description = data.get('description', 'NAMA PRODUK')
             draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            draw.text((20, 60), description, fill=0, font=font_huge)
+            desc_lines = textwrap.wrap(description, width=22)
+            for i, line in enumerate(desc_lines[:2]):
+                draw.text((20, 60 + i * 30), line, fill=0, font=font_huge)
             draw.text((20, 170), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
             barcode_value = data.get('barcode_value', '12345678')
             try:
