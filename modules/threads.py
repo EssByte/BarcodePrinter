@@ -63,7 +63,8 @@ class DiagnosticThread(QThread):
                 try:
                     with open(self.config_path, 'r') as f:
                         c = json.load(f)
-                        conn_str = f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={c['server']};DATABASE={c['database']};UID={c['username']};PWD={c['password']};"
+                        drv = BarcodeConfig().get_database_driver_name()
+                        conn_str = f"DRIVER={{{drv}}};SERVER={c['server']};DATABASE={c['database']};UID={c['username']};PWD={c['password']};"
                         with pyodbc.connect(conn_str, timeout=3) as _:
                             self.progress.emit("lbl_resultDatabase", "✅")
                 except: self.progress.emit("lbl_resultDatabase", "❌")
@@ -139,9 +140,8 @@ class FetchItemsThread(QThread):
             connection = None
             cursor = None
             try:
-                drv = '{ODBC Driver 17 for SQL Server}'
                 c = self.config
-                conn_str = f'DRIVER={drv};SERVER={c.get_server()};DATABASE={c.get_database()};UID={c.get_username()};PWD={c.get_password()};'
+                conn_str = f'DRIVER={{{c.get_database_driver_name()}}};SERVER={c.get_server()};DATABASE={c.get_database()};UID={c.get_username()};PWD={c.get_password()};'
                 if c.get_trusted_connection():
                     conn_str += 'Trusted_Connection=yes;'
                 
