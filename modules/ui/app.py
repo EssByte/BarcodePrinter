@@ -159,7 +159,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["size1", "size2", "size3", "Fun Bake (Graphic)"]
+        self.options = ["size1", "size2", "size3", "75x55 (Graphic)"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
         
@@ -459,10 +459,10 @@ class BarcodeApp(QMainWindow):
     def get_current_template(self):
         sz = self.barcode_size.currentText()
         if self.config.get_use_zpl():
-            if "Fun Bake" in sz: return self.config.get_zpl_funbake_template()
+            if "Graphic" in sz: return self.config.get_zpl_funbake_template()
             return self.config.get_zpl_template()
         else:
-            if "Fun Bake" in sz: return self.config.get_tpsl_funbake_template()
+            if "Graphic" in sz: return self.config.get_tpsl_funbake_template()
             return self.config.get_tpsl_template()
 
     def save_column_widths(self):
