@@ -29,14 +29,6 @@ jobs:
       run: |
         pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --add-data "ui;ui" --add-data "images;images" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
 
-    - name: Build Updater
-      run: |
-        pyinstaller --noconfirm --onefile --console --name "Updater" --icon=images/logo.ico --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
-
-    - name: Build Installation Wizard
-      run: |
-        pyinstaller --noconfirm --onefile --console --name "InstallationWizard" --icon=images/logo.ico --hidden-import=PyQt5 --hidden-import=requests --hidden-import=winshell --hidden-import=win32com InstallationWizard.py
-
     - name: Get Version
       id: get_version
       run: |
@@ -53,8 +45,6 @@ jobs:
         prerelease: false
         files: |
           dist/BarcodePrinter.exe
-          dist/Updater.exe
-          dist/InstallationWizard.exe
           libusb-1.0.dll
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,5 +52,5 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Barcode-Suite-EXEs
-        path: dist/*.exe
+        name: BarcodePrinter-EXE
+        path: dist/BarcodePrinter.exe
