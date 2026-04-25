@@ -445,8 +445,7 @@ class BarcodeApp(QMainWindow):
                     payload = print_data.encode('utf-8') if isinstance(print_data, str) else print_data
                     printer.write(0x01, payload)
                 elif self.config.get_wireless_mode():
-                    send_command.send_wireless_command(ip, port, printer_clear)
-                    send_command.send_wireless_command(ip, port, print_data)
+                    send_command.send_wireless_command(ip, port, printer_clear, print_data)
                 else:
                     send_command.send_win32print(self.config.get_printer_name(), printer_clear)
                     send_command.send_win32print(self.config.get_printer_name(), print_data)
