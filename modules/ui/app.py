@@ -358,7 +358,8 @@ class BarcodeApp(QMainWindow):
                 item_code, name, uom, unit_price, unit_cost, barcode, loc, loc_p = item
                 bc = item_code if barcode is None else barcode
 
-            values = [item_code, name, uom, f"RM {float(unit_price):.2f}", '***' if barcode_config.get_hide_cost() else f"RM {float(unit_cost):.2f}", bc, loc, f"RM {float(loc_p):.2f}"]
+            safe_float = lambda x: float(x) if x not in (None, "") else 0.0
+            values = [item_code, name, uom, f"RM {safe_float(unit_price):.2f}", '***' if barcode_config.get_hide_cost() else f"RM {safe_float(unit_cost):.2f}", bc, loc, f"RM {safe_float(loc_p):.2f}"]
             for col, val in enumerate(values, start=1):
                 ti = QTableWidgetItem(str(val)); ti.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled); ti.setTextAlignment(Qt.AlignCenter)
                 self.item_table.setItem(row, col, ti)
