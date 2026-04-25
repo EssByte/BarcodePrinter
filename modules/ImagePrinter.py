@@ -78,9 +78,6 @@ class ImagePrinter:
             barcode_value = data.get('barcode_value', '12345678')
             pos_bc = design.get("barcode", [10, 175])
             try:
-                from barcode import Code128
-                from barcode.writer import ImageWriter
-                import io
                 rv = io.BytesIO()
                 Code128(barcode_value, writer=ImageWriter()).write(rv, options={
                     "write_text": False, "module_height": 5.0, "module_width": 0.2, "quiet_zone": 1.0, 
@@ -96,7 +93,10 @@ class ImagePrinter:
                 image.paste(bc_img, (int(pos_bc[0]), int(pos_bc[1])))
                 # Barcode Value Text below barcode
                 draw.text((int(pos_bc[0]), int(pos_bc[1]) + 65), barcode_value, fill=0, font=font_medium)
-            except: pass
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                print("BARCODE ERROR:", e)
 
             # 3. Price
             pos = design.get("price", [200, 20])
@@ -147,7 +147,10 @@ class ImagePrinter:
                 if nbw > 250:
                     nbw = 250
                 bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (10, 175))
-            except: pass
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                print("BARCODE ERROR 2:", e)
             draw.text((10, 240), barcode_value, fill=0, font=font_medium)
 
             col_b_x = col_split + 5
