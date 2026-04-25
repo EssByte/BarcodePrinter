@@ -13,7 +13,7 @@ class SendCommand:
         self.logger.info("Initializing SendCommand class...")
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
 
-    def send_wireless_command(self, ip_address, port, command):
+    def send_wireless_command(self, ip_address, port, *commands):
         try:
             # Validate IP address
             self.logger.info(f"Validating IP address: {ip_address}")
@@ -33,31 +33,21 @@ class SendCommand:
                 QMessageBox.critical(None, 'Error', f"Ping failed for {ip_address}. Device may be unreachable.")
                 return
 
-            # Log connection attempt
+            # Connect once and send all commands in a single session
             self.logger.info(f"Attempting to connect to {ip_address}:{port}")
-
-            # Check if the port is open
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.settimeout(3)  # Set a timeout for the connection attempt
-                if sock.connect_ex((ip_address, int(port))) != 0:
-                    self.logger.error(f"Port {port} on {ip_address} is not open.")
-                    QMessageBox.critical(None, 'Error', f"Port {port} on {ip_address} is not open.")
-                    return
-
-            # Create a socket and connect
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                client_socket.settimeout(5)
                 client_socket.connect((ip_address, int(port)))
                 self.logger.info(f"Connected to {ip_address}:{port}")
 
-                # Send the command
-                if isinstance(command, str):
-                    client_socket.sendall(command.encode('utf-8'))
-                else:
-                    client_socket.sendall(command)
-                self.logger.info("Command sent successfully.")
+                for command in commands:
+                    if not command:
+                        continue
+                    payload = command.encode('utf-8') if isinstance(command, str) else command
+                    client_socket.sendall(payload)
+                    self.logger.info("Command sent successfully.")
 
         except Exception as e:
-            # Log the error
             self.logger.error(f"Error while sending command to {ip_address}:{port}: {e}")
             QMessageBox.critical(None, 'Error', f"Error: {e}")
 
