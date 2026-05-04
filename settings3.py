@@ -315,6 +315,13 @@ class SettingsWindow(QMainWindow):
         det_layout.addWidget(lbl_ip, 2, 1); det_layout.addWidget(self.ip_address, 3, 1)
         
         right_panel.addWidget(details_frame)
+        
+        # Save button for printers
+        self.btn_save_printers = QPushButton("Save Printer Configuration")
+        self.btn_save_printers.setObjectName("btn_primary")
+        self.btn_save_printers.clicked.connect(self.save_printers_action)
+        right_panel.addWidget(self.btn_save_printers)
+        
         right_panel.addStretch()
         
         # Behavior
@@ -533,6 +540,17 @@ class SettingsWindow(QMainWindow):
             QMessageBox.information(self, "Success", f"Detected and set driver: {best}")
         else:
             QMessageBox.warning(self, "Not Found", "No SQL Server ODBC drivers were detected on this system.")
+
+    def save_printers_action(self):
+        try:
+            self.save_current_printer_to_list()
+            self.config.set_printers_list(self.printers_data)
+            active_row = self.printers_qlist.currentRow()
+            if active_row >= 0:
+                self.config.set_active_printer_id(self.printers_data[active_row]['id'])
+            QMessageBox.information(self, "Saved", "Printer configurations saved successfully.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to save printers: {e}")
 
     def add_new_printer_logic(self):
         import uuid
