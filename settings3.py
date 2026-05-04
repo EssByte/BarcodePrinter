@@ -223,7 +223,17 @@ class SettingsWindow(QMainWindow):
         self.databaseName = self.add_field(layout, "Database Name")
         self.userName = self.add_field(layout, "Authentication Username")
         self.password = self.add_field(layout, "Authentication Password", "password")
-        self.dbDriverName = self.add_field(layout, "SQL Driver Name (e.g. ODBC Driver 17 for SQL Server)")
+        
+        lbl_driver = QLabel("SQL Driver Name (e.g. ODBC Driver 17 for SQL Server)"); lbl_driver.setObjectName("field_label")
+        layout.addWidget(lbl_driver)
+        h_driver_box = QHBoxLayout()
+        self.dbDriverName = QLineEdit()
+        self.btn_detect_driver = QPushButton("Auto-Detect")
+        self.btn_detect_driver.setFixedWidth(120)
+        self.btn_detect_driver.setObjectName("btn_secondary")
+        self.btn_detect_driver.clicked.connect(self.auto_detect_driver)
+        h_driver_box.addWidget(self.dbDriverName); h_driver_box.addWidget(self.btn_detect_driver)
+        layout.addLayout(h_driver_box)
         
         self.cb_trusted_connection = QCheckBox("Use Windows Trusted Connection")
         self.cb_trusted_connection.setStyleSheet("font-weight: 600; color: #475569; margin: 10px 0;")
@@ -505,6 +515,16 @@ class SettingsWindow(QMainWindow):
         
         self.printers_data[row] = p
         self.printers_qlist.item(row).setText(p['name'])
+
+    def auto_detect_driver(self):
+        from modules.CheckDriver import CheckDrivers
+        checker = CheckDrivers()
+        best = checker.find_best_sql_driver()
+        if best:
+            self.dbDriverName.setText(best)
+            QMessageBox.information(self, "Success", f"Detected and set driver: {best}")
+        else:
+            QMessageBox.warning(self, "Not Found", "No SQL Server ODBC drivers were detected on this system.")
 
     def add_new_printer_logic(self):
         import uuid

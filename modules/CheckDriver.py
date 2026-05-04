@@ -73,3 +73,41 @@ class CheckDrivers:
             self.logger.exception(f"Error checking ODBC driver '{driver_name}': {e}")
             return False, "-1"
 
+    def get_installed_odbc_drivers(self):
+        """Lists all installed ODBC drivers from the registry."""
+        self.logger.info("Listing all installed ODBC drivers.")
+        drivers = []
+        try:
+            reg_path = r"SOFTWARE\ODBC\ODBCINST.INI\ODBC Drivers"
+            with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, reg_path) as key:
+                for i in range(0, winreg.QueryInfoKey(key)[1]):
+                    driver_name, _, _ = winreg.EnumValue(key, i)
+                    drivers.append(driver_name)
+            return drivers
+        except Exception as e:
+            self.logger.error(f"Error listing ODBC drivers: {e}")
+            return []
+
+    def find_best_sql_driver(self):
+        """Finds the most recent SQL Server ODBC driver installed."""
+        installed = self.get_installed_odbc_drivers()
+        # Order of preference (Newest to Oldest)
+        candidates = [
+            "ODBC Driver 18 for SQL Server",
+            "ODBC Driver 17 for SQL Server",
+            "ODBC Driver 13 for SQL Server",
+            "ODBC Driver 11 for SQL Server",
+            "SQL Server Native Client 11.0",
+            "SQL Server"
+        ]
+        for candidate in candidates:
+            if candidate in installed:
+                self.logger.info(f"Auto-detected best driver: {candidate}")
+                return candidate
+        
+        # Fallback: find any driver containing "SQL Server"
+        for driver in installed:
+            if "SQL Server" in driver:
+                return driver
+        
+        return None
