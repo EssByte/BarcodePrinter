@@ -68,13 +68,17 @@ class BarcodeApp(QMainWindow):
     def start_timer(self):
         self.input_timer.start(400)
 
-    def handle_config_change(self):
-        self.logger.info("Database reload requested. Initializing background scan...")
+    def handle_config_change(self, key=None, value=None):
+        self.logger.info(f"Config change detected ({key}). Initializing necessary updates...")
         try:
-            self.show_loading("SCANNING DATABASE...")
-            self.update_logging()
-            self.check_version()
-            self.start_fetch_items()
+            if key in [None, "server", "database", "location", "useSqlite"]:
+                self.show_loading("SCANNING DATABASE...")
+                self.update_logging()
+                self.check_version()
+                self.start_fetch_items()
+            
+            if key in [None, "printers_list", "active_printer_id"]:
+                self.populate_printers()
         except Exception as e:
             self.hide_loading()
             self.logger.error(f"Failed to reload: {e}")
