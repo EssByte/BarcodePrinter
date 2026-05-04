@@ -505,7 +505,7 @@ class BarcodeApp(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, 'Printing Error', f"An error occurred: {e}")
         finally:
-            if printer: usb.util.dispose_resources(printer)
+            if usb_printer: usb.util.dispose_resources(usb_printer)
 
     def get_current_template(self):
         sz = self.barcode_size.currentText()
