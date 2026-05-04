@@ -33,7 +33,7 @@ class ImagePrinter:
         """
         import platform
 
-        W, H = 750, 400
+        W, H = 740, 400
 
         # The pre-printed header occupies roughly the top 27% of the label.
         # We leave that area blank (white = no heat = pre-print shows through).
@@ -42,7 +42,7 @@ class ImagePrinter:
         PAD          = 8    # inner horizontal padding
 
         NAME_Y = HEADER_SKIP
-        MID_Y  = NAME_Y + 108
+        MID_Y  = NAME_Y + 100
         BOT_Y  = MID_Y  + 118
 
         image = Image.new('1', (W, H), 1)
