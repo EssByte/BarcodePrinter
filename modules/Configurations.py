@@ -43,9 +43,11 @@ class BarcodeConfig(QObject):
 
     def get_printers_list(self):
         import json
-        data = self.settings.value("printers_list", "[]")
+        val = self.settings.value("printers_list")
+        if not val: return []
+        if isinstance(val, list): return val
         try:
-            return json.loads(data)
+            return json.loads(str(val))
         except:
             return []
 
