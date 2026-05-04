@@ -14,163 +14,120 @@ class ImagePrinter:
         
     def render_fun_bake_label(self, data):
         """
-        Renders the full Fun Bake label (75mm x 50mm) as an image.
-        Padded to 608px width (76 bytes) for perfect alignment.
+        Renders the variable-data portion of the Fun Bake label (75mm x 50mm).
+        The top section (company header) is pre-printed on the sticker stock,
+        so this image leaves the top blank and only draws the data rows below.
+
+        Layout (top-to-bottom):
+          [blank — pre-printed header area]
+          ─────────────────────────────────
+          NAMA PRODUK  产品名称  PRODUCT NAME
+          <description line 1 & 2 — large bold>
+          ─────────────────────────────────────────────────────
+          KOD PRODUK 产品编号  PRODUCT CODE │ HARGA  价格  PRICE
+          [barcode]                         │ RM xx.xx / <weight>
+          <barcode value>                   │
+          ─────────────────────────────────────────────────────
+          GUNA SBL  期满  EXP.   LOT  厂家编号  BATCH
+          <remark / expiry>                    <batch>
         """
-        width_px = 700 
-        height_px = 300
-        
-        # Create a white 1-bit image (1 = White)
-        image = Image.new('1', (width_px, height_px), 1)
-        draw = ImageDraw.Draw(image)
-        # Detect OS and load appropriate font
         import platform
-        import os
+
+        W, H = 600, 400
+
+        # The pre-printed header occupies roughly the top 27% of the label.
+        # We leave that area blank (white = no heat = pre-print shows through).
+        HEADER_SKIP = 108   # px of blank space at top matching the header height
+        COL          = 370  # x of vertical divider between barcode and price columns
+        PAD          = 8    # inner horizontal padding
+
+        NAME_Y = HEADER_SKIP
+        MID_Y  = NAME_Y + 108
+        BOT_Y  = MID_Y  + 118
+
+        image = Image.new('1', (W, H), 1)
+        draw  = ImageDraw.Draw(image)
+
+        # ── fonts ──────────────────────────────────────────────────────────
         if platform.system() == "Windows":
-            # Primary font and Bold variant
-            font_path = "C:\\Windows\\Fonts\\msyh.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyh.ttc") else "arial.ttf"
-            font_bold_path = "C:\\Windows\\Fonts\\msyhbd.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyhbd.ttc") else font_path
+            fp = "C:\\Windows\\Fonts\\msyh.ttc"   if os.path.exists("C:\\Windows\\Fonts\\msyh.ttc")   else "arial.ttf"
+            fb = "C:\\Windows\\Fonts\\msyhbd.ttc"  if os.path.exists("C:\\Windows\\Fonts\\msyhbd.ttc") else fp
         else:
-            font_path = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
-            font_bold_path = font_path
+            fp = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
+            fb = fp
 
         try:
-            font_small = ImageFont.truetype(font_path, 12)
-            font_small_bold = ImageFont.truetype(font_bold_path, 12)
-            font_medium = ImageFont.truetype(font_path, 20)
-            font_large = ImageFont.truetype(font_path, 30)
-            font_huge = ImageFont.truetype(font_path, 24)
+            f_label  = ImageFont.truetype(fp, 13)   # section header labels
+            f_name   = ImageFont.truetype(fb, 26)   # product name (large bold)
+            f_med    = ImageFont.truetype(fp, 17)   # barcode value / secondary text
+            f_price  = ImageFont.truetype(fb, 22)   # price
+            f_bot    = ImageFont.truetype(fb, 28)   # expiry / batch value
         except:
-            # Final fallback to built-in tiny font if all files fail
-            font_small = font_small_bold = font_medium = font_large = font_huge = ImageFont.load_default()
+            d = ImageFont.load_default()
+            f_label = f_name = f_med = f_price = f_bot = d
 
-        # --- EXPERIMENTAL: LOAD DESIGN FROM DESIGNER ---
-        design_path = os.path.join(os.path.expanduser("~"), ".barcode_design.json")
-        design = {}
-        if os.path.exists(design_path):
-            try:
-                with open(design_path, 'r') as f:
-                    design = json.load(f)
-            except: pass
+        # ── 1. PRODUCT NAME SECTION ────────────────────────────────────────
+        draw.line([(0, NAME_Y), (W, NAME_Y)], fill=0, width=2)
+        draw.text((PAD, NAME_Y + 4), "NAMA PRODUK  产品名称  PRODUCT NAME", fill=0, font=f_label)
+        draw.line([(0, NAME_Y + 20), (W, NAME_Y + 20)], fill=0, width=1)
 
-        if design:
-            # RENDER FROM CUSTOM DESIGN
-            # DRAW REFERENCE LINES
-            col_split = int(width_px * 0.60)
-            row_a_split = int(height_px * 0.50)
-            
-            # 1. Vertical Split
-            draw.line([(col_split, 0), (col_split, height_px)], fill=0, width=2)
-            # 2. Left Column Horizontal Split
-            draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
-            # 3. Right Column Horizontal Splits
-            for i in range(1, 4):
-                draw.line([(col_split, i * 75), (width_px, i * 75)], fill=0, width=2)
+        description = data.get('description', '')
+        for i, line in enumerate(textwrap.wrap(description, width=26)[:2]):
+            draw.text((PAD, NAME_Y + 24 + i * 32), line, fill=0, font=f_name)
 
-            # 1. Product Name
-            pos = design.get("product_name", [10, 5])
-            draw.text((pos[0], pos[1]), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            desc_lines = textwrap.wrap(data.get('description', 'PRODUCT NAME'), width=22)
-            for i, line in enumerate(desc_lines[:2]):
-                draw.text((pos[0], pos[1] + 40 + i * 30), line, fill=0, font=font_huge)
-            
-            # 2. Product Code & Barcode
-            pos_label = design.get("product_code", [10, 155])
-            draw.text((pos_label[0], pos_label[1]), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
-            
-            barcode_value = data.get('barcode_value', '12345678')
-            pos_bc = design.get("barcode", [10, 175])
-            try:
-                rv = io.BytesIO()
-                Code128(barcode_value, writer=ImageWriter()).write(rv, options={
-                    "write_text": False, "module_height": 5.0, "module_width": 0.2, "quiet_zone": 1.0, 
-                    "background": "white", "foreground": "black"
-                })
-                rv.seek(0)
-                bc_img = Image.open(rv).convert('1')
-                bw, bh = bc_img.size
-                new_bw = int(bw * (60 / bh))
-                if new_bw > 250:
-                    new_bw = 250
-                bc_img = bc_img.resize((new_bw, 60))
-                image.paste(bc_img, (int(pos_bc[0]), int(pos_bc[1])))
-                # Barcode Value Text below barcode
-                draw.text((int(pos_bc[0]), int(pos_bc[1]) + 65), barcode_value, fill=0, font=font_medium)
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-                print("BARCODE ERROR:", e)
+        # ── 2. MIDDLE SECTION — barcode (left) + price (right) ────────────
+        draw.line([(0, MID_Y), (W, MID_Y)], fill=0, width=2)
+        draw.line([(COL, MID_Y), (COL, BOT_Y)], fill=0, width=2)
 
-            # 3. Price
-            pos = design.get("price", [200, 20])
-            pos[0] = col_split + 5
-            draw.text((pos[0], pos[1]), "PRICE (RM)", fill=0, font=font_small_bold)
-            draw.text((pos[0], pos[1] + 25), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
+        # Left: product code + barcode
+        draw.text((PAD, MID_Y + 4), "KOD PRODUK  产品编号  PRODUCT CODE", fill=0, font=f_label)
 
-            # 4. Expiry
-            pos = design.get("expiry", [200, 80])
-            pos[0] = col_split + 5
-            draw.text((pos[0], pos[1]), "EXPIRY", fill=0, font=font_small_bold)
-            draw.text((pos[0], pos[1] + 25), data.get('remark', ''), fill=0, font=font_medium)
+        barcode_value = data.get('barcode_value', '000000')
+        try:
+            from barcode import Code128
+            rv = io.BytesIO()
+            Code128(barcode_value, writer=ImageWriter()).write(rv, options={
+                "write_text": False, "module_height": 5.0, "module_width": 0.22,
+                "quiet_zone": 1.0, "background": "white", "foreground": "black"
+            })
+            rv.seek(0)
+            bc = Image.open(rv).convert('1')
+            bw, bh = bc.size
+            th = 60
+            tw = min(int(bw * th / bh), COL - PAD * 2)
+            bc = bc.resize((tw, th))
+            image.paste(bc, (PAD, MID_Y + 22))
+            draw.text((PAD, MID_Y + 22 + th + 2), barcode_value, fill=0, font=f_med)
+        except Exception as e:
+            print(f"Barcode render error: {e}")
+            draw.text((PAD, MID_Y + 30), barcode_value, fill=0, font=f_med)
 
-            # 5. Weight
-            pos = design.get("weight", [200, 140])
-            pos[0] = col_split + 5
-            draw.text((pos[0], pos[1]), "NET WEIGHT", fill=0, font=font_small_bold)
-            draw.text((pos[0], pos[1] + 25), data.get('net_weight', ''), fill=0, font=font_medium)
+        # Right: price
+        rx = COL + PAD
+        draw.text((rx, MID_Y + 4), "HARGA  价格  PRICE", fill=0, font=f_label)
+        price      = data.get('unit_price_integer', '0.00')
+        net_weight = data.get('net_weight', '')
+        price_line = f"RM {price}"
+        if net_weight:
+            price_line += f" / {net_weight}"
+        draw.text((rx, MID_Y + 30), price_line, fill=0, font=f_price)
 
-            # 6. Batch
-            pos = design.get("batch", [200, 200])
-            pos[0] = col_split + 5
-            draw.text((pos[0], pos[1]), "BATCH", fill=0, font=font_small_bold)
-            draw.text((pos[0], pos[1] + 25), data.get('batch', ''), fill=0, font=font_medium)
+        # ── 3. BOTTOM SECTION — expiry + batch ────────────────────────────
+        draw.line([(0, BOT_Y), (W, BOT_Y)], fill=0, width=2)
+        draw.text((PAD, BOT_Y + 4),
+                  "GUNA SBL  期满  EXP.     LOT  厂家编号  BATCH",
+                  fill=0, font=f_label)
 
-        else:
-            # ORIGINAL GRID LAYOUT FALLBACK
-            # 1. Split columns: Vertical line at 55% of width
-            col_split = int(width_px * 0.55)
-            draw.line([(col_split, 10), (col_split, height_px)], fill=0, width=2)
-            # 2. Column A Rows (Left side): 50% / 50% split
-            row_a_split = int(height_px * 0.50)
-            draw.line([(0, row_a_split), (col_split, row_a_split)], fill=0, width=2)
-            for i in range(1, 4):
-                row_y = int(height_px * (i * 0.25))
-                draw.line([(col_split, row_y), (width_px, row_y)], fill=0, width=2)
+        remark = data.get('remark', '')
+        batch  = data.get('batch', '')
+        draw.text((PAD, BOT_Y + 22), remark, fill=0, font=f_bot)
+        if batch:
+            draw.text((COL + PAD, BOT_Y + 22), batch, fill=0, font=f_bot)
 
-            description = data.get('description', 'NAMA PRODUK')
-            draw.text((20, 20), "NAMA PRODUK / PRODUCT NAME", fill=0, font=font_small_bold)
-            desc_lines = textwrap.wrap(description, width=22)
-            for i, line in enumerate(desc_lines[:2]):
-                draw.text((20, 60 + i * 30), line, fill=0, font=font_huge)
-            draw.text((20, 170), "KOD PRODUK / PRODUCT CODE", fill=0, font=font_small_bold)
-            barcode_value = data.get('barcode_value', '12345678')
-            try:
-                from barcode import Code128
-                rv = io.BytesIO()
-                Code128(barcode_value, writer=ImageWriter()).write(rv, options={"write_text": False, "module_height": 5.0, "module_width": 0.2, "quiet_zone": 1.0, "background": "white", "foreground": "black"})
-                rv.seek(0); bc_img = Image.open(rv).convert('1'); bw, bh = bc_img.size; nbw = int(bw * (60/bh))
-                if nbw > 250:
-                    nbw = 250
-                bc_img = bc_img.resize((nbw, 60)); image.paste(bc_img, (20, 190))
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-                print("BARCODE ERROR 2:", e)
-            draw.text((20, 255), barcode_value, fill=0, font=font_medium)
+        # ── outer border (full label) ──────────────────────────────────────
+        draw.rectangle([(0, 0), (W - 1, H - 1)], outline=0)
 
-            col_b_x = col_split + 5
-            draw.text((col_b_x, 25), "HARGA / PRICE (RM)", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 50), data.get('unit_price_integer', '0.00'), fill=0, font=font_medium)
-            draw.text((col_b_x, 85), "GUNA SBL / EXP", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 110), data.get('remark', ''), fill=0, font=font_medium)
-            draw.text((col_b_x, 160), "BERAT BERSIH / NET WT", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 185), data.get('net_weight', ''), fill=0, font=font_medium)
-            draw.text((col_b_x, 235), "LOT / BATCH", fill=0, font=font_small_bold)
-            draw.text((col_b_x, 260), data.get('batch', ''), fill=0, font=font_medium)
-
-        # Rotate 180 degrees (correction for upside-down printing)
         image = image.rotate(180)
-
         return image
 
     def to_tpsl_bitmap(self, image, x=0, y=0):
