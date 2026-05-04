@@ -169,8 +169,13 @@ class BarcodeApp(QMainWindow):
         
         self.printer_selector = QComboBox(self)
         self.printer_selector.setMinimumWidth(150)
+        self.printers_data = []
         self.populate_printers()
         self.printer_selector.currentIndexChanged.connect(self.handle_printer_selection)
+        
+        self.btn_refresh_printers = QPushButton("🔄", self)
+        self.btn_refresh_printers.setFixedWidth(40)
+        self.btn_refresh_printers.clicked.connect(self.populate_printers)
         
         self.sqlite_switch = QCheckBox("Use SQLite")
         self.sqlite_switch.setChecked(self.config.get_useSqlite())
@@ -186,6 +191,7 @@ class BarcodeApp(QMainWindow):
         search_layout.addWidget(self.sqlite_switch)
         search_layout.addWidget(QLabel("Printer:"))
         search_layout.addWidget(self.printer_selector)
+        search_layout.addWidget(self.btn_refresh_printers)
         search_layout.addWidget(QLabel("Size:"))
         search_layout.addWidget(self.barcode_size)
         search_layout.addWidget(self.search_for_uom)

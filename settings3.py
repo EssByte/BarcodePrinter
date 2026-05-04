@@ -330,6 +330,10 @@ class SettingsWindow(QMainWindow):
         self.wireless_mode.toggled.connect(self.onWirelessModeStateChanged)
         self.printer_list.currentIndexChanged.connect(self.update_printer_in_json)
         self.printer_name_field.textChanged.connect(lambda: self.save_current_printer_to_list())
+        self.printerVid.textChanged.connect(lambda: self.save_current_printer_to_list())
+        self.printerPid.textChanged.connect(lambda: self.save_current_printer_to_list())
+        self.endpoint.textChanged.connect(lambda: self.save_current_printer_to_list())
+        self.ip_address.textChanged.connect(lambda: self.save_current_printer_to_list())
         
         self.btn_add_printer.clicked.connect(self.add_new_printer_logic)
         self.btn_edit_printer.clicked.connect(self.edit_printer_logic)
