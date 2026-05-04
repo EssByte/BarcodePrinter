@@ -33,7 +33,7 @@ class ImagePrinter:
         """
         import platform
 
-        W, H = 600, 400
+        W, H = 570, 400
 
         # The pre-printed header occupies roughly the top 27% of the label.
         # We leave that area blank (white = no heat = pre-print shows through).
@@ -105,7 +105,8 @@ class ImagePrinter:
         draw.text((rx, MID_Y + 4), "HARGA  价格  PRICE", fill=0, font=f_label)
         price      = data.get('unit_price_integer', '0.00')
         net_weight = data.get('net_weight', '')
-        price_line = f"RM {price}"
+        # price from the table already contains the "RM " prefix
+        price_line = str(price)
         if net_weight:
             price_line += f" / {net_weight}"
         draw.text((rx, MID_Y + 30), price_line, fill=0, font=f_price)
