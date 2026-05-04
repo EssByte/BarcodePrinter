@@ -21,7 +21,11 @@ class BarcodeConfig(QObject):
 
     def __init__(self):
         super().__init__()
-        self.settings = QSettings("AlphaDigital", "BarcodePrinter")
+        # Ensure directory exists
+        if not os.path.exists("C:/barcode"):
+            try: os.makedirs("C:/barcode")
+            except: pass
+        self.settings = QSettings("C:/barcode/settings.ini", QSettings.IniFormat)
         self.json_path = "C:/barcode/barcode.json"
         self._ensure_default_printer()
 
@@ -52,6 +56,7 @@ class BarcodeConfig(QObject):
     def set_printers_list(self, printers):
         import json
         self.settings.setValue("printers_list", json.dumps(printers))
+        self.settings.sync()
         self.setting_changed.emit("printers_list", printers)
 
     def get_active_printer_id(self):
@@ -59,6 +64,7 @@ class BarcodeConfig(QObject):
 
     def set_active_printer_id(self, printer_id):
         self.settings.setValue("active_printer_id", printer_id)
+        self.settings.sync()
         self.setting_changed.emit("active_printer_id", printer_id)
 
     def get_active_printer_config(self):
@@ -75,6 +81,7 @@ class BarcodeConfig(QObject):
 
     def set_server(self, server):
         self.settings.setValue("server", server)
+        self.settings.sync()
         self.setting_changed.emit("server", server)
 
     def get_database(self):
@@ -82,6 +89,7 @@ class BarcodeConfig(QObject):
 
     def set_database(self, database):
         self.settings.setValue("database", database)
+        self.settings.sync()
         self.setting_changed.emit("database", database)
 
     def get_username(self):
@@ -89,6 +97,7 @@ class BarcodeConfig(QObject):
 
     def set_username(self, username):
         self.settings.setValue("username", username)
+        self.settings.sync()
         self.setting_changed.emit("username", username)
 
     def get_password(self):
@@ -96,6 +105,7 @@ class BarcodeConfig(QObject):
 
     def set_password(self, password):
         self.settings.setValue("password", password)
+        self.settings.sync()
         self.setting_changed.emit("password", password)
 
     def get_vid(self):
@@ -162,14 +172,16 @@ class BarcodeConfig(QObject):
         self.setting_changed.emit("zplTemplate", zpl_template)
 
     def get_tpsl_template(self):
-        return self.settings.value("tpslTemplate", "")
+        default = "SIZE 75 mm, 50 mm\nGAP 3 mm, 0 mm\nDIRECTION 1\nCLS\nTEXT 50,50,\"3\",0,1,1,\"Default TSPL\"\nPRINT 1"
+        return self.settings.value("tpslTemplate", default)
 
     def set_tpsl_template(self, tpsl_template):
         self.settings.setValue("tpslTemplate", tpsl_template)
         self.setting_changed.emit("tpslTemplate", tpsl_template)
 
     def get_tpsl_size80_template(self):
-        return self.settings.value("tpsl2")
+        default = "SIZE 80 mm, 50 mm\nGAP 3 mm, 0 mm\nDIRECTION 1\nCLS\nTEXT 50,50,\"3\",0,1,1,\"Size 80 TSPL\"\nPRINT 1"
+        return self.settings.value("tpsl2", default)
     
     def set_tpsl_size80_template(self, tpsl80_template):
         self.settings.setValue("tpsl2", tpsl80_template)
@@ -260,6 +272,7 @@ class BarcodeConfig(QObject):
 
     def set_database_driver_name(self, database_driver_name):
         self.settings.setValue("databaseDriverName", database_driver_name)
+        self.settings.sync()
         self.setting_changed.emit("databaseDriverName", database_driver_name)
 
     def get_hide_cost(self):
