@@ -25,6 +25,7 @@ class SettingsWindow(QMainWindow):
         self.driverInstaller = DriverInstaller()
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.config_path = r'C:\barcode\barcode.json'
+        self.printers_data = []
         
         self.setWindowTitle("System Settings")
         self.setMinimumSize(1200, 800)
@@ -222,6 +223,7 @@ class SettingsWindow(QMainWindow):
         self.databaseName = self.add_field(layout, "Database Name")
         self.userName = self.add_field(layout, "Authentication Username")
         self.password = self.add_field(layout, "Authentication Password", "password")
+        self.dbDriverName = self.add_field(layout, "SQL Driver Name (e.g. ODBC Driver 17 for SQL Server)")
         
         self.cb_trusted_connection = QCheckBox("Use Windows Trusted Connection")
         self.cb_trusted_connection.setStyleSheet("font-weight: 600; color: #475569; margin: 10px 0;")
@@ -430,6 +432,7 @@ class SettingsWindow(QMainWindow):
             self.databaseName.setText(self.config.get_database())
             self.userName.setText(self.config.get_username())
             self.password.setText(self.config.get_password())
+            self.dbDriverName.setText(self.config.get_database_driver_name())
             self.sqlite_path.setText(self.config.get_sqlPath())
             
             self.use_zpl.setChecked(self.config.get_use_zpl())
@@ -542,6 +545,7 @@ class SettingsWindow(QMainWindow):
             self.config.set_database(self.databaseName.text())
             self.config.set_username(self.userName.text())
             self.config.set_password(self.password.text())
+            self.config.set_database_driver_name(self.dbDriverName.text())
             self.config.set_trusted_connection(self.cb_trusted_connection.isChecked())
             self.config.set_sqlPath(self.sqlite_path.text())
             

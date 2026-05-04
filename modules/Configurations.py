@@ -256,7 +256,7 @@ class BarcodeConfig(QObject):
         self.setting_changed.emit("printerName", printer_name)
 
     def get_database_driver_name(self):
-        return self.settings.value("databaseDriverName", "ODBC Driver 18 for SQL Server")
+        return self.settings.value("databaseDriverName", "ODBC Driver 17 for SQL Server")
 
     def set_database_driver_name(self, database_driver_name):
         self.settings.setValue("databaseDriverName", database_driver_name)
