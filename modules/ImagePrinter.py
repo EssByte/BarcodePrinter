@@ -33,7 +33,7 @@ class ImagePrinter:
         """
         import platform
 
-        W, H = 700, 400
+        W, H = 730, 400
 
         # The pre-printed header occupies roughly the top 27% of the label.
         # We leave that area blank (white = no heat = pre-print shows through).
