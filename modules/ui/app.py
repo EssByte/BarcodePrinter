@@ -340,6 +340,7 @@ class BarcodeApp(QMainWindow):
             self.config.set_zplSize(selected_item)
 
     def populate_printers(self):
+        self.printer_selector.blockSignals(True)
         self.printer_selector.clear()
         self.printers_data = self.config.get_printers_list()
         active_id = self.config.get_active_printer_id()
@@ -347,6 +348,7 @@ class BarcodeApp(QMainWindow):
             self.printer_selector.addItem(p['name'], p['id'])
             if p['id'] == active_id:
                 self.printer_selector.setCurrentIndex(i)
+        self.printer_selector.blockSignals(False)
 
     def handle_printer_selection(self, index):
         if index < 0: return
