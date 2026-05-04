@@ -21,11 +21,7 @@ class BarcodeConfig(QObject):
 
     def __init__(self):
         super().__init__()
-        # Ensure directory exists
-        if not os.path.exists("C:/barcode"):
-            try: os.makedirs("C:/barcode")
-            except: pass
-        self.settings = QSettings("C:/barcode/settings.ini", QSettings.IniFormat)
+        self.settings = QSettings("AlphaDigital", "BarcodePrinter")
         self.json_path = "C:/barcode/barcode.json"
         self._ensure_default_printer()
 
