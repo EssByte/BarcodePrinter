@@ -28,14 +28,6 @@ class LabelDetailsDialog(QDialog):
         
         self.layout.addSpacing(15)
 
-        # Remark / Expiry Field
-        self.layout.addWidget(QLabel("Expiry Date / Remark:"))
-        self.et_remark = QLineEdit(self)
-        self.et_remark.setPlaceholderText("e.g. 2024-12-31")
-        self.layout.addWidget(self.et_remark)
-
-        self.layout.addSpacing(15)
-
         # Batch Field
         self.layout.addWidget(QLabel("Batch Number:"))
         self.et_batch = QLineEdit(self)
@@ -66,7 +58,6 @@ class LabelDetailsDialog(QDialog):
         
         # Connect enter key on all fields
         self.et_weight.returnPressed.connect(self.on_ok)
-        self.et_remark.returnPressed.connect(self.on_ok)
         self.et_batch.returnPressed.connect(self.on_ok)
 
         self.btn_layout.addWidget(self.btn_cancel)
@@ -75,13 +66,11 @@ class LabelDetailsDialog(QDialog):
         
         self.weight = ""
         self.batch = ""
-        self.remark = ""
         self.is_accepted = False
 
     def on_ok(self):
         self.weight = self.et_weight.text().strip()
         self.batch = self.et_batch.text().strip()
-        self.remark = self.et_remark.text().strip()
         self.is_accepted = True
         self.accept()
 
@@ -89,6 +78,5 @@ class LabelDetailsDialog(QDialog):
         return {
             'weight': self.weight,
             'batch': self.batch,
-            'remark': self.remark,
             'accepted': self.is_accepted
         }

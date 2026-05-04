@@ -241,7 +241,35 @@ class SettingsWindow(QMainWindow):
         self.content_stack.addWidget(page)
 
     def setup_printer_page(self):
-        page, layout = self.create_page("Printer Hardware", "Configure thermal printer connection modes")
+        page, layout = self.create_page("Printer Management", "Add and configure multiple barcode printers")
+        
+        main_hbox = QHBoxLayout()
+        layout.addLayout(main_hbox)
+
+        # Left side: List of printers
+        left_panel = QVBoxLayout()
+        self.printers_qlist = QListWidget()
+        self.printers_qlist.setFixedWidth(250)
+        self.printers_qlist.setStyleSheet("background: white; border: 1px solid #e2e8f0; border-radius: 8px;")
+        left_panel.addWidget(self.printers_qlist)
+
+        btn_hbox = QHBoxLayout()
+        self.btn_add_printer = QPushButton("Add")
+        self.btn_edit_printer = QPushButton("Edit")
+        self.btn_del_printer = QPushButton("Delete")
+        for b in [self.btn_add_printer, self.btn_edit_printer, self.btn_del_printer]:
+            b.setObjectName("btn_secondary")
+            btn_hbox.addWidget(b)
+        left_panel.addLayout(btn_hbox)
+        main_hbox.addLayout(left_panel)
+
+        # Right side: Details
+        self.details_pane = QWidget()
+        right_panel = QVBoxLayout(self.details_pane)
+        right_panel.setContentsMargins(20, 0, 0, 0)
+        main_hbox.addWidget(self.details_pane)
+
+        self.printer_name_field = self.add_field(right_panel, "Printer Display Name")
         
         self.mode_group = QButtonGroup()
         self.useGeneric = QRadioButton("Direct USB (PyUSB / Generic)")
@@ -251,10 +279,10 @@ class SettingsWindow(QMainWindow):
         for i, rb in enumerate([self.useGeneric, self.useCustom, self.wireless_mode]):
             rb.setStyleSheet("font-weight: 600; font-size: 14px; margin: 5px 0;")
             self.mode_group.addButton(rb, i)
-            layout.addWidget(rb)
+            right_panel.addWidget(rb)
         
         # Printer selection
-        self.printer_list = self.add_field(layout, "Detected Printer Devices / Spoolers", "combo")
+        self.printer_list = self.add_field(right_panel, "Detected Device / Spooler", "combo")
         
         # Details group
         details_frame = QFrame()
@@ -273,7 +301,8 @@ class SettingsWindow(QMainWindow):
         det_layout.addWidget(lbl_e, 2, 0); det_layout.addWidget(self.endpoint, 3, 0)
         det_layout.addWidget(lbl_ip, 2, 1); det_layout.addWidget(self.ip_address, 3, 1)
         
-        layout.addWidget(details_frame)
+        right_panel.addWidget(details_frame)
+        right_panel.addStretch()
         
         # Behavior
         self.useGeneric.toggled.connect(self.onWirelessModeStateChanged)
@@ -281,6 +310,11 @@ class SettingsWindow(QMainWindow):
         self.wireless_mode.toggled.connect(self.onWirelessModeStateChanged)
         self.printer_list.currentIndexChanged.connect(self.update_printer_in_json)
         
+        self.btn_add_printer.clicked.connect(self.add_new_printer_logic)
+        self.btn_edit_printer.clicked.connect(self.edit_printer_logic)
+        self.btn_del_printer.clicked.connect(self.delete_printer_logic)
+        self.printers_qlist.currentRowChanged.connect(self.load_selected_printer)
+
         self.content_stack.addWidget(page)
 
     def setup_general_page(self):
@@ -396,10 +430,6 @@ class SettingsWindow(QMainWindow):
             self.databaseName.setText(self.config.get_database())
             self.userName.setText(self.config.get_username())
             self.password.setText(self.config.get_password())
-            self.printerVid.setText(self.config.get_vid())
-            self.printerPid.setText(self.config.get_pid())
-            self.endpoint.setText(self.config.get_endpoint())
-            self.ip_address.setText(self.config.get_ip_address())
             self.sqlite_path.setText(self.config.get_sqlPath())
             
             self.use_zpl.setChecked(self.config.get_use_zpl())
@@ -415,16 +445,99 @@ class SettingsWindow(QMainWindow):
             self.combo_zpl_size.setCurrentText(self.config.get_zplSize())
             self.on_tpslSize_changed(); self.on_zplSize_changed()
             
-            if self.config.get_wireless_mode(): self.wireless_mode.setChecked(True)
-            elif self.config.get_use_generic_driver(): self.useGeneric.setChecked(True)
-            else: self.useCustom.setChecked(True)
-            
-            self.onWirelessModeStateChanged()
+            self.refresh_printer_list()
         except Exception as e:
             self.logger.error(f"Load error: {e}")
 
+    def refresh_printer_list(self):
+        self.printers_qlist.clear()
+        self.printers_data = self.config.get_printers_list()
+        for p in self.printers_data:
+            self.printers_qlist.addItem(p['name'])
+        
+        if self.printers_qlist.count() > 0:
+            active_id = self.config.get_active_printer_id()
+            for i in range(self.printers_qlist.count()):
+                if self.printers_data[i]['id'] == active_id:
+                    self.printers_qlist.setCurrentRow(i)
+                    break
+            else:
+                self.printers_qlist.setCurrentRow(0)
+
+    def load_selected_printer(self, row):
+        if row < 0 or row >= len(self.printers_data): return
+        p = self.printers_data[row]
+        self.printer_name_field.setText(p['name'])
+        self.printerVid.setText(p.get('vid', ''))
+        self.printerPid.setText(p.get('pid', ''))
+        self.endpoint.setText(p.get('endpoint', ''))
+        self.ip_address.setText(p.get('ip_address', ''))
+        
+        mode = p.get('mode', 'USB')
+        if mode == 'USB': self.useGeneric.setChecked(True)
+        elif mode == 'System': self.useCustom.setChecked(True)
+        else: self.wireless_mode.setChecked(True)
+        
+        self.onWirelessModeStateChanged()
+        
+        if mode == 'System':
+            self.printer_list.setCurrentText(p.get('system_name', ''))
+
+    def save_current_printer_to_list(self):
+        row = self.printers_qlist.currentRow()
+        if row < 0: return
+        
+        p = self.printers_data[row]
+        p['name'] = self.printer_name_field.text()
+        p['vid'] = self.printerVid.text()
+        p['pid'] = self.printerPid.text()
+        p['endpoint'] = self.endpoint.text()
+        p['ip_address'] = self.ip_address.text()
+        
+        if self.useGeneric.isChecked(): p['mode'] = 'USB'
+        elif self.useCustom.isChecked(): 
+            p['mode'] = 'System'
+            p['system_name'] = self.printer_list.currentText()
+        else: p['mode'] = 'Network'
+        
+        self.printers_data[row] = p
+        self.printers_qlist.item(row).setText(p['name'])
+
+    def add_new_printer_logic(self):
+        import uuid
+        new_p = {
+            "id": str(uuid.uuid4()),
+            "name": "New Printer",
+            "mode": "USB",
+            "vid": "0x0000",
+            "pid": "0x0000",
+            "endpoint": "0x01",
+            "ip_address": "127.0.0.1",
+            "system_name": ""
+        }
+        self.printers_data.append(new_p)
+        self.printers_qlist.addItem(new_p['name'])
+        self.printers_qlist.setCurrentRow(len(self.printers_data) - 1)
+
+    def edit_printer_logic(self):
+        pass
+
+    def delete_printer_logic(self):
+        row = self.printers_qlist.currentRow()
+        if row < 0: return
+        if len(self.printers_data) <= 1:
+            QMessageBox.warning(self, "Warning", "You must have at least one printer.")
+            return
+        
+        confirm = QMessageBox.question(self, "Delete", f"Delete printer '{self.printers_data[row]['name']}'?", QMessageBox.Yes | QMessageBox.No)
+        if confirm == QMessageBox.Yes:
+            self.printers_data.pop(row)
+            self.refresh_printer_list()
+
     def update_data(self):
         try:
+            self.save_current_printer_to_list()
+            
             self.config.set_server(self.serverName.text())
             self.config.set_database(self.databaseName.text())
             self.config.set_username(self.userName.text())
@@ -432,12 +545,10 @@ class SettingsWindow(QMainWindow):
             self.config.set_trusted_connection(self.cb_trusted_connection.isChecked())
             self.config.set_sqlPath(self.sqlite_path.text())
             
-            self.config.set_vid(self.printerVid.text())
-            self.config.set_pid(self.printerPid.text())
-            self.config.set_endpoint(self.endpoint.text())
-            self.config.set_ip_address(self.ip_address.text())
-            self.config.set_wireless_mode(self.wireless_mode.isChecked())
-            self.config.set_use_generic_driver(self.useGeneric.isChecked())
+            self.config.set_printers_list(self.printers_data)
+            active_row = self.printers_qlist.currentRow()
+            if active_row >= 0:
+                self.config.set_active_printer_id(self.printers_data[active_row]['id'])
             
             self.config.set_company_name(self.companyName.text())
             self.config.set_location(self.location.text())
@@ -449,7 +560,6 @@ class SettingsWindow(QMainWindow):
             # Templates
             if self.config.get_tpslSize() == self.options[0]: self.config.set_tpsl_template(self.tpslCommand.toPlainText())
             elif self.config.get_tpslSize() == self.options[1]: self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
-            # ... and so on
             
             QMessageBox.information(self, "Success", "All settings saved successfully.")
             self.close()

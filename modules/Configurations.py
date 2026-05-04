@@ -23,6 +23,51 @@ class BarcodeConfig(QObject):
         super().__init__()
         self.settings = QSettings("AlphaDigital", "BarcodePrinter")
         self.json_path = "C:/barcode/barcode.json"
+        self._ensure_default_printer()
+
+    def _ensure_default_printer(self):
+        """Ensures at least one printer exists if none are configured."""
+        if not self.get_printers_list():
+            default_printer = {
+                "id": "default",
+                "name": "Default Printer",
+                "mode": "USB" if self.get_use_generic_driver() else ("Network" if self.get_wireless_mode() else "System"),
+                "vid": self.get_vid(),
+                "pid": self.get_pid(),
+                "endpoint": self.get_endpoint(),
+                "ip_address": self.get_ip_address(),
+                "system_name": self.get_printer_name()
+            }
+            self.set_printers_list([default_printer])
+            self.set_active_printer_id("default")
+
+    def get_printers_list(self):
+        import json
+        data = self.settings.value("printers_list", "[]")
+        try:
+            return json.loads(data)
+        except:
+            return []
+
+    def set_printers_list(self, printers):
+        import json
+        self.settings.setValue("printers_list", json.dumps(printers))
+        self.setting_changed.emit("printers_list", printers)
+
+    def get_active_printer_id(self):
+        return self.settings.value("active_printer_id", "default")
+
+    def set_active_printer_id(self, printer_id):
+        self.settings.setValue("active_printer_id", printer_id)
+        self.setting_changed.emit("active_printer_id", printer_id)
+
+    def get_active_printer_config(self):
+        printers = self.get_printers_list()
+        active_id = self.get_active_printer_id()
+        for p in printers:
+            if p["id"] == active_id:
+                return p
+        return printers[0] if printers else None
 
     # Getters and Setters
     def get_server(self):

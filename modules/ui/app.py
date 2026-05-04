@@ -163,6 +163,11 @@ class BarcodeApp(QMainWindow):
         self.barcode_size.addItems(self.options)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
         
+        self.printer_selector = QComboBox(self)
+        self.printer_selector.setMinimumWidth(150)
+        self.populate_printers()
+        self.printer_selector.currentIndexChanged.connect(self.handle_printer_selection)
+        
         self.sqlite_switch = QCheckBox("Use SQLite")
         self.sqlite_switch.setChecked(self.config.get_useSqlite())
         self.sqlite_switch.stateChanged.connect(self.toggle_database_mode)
@@ -175,6 +180,9 @@ class BarcodeApp(QMainWindow):
         search_layout.addWidget(search_label)
         search_layout.addWidget(self.item_code_input)
         search_layout.addWidget(self.sqlite_switch)
+        search_layout.addWidget(QLabel("Printer:"))
+        search_layout.addWidget(self.printer_selector)
+        search_layout.addWidget(QLabel("Size:"))
         search_layout.addWidget(self.barcode_size)
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
@@ -182,13 +190,14 @@ class BarcodeApp(QMainWindow):
 
         # Table UI
         self.item_table = QTableWidget(self)
-        self.item_table.setColumnCount(10)
-        self.item_table.setHorizontalHeaderLabels(["*", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost", "Barcode", "Location", "Price", "Copies"])
+        self.item_table.setColumnCount(11)
+        self.item_table.setHorizontalHeaderLabels(["*", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost", "Barcode", "Location", "Price", "Remark", "Copies"])
         self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.item_table.setSelectionMode(QTableWidget.NoSelection)
         self.item_table.verticalHeader().setDefaultSectionSize(45)
         self.item_table.setColumnWidth(0, 50)
-        self.item_table.setColumnWidth(9, 100)
+        self.item_table.setColumnWidth(9, 150) # Remark
+        self.item_table.setColumnWidth(10, 80) # Copies
         self.item_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
         grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
 
@@ -325,6 +334,20 @@ class BarcodeApp(QMainWindow):
             self.config.set_tpslSize(selected_item)
         else:
             self.config.set_zplSize(selected_item)
+
+    def populate_printers(self):
+        self.printer_selector.clear()
+        self.printers_data = self.config.get_printers_list()
+        active_id = self.config.get_active_printer_id()
+        for i, p in enumerate(self.printers_data):
+            self.printer_selector.addItem(p['name'], p['id'])
+            if p['id'] == active_id:
+                self.printer_selector.setCurrentIndex(i)
+
+    def handle_printer_selection(self, index):
+        if index < 0: return
+        printer_id = self.printer_selector.itemData(index)
+        self.config.set_active_printer_id(printer_id)
     
     def check_version(self):
         repo_owner = "PersonX-46"
@@ -364,10 +387,13 @@ class BarcodeApp(QMainWindow):
                 ti = QTableWidgetItem(str(val)); ti.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled); ti.setTextAlignment(Qt.AlignCenter)
                 self.item_table.setItem(row, col, ti)
             
+            rmk = QTableWidgetItem(""); rmk.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled); rmk.setTextAlignment(Qt.AlignCenter)
+            self.item_table.setItem(row, 9, rmk)
+
             cp = QTableWidgetItem("1"); cp.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled); cp.setTextAlignment(Qt.AlignCenter)
-            self.item_table.setItem(row, 9, cp)
+            self.item_table.setItem(row, 10, cp)
             if row % 2 == 0:
-                for c in range(10): self.item_table.item(row, c).setBackground(QBrush(QColor(248, 250, 252)))
+                for c in range(11): self.item_table.item(row, c).setBackground(QBrush(QColor(248, 250, 252)))
 
         self.update_pagination_buttons()
         self.restore_column_widths()
@@ -396,28 +422,40 @@ class BarcodeApp(QMainWindow):
         if details_dialog.exec_() != LabelDetailsDialog.Accepted: return
 
         meta = details_dialog.get_data()
-        remark_text = meta['remark']
         net_weight_val = meta['weight']
         batch_val = meta['batch']
         
         send_command = SendCommand()
-        printer = None
+        printer_config = self.config.get_active_printer_config()
+        if not printer_config:
+            QMessageBox.critical(self, 'Error', 'No active printer configuration found.')
+            return
+
+        mode = printer_config.get('mode', 'USB')
+        usb_printer = None
         
         try:
-            if self.config.get_use_generic_driver():
-                printer = usb.core.find(idVendor=self.config.get_vid(), idProduct=self.config.get_pid(), backend=self.backend)
-                if printer is None:
-                    QMessageBox.warning(self, 'Printer Error', 'Printer not found via USB.')
+            if mode == 'USB':
+                vid = int(printer_config['vid'], 16) if '0x' in printer_config['vid'] else int(printer_config['vid'])
+                pid = int(printer_config['pid'], 16) if '0x' in printer_config['pid'] else int(printer_config['pid'])
+                usb_printer = usb.core.find(idVendor=vid, idProduct=pid, backend=self.backend)
+                if usb_printer is None:
+                    QMessageBox.warning(self, 'Printer Error', f'Printer {printer_config["name"]} not found via USB.')
                     return
-                printer.set_configuration()
-            else:
-                ip, port = self.config.get_ip_address().split(":") if self.config.get_wireless_mode() else (None, None)
+                usb_printer.set_configuration()
+            elif mode == 'Network':
+                ip_full = printer_config.get('ip_address', '127.0.0.1:9100')
+                if ":" in ip_full:
+                    ip, port = ip_full.split(":")
+                else:
+                    ip, port = ip_full, "9100"
 
             for row in selected_rows:
                 desc = self.item_table.item(row, 2).text().replace('"', '')
                 price = self.item_table.item(row, 8).text()
                 bc = self.item_table.item(row, 6).text()
-                qty = self.item_table.item(row, 9).text()
+                remark_text = self.item_table.item(row, 9).text()
+                qty = self.item_table.item(row, 10).text()
                 
                 d1, d2 = split_description(desc)
                 sz = self.barcode_size.currentText()
@@ -441,16 +479,17 @@ class BarcodeApp(QMainWindow):
                     )
                     if self.config.get_use_zpl(): printer_clear = "^XA^CLS^XZ"
 
-                if self.config.get_use_generic_driver():
+                if mode == 'USB':
                     payload = print_data.encode('utf-8') if isinstance(print_data, str) else print_data
-                    printer.write(0x01, payload)
-                elif self.config.get_wireless_mode():
+                    usb_printer.write(int(printer_config.get('endpoint', '0x01'), 16), payload)
+                elif mode == 'Network':
                     send_command.send_wireless_command(ip, port, printer_clear, print_data)
-                else:
-                    send_command.send_win32print(self.config.get_printer_name(), printer_clear)
-                    send_command.send_win32print(self.config.get_printer_name(), print_data)
+                else: # System
+                    sys_name = printer_config.get('system_name', '')
+                    send_command.send_win32print(sys_name, printer_clear)
+                    send_command.send_win32print(sys_name, print_data)
 
-            QMessageBox.information(self, 'Success', 'Successfully sent all items to the printer!')
+            QMessageBox.information(self, 'Success', f'Successfully sent all items to {printer_config["name"]}!')
         except Exception as e:
             QMessageBox.critical(self, 'Printing Error', f"An error occurred: {e}")
         finally:
