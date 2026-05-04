@@ -18,10 +18,10 @@ from modules import CheckDriver, SendCommand, Configurations
 from modules.InstallDriver import DriverInstaller
 
 class SettingsWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, config=None):
         super(SettingsWindow, self).__init__()
         self.logger = setup_logger('SettingsModern')
-        self.config = Configurations.BarcodeConfig()
+        self.config = config if config is not None else Configurations.BarcodeConfig()
         self.driverInstaller = DriverInstaller()
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.config_path = r'C:\barcode\barcode.json'
@@ -492,28 +492,40 @@ class SettingsWindow(QMainWindow):
 
     def load_selected_printer(self, row):
         if row < 0 or row >= len(self.printers_data): return
-        
+
         # Save previous row before switching
         if self.current_printer_row != -1 and self.current_printer_row != row:
             self.save_current_printer_to_list(self.current_printer_row)
-            
+
         self.current_printer_row = row
         p = self.printers_data[row]
-        self.printer_name_field.setText(p['name'])
-        self.printerVid.setText(p.get('vid', ''))
-        self.printerPid.setText(p.get('pid', ''))
-        self.endpoint.setText(p.get('endpoint', ''))
-        self.ip_address.setText(p.get('ip_address', ''))
-        
-        mode = p.get('mode', 'USB')
-        if mode == 'USB': self.useGeneric.setChecked(True)
-        elif mode == 'System': self.useCustom.setChecked(True)
-        else: self.wireless_mode.setChecked(True)
-        
-        self.onWirelessModeStateChanged()
-        
-        if mode == 'System':
-            self.printer_list.setCurrentText(p.get('system_name', ''))
+
+        # Block signals to prevent cascading overwrites (e.g. radio toggle -> populate_printer_list
+        # -> currentIndexChanged -> update_printer_in_json overwriting the data we're loading).
+        _widgets = [self.printer_name_field, self.printerVid, self.printerPid,
+                    self.endpoint, self.ip_address, self.printer_list,
+                    self.useGeneric, self.useCustom, self.wireless_mode]
+        for w in _widgets:
+            w.blockSignals(True)
+        try:
+            self.printer_name_field.setText(p['name'])
+            self.printerVid.setText(p.get('vid', ''))
+            self.printerPid.setText(p.get('pid', ''))
+            self.endpoint.setText(p.get('endpoint', ''))
+            self.ip_address.setText(p.get('ip_address', ''))
+
+            mode = p.get('mode', 'USB')
+            if mode == 'USB': self.useGeneric.setChecked(True)
+            elif mode == 'System': self.useCustom.setChecked(True)
+            else: self.wireless_mode.setChecked(True)
+
+            self.onWirelessModeStateChanged()
+
+            if mode == 'System':
+                self.printer_list.setCurrentText(p.get('system_name', ''))
+        finally:
+            for w in _widgets:
+                w.blockSignals(False)
 
     def save_current_printer_to_list(self, row=None):
         if row is None: row = self.printers_qlist.currentRow()
@@ -558,19 +570,43 @@ class SettingsWindow(QMainWindow):
 
     def add_new_printer_logic(self):
         import uuid
+
+        if self.useGeneric.isChecked():
+            mode = 'USB'
+        elif self.useCustom.isChecked():
+            mode = 'System'
+        else:
+            mode = 'Network'
+
+        # Pre-populate from the currently-selected device in the dropdown
+        data = self.printer_list.currentData()
+        vid, pid, endpoint, system_name, name = "0x0000", "0x0000", "0x01", "", "New Printer"
+
+        if mode == 'USB' and data:
+            raw_vid, raw_pid, eps = data
+            vid = str(raw_vid)
+            pid = str(raw_pid)
+            endpoint = str(eps[0]) if eps else "0x01"
+            name = self.printer_list.currentText()
+        elif mode == 'System':
+            system_name = self.printer_list.currentText() or ""
+            name = system_name or "New Printer"
+
         new_p = {
             "id": str(uuid.uuid4()),
-            "name": "New Printer",
-            "mode": "USB",
-            "vid": "0x0000",
-            "pid": "0x0000",
-            "endpoint": "0x01",
-            "ip_address": "127.0.0.1",
-            "system_name": ""
+            "name": name,
+            "mode": mode,
+            "vid": vid,
+            "pid": pid,
+            "endpoint": endpoint,
+            "ip_address": self.ip_address.text() if mode == 'Network' else "127.0.0.1",
+            "system_name": system_name
         }
         self.printers_data.append(new_p)
         self.printers_qlist.addItem(new_p['name'])
         self.printers_qlist.setCurrentRow(len(self.printers_data) - 1)
+        # Persist immediately so the main app's printer selector picks it up
+        self.config.set_printers_list(self.printers_data)
 
     def edit_printer_logic(self):
         pass

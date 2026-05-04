@@ -525,8 +525,8 @@ class BarcodeApp(QMainWindow):
             w = self.settings.value(f"column_width_{i}", type=int)
             if w: self.item_table.setColumnWidth(i, w)
             
-    def open_settings(self): 
-        self.settings_window = PasswordCheck()
+    def open_settings(self):
+        self.settings_window = PasswordCheck(self.config)
         self.settings_window.show()
 
     def open_dashboard(self): 
