@@ -70,8 +70,7 @@ class ImagePrinter:
         draw.text((PAD, NAME_Y + 4), "NAMA PRODUK  产品名称  PRODUCT NAME", fill=0, font=f_label)
 
         description = data.get('description', '')
-        for i, line in enumerate(textwrap.wrap(description, width=26)[:2]):
-            draw.text((PAD, NAME_Y + 24 + i * 32), line, fill=0, font=f_name)
+        draw.text((PAD, NAME_Y + 30), description[:40], fill=0, font=f_name)
 
         # ── 2. MIDDLE SECTION — barcode (left) + price (right) ────────────
         draw.line([(0, MID_Y), (W, MID_Y)], fill=0, width=2)
