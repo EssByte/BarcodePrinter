@@ -67,9 +67,7 @@ class ImagePrinter:
             f_label = f_name = f_med = f_price = f_bot = d
 
         # ── 1. PRODUCT NAME SECTION ────────────────────────────────────────
-        draw.line([(0, NAME_Y), (W, NAME_Y)], fill=0, width=2)
         draw.text((PAD, NAME_Y + 4), "NAMA PRODUK  产品名称  PRODUCT NAME", fill=0, font=f_label)
-        draw.line([(0, NAME_Y + 20), (W, NAME_Y + 20)], fill=0, width=1)
 
         description = data.get('description', '')
         for i, line in enumerate(textwrap.wrap(description, width=26)[:2]):
@@ -163,7 +161,7 @@ class ImagePrinter:
             # but we log it to console
             print(f"Warning: Failed to save debug image to 'images/' folder: {e}")
 
-        bitmap_data = self.to_tpsl_bitmap(image, 50, 0)
+        bitmap_data = self.to_tpsl_bitmap(image, 10, 0)
         
         header = (
             "SPEED 2.0\r\n"
