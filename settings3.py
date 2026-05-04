@@ -325,9 +325,9 @@ class SettingsWindow(QMainWindow):
         right_panel.addStretch()
         
         # Behavior
-        self.useGeneric.toggled.connect(self.onWirelessModeStateChanged)
-        self.useCustom.toggled.connect(self.onWirelessModeStateChanged)
-        self.wireless_mode.toggled.connect(self.onWirelessModeStateChanged)
+        self.useGeneric.toggled.connect(lambda: [self.onWirelessModeStateChanged(), self.save_current_printer_to_list()])
+        self.useCustom.toggled.connect(lambda: [self.onWirelessModeStateChanged(), self.save_current_printer_to_list()])
+        self.wireless_mode.toggled.connect(lambda: [self.onWirelessModeStateChanged(), self.save_current_printer_to_list()])
         self.printer_list.currentIndexChanged.connect(self.update_printer_in_json)
         self.printer_name_field.textChanged.connect(lambda: self.save_current_printer_to_list())
         self.printerVid.textChanged.connect(lambda: self.save_current_printer_to_list())
@@ -636,12 +636,14 @@ class SettingsWindow(QMainWindow):
     def update_printer_in_json(self):
         data = self.printer_list.currentData()
         if not data: return
+        
         if self.useGeneric.isChecked():
             vid, pid, eps = data
             self.printerVid.setText(str(vid)); self.printerPid.setText(str(pid))
             if eps: self.endpoint.setText(str(eps[0]))
-        else:
-            self.config.set_printer_name(data)
+        
+        # Always sync with the current printer profile
+        self.save_current_printer_to_list()
 
     def on_tpslSize_changed(self):
         size = self.combo_tpsl_size.currentText()
