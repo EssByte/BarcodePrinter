@@ -7,8 +7,9 @@ import sys
 import os
 
 class PasswordCheck(QMainWindow):
-    def __init__(self):
+    def __init__(self, config=None):
         super().__init__()
+        self.config = config
         self.setWindowTitle("Authorization")
         self.setFixedSize(450, 400)
         
@@ -135,8 +136,8 @@ class PasswordCheck(QMainWindow):
             QMessageBox.warning(self, "Error", "Incorrect password!")
 
     def open_main_window(self):
-        self.close()  # Close the password window
-        self.main_window = SettingsWindow()
+        self.close()
+        self.main_window = SettingsWindow(self.config)
         self.main_window.show()
 
 
