@@ -26,6 +26,7 @@ class SettingsWindow(QMainWindow):
         self.backend = usb.backend.libusb1.get_backend(find_library=self.resource_path('libusb-1.0.ddl'))
         self.config_path = r'C:\barcode\barcode.json'
         self.printers_data = []
+        self.current_printer_row = -1
         
         self.setWindowTitle("System Settings")
         self.setMinimumSize(1200, 800)
@@ -321,6 +322,7 @@ class SettingsWindow(QMainWindow):
         self.useCustom.toggled.connect(self.onWirelessModeStateChanged)
         self.wireless_mode.toggled.connect(self.onWirelessModeStateChanged)
         self.printer_list.currentIndexChanged.connect(self.update_printer_in_json)
+        self.printer_name_field.textChanged.connect(lambda: self.save_current_printer_to_list())
         
         self.btn_add_printer.clicked.connect(self.add_new_printer_logic)
         self.btn_edit_printer.clicked.connect(self.edit_printer_logic)
@@ -479,6 +481,12 @@ class SettingsWindow(QMainWindow):
 
     def load_selected_printer(self, row):
         if row < 0 or row >= len(self.printers_data): return
+        
+        # Save previous row before switching
+        if self.current_printer_row != -1 and self.current_printer_row != row:
+            self.save_current_printer_to_list(self.current_printer_row)
+            
+        self.current_printer_row = row
         p = self.printers_data[row]
         self.printer_name_field.setText(p['name'])
         self.printerVid.setText(p.get('vid', ''))
@@ -496,9 +504,9 @@ class SettingsWindow(QMainWindow):
         if mode == 'System':
             self.printer_list.setCurrentText(p.get('system_name', ''))
 
-    def save_current_printer_to_list(self):
-        row = self.printers_qlist.currentRow()
-        if row < 0: return
+    def save_current_printer_to_list(self, row=None):
+        if row is None: row = self.printers_qlist.currentRow()
+        if row < 0 or row >= len(self.printers_data): return
         
         p = self.printers_data[row]
         p['name'] = self.printer_name_field.text()
