@@ -182,13 +182,13 @@ class ImagePrinter:
             from barcode import Code128
             rv = io.BytesIO()
             Code128(barcode_value, writer=ImageWriter()).write(rv, options={
-                "write_text": False, "module_height": 4.0, "module_width": 0.2,
+                "write_text": False, "module_height": 5.0, "module_width": 0.22,
                 "quiet_zone": 1.0, "background": "white", "foreground": "black"
             })
             rv.seek(0)
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
-            th = 35 # Shorter barcode to save space
+            th = 45 # Increased height
             tw = min(int(bw * th / bh), 260) 
             bc = bc.resize((tw, th))
             image.paste(bc, (BASE_X, curr_y))
