@@ -164,7 +164,7 @@ class ImagePrinter:
             d = ImageFont.load_default()
             f_comp = f_code = f_name = f_price = d
 
-        curr_y = 5
+        curr_y = 15
         
         # 1. Company Name
         comp_name = data.get('company_name', '').upper()
