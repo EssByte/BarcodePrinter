@@ -27,8 +27,8 @@ class RemarkDialog(QDialog):
         self.btn_write.clicked.connect(self.on_write)
 
         # Improve visibility of the input field
-        self.et_remark.setMinimumHeight(45)
-        self.et_remark.setStyleSheet("padding: 8px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 6px;")
+        self.et_remark.setMinimumHeight(60)
+        self.et_remark.setStyleSheet("padding: 2px 10px; font-size: 18px; border: 2px solid #3498db; border-radius: 8px;")
     
     
         self.__remark = ""
