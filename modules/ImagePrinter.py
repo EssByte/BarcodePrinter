@@ -140,7 +140,7 @@ class ImagePrinter:
         import platform
         # Using a similar scaling to the 75x55 one (approx 9.8 dots/mm for width, 8 for height)
         # 35mm * 9.8 = 343, 25mm * 8 = 200
-        W, H = 343, 200
+        W, H = 300, 200
         PAD = 10
 
         image = Image.new('1', (W, H), 1)
