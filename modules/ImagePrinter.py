@@ -127,6 +127,95 @@ class ImagePrinter:
         image = image.rotate(180)
         return image
 
+    def render_35x25_label(self, data):
+        """
+        Renders a simple label for 35mm x 25mm stickers.
+        Layout:
+          COMPANY NAME
+          ITEM CODE
+          [barcode]
+          ITEM NAME (wrapped)
+          PRICE (RM XX.XX)
+        """
+        import platform
+        # Using a similar scaling to the 75x55 one (approx 9.8 dots/mm for width, 8 for height)
+        # 35mm * 9.8 = 343, 25mm * 8 = 200
+        W, H = 343, 200
+        PAD = 10
+
+        image = Image.new('1', (W, H), 1)
+        draw = ImageDraw.Draw(image)
+
+        if platform.system() == "Windows":
+            fp = "C:\\Windows\\Fonts\\msyh.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyh.ttc") else "arial.ttf"
+            fb = "C:\\Windows\\Fonts\\msyhbd.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyhbd.ttc") else fp
+        else:
+            fp = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
+            fb = fp
+
+        try:
+            f_comp  = ImageFont.truetype(fb, 18) # Company Name
+            f_code  = ImageFont.truetype(fb, 18) # Item Code
+            f_name  = ImageFont.truetype(fp, 16) # Item Name
+            f_price = ImageFont.truetype(fb, 28) # Price
+        except:
+            d = ImageFont.load_default()
+            f_comp = f_code = f_name = f_price = d
+
+        curr_y = 5
+        
+        # 1. Company Name
+        comp_name = data.get('company_name', '').upper()
+        draw.text((PAD, curr_y), comp_name, fill=0, font=f_comp)
+        curr_y += 22
+
+        # 2. Item Code
+        item_code = data.get('item_code', '')
+        draw.text((PAD, curr_y), item_code, fill=0, font=f_code)
+        curr_y += 22
+
+        # 3. Barcode
+        barcode_value = data.get('barcode_value', '000000')
+        try:
+            from barcode import Code128
+            rv = io.BytesIO()
+            Code128(barcode_value, writer=ImageWriter()).write(rv, options={
+                "write_text": False, "module_height": 5.0, "module_width": 0.2,
+                "quiet_zone": 1.0, "background": "white", "foreground": "black"
+            })
+            rv.seek(0)
+            bc = Image.open(rv).convert('1')
+            bw, bh = bc.size
+            # Barcode should be wide enough but not too tall
+            th = 40
+            tw = min(int(bw * th / bh), W - PAD * 2)
+            bc = bc.resize((tw, th))
+            image.paste(bc, (PAD, curr_y))
+            curr_y += th + 2
+        except Exception as e:
+            print(f"Barcode render error: {e}")
+            draw.text((PAD, curr_y), barcode_value, fill=0, font=f_name)
+            curr_y += 20
+
+        # 4. Item Name (Description)
+        desc = data.get('description', '')
+        # Wrap description
+        wrapped_desc = textwrap.wrap(desc, width=30)
+        for line in wrapped_desc[:2]: # Show max 2 lines
+            draw.text((PAD, curr_y), line, fill=0, font=f_name)
+            curr_y += 18
+
+        # 5. Price
+        price = data.get('unit_price_integer', '0.00')
+        if price.startswith("RM "):
+            price = price[3:]
+        price_text = f"RM {price}"
+        # Draw price large at the bottom
+        draw.text((PAD, H - 40), price_text, fill=0, font=f_price)
+
+        image = image.rotate(180)
+        return image
+
     def to_tpsl_bitmap(self, image, x=0, y=0):
         """
         Converts a Pillow image to a GW (Graphic Write) command.
@@ -145,7 +234,7 @@ class ImagePrinter:
         
         return header + data
 
-    def get_full_command(self, image, copies=1):
+    def get_full_command(self, image, copies=1, width_mm=75, height_mm=50):
         """Wraps the bitmap in standard TPSL start/end commands"""
         # Automatically save a copy of the image to the images/ folder for debugging
         try:
@@ -166,7 +255,7 @@ class ImagePrinter:
             "SPEED 2.0\r\n"
             "DENSITY 7\r\n"
             "DIRECTION 0\r\n"
-            "SIZE 75MM, 50MM\r\n"
+            f"SIZE {width_mm}MM, {height_mm}MM\r\n"
             "REFERENCE 0,0\r\n"
             "CLS\r\n"
         ).encode('utf-8')

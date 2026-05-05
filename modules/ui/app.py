@@ -163,7 +163,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["size1", "size2", "size3", "75x55 (Graphic)"]
+        self.options = ["size1", "size2", "size3", "75x55 (Graphic)", "35x25 (Graphic)"]
         self.barcode_size.addItems(self.options)
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
         
@@ -476,11 +476,22 @@ class BarcodeApp(QMainWindow):
                 
                 if "Graphic" in sz:
                     image_printer = ImagePrinter()
-                    im = image_printer.render_fun_bake_label({
-                        'description': desc, 'barcode_value': bc, 'remark': remark_text, 
-                        'unit_price_integer': price, 'net_weight': net_weight_val, 'batch': batch_val
-                    })
-                    print_data = image_printer.get_full_command(im, copies=int(qty))
+                    if "35x25" in sz:
+                        item_code = self.item_table.item(row, 1).text()
+                        im = image_printer.render_35x25_label({
+                            'company_name': self.config.get_company_name(),
+                            'item_code': item_code,
+                            'description': desc, 
+                            'barcode_value': bc, 
+                            'unit_price_integer': price
+                        })
+                        print_data = image_printer.get_full_command(im, copies=int(qty), width_mm=35, height_mm=25)
+                    else:
+                        im = image_printer.render_fun_bake_label({
+                            'description': desc, 'barcode_value': bc, 'remark': remark_text, 
+                            'unit_price_integer': price, 'net_weight': net_weight_val, 'batch': batch_val
+                        })
+                        print_data = image_printer.get_full_command(im, copies=int(qty), width_mm=75, height_mm=50)
                     printer_clear = b""
                 else:
                     tmpl = self.get_current_template()
