@@ -25,6 +25,10 @@ class RemarkDialog(QDialog):
         # Connect buttons to their respective slots
         self.btn_cancel.clicked.connect(self.on_cancel)
         self.btn_write.clicked.connect(self.on_write)
+
+        # Improve visibility of the input field
+        self.et_remark.setMinimumHeight(45)
+        self.et_remark.setStyleSheet("padding: 8px; font-size: 14px; border: 2px solid #e2e8f0; border-radius: 6px;")
     
     
         self.__remark = ""
