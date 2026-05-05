@@ -138,10 +138,12 @@ class ImagePrinter:
           PRICE (RM XX.XX)
         """
         import platform
-        # Using a similar scaling to the 75x55 one (approx 9.8 dots/mm for width, 8 for height)
-        # 35mm * 9.8 = 343, 25mm * 8 = 200
-        W, H = 280, 200
+        # Wider canvas to accommodate printer offsets. 
+        # Increase MARGIN to move content RIGHT, decrease to move LEFT.
+        W, H = 600, 250 
+        MARGIN = 260 
         PAD = 10
+        BASE_X = MARGIN + PAD
 
         image = Image.new('1', (W, H), 1)
         draw = ImageDraw.Draw(image)
@@ -166,12 +168,12 @@ class ImagePrinter:
         
         # 1. Company Name
         comp_name = data.get('company_name', '').upper()
-        draw.text((PAD, curr_y), comp_name, fill=0, font=f_comp)
+        draw.text((BASE_X, curr_y), comp_name, fill=0, font=f_comp)
         curr_y += 22
 
         # 2. Item Code
         item_code = data.get('item_code', '')
-        draw.text((PAD, curr_y), item_code, fill=0, font=f_code)
+        draw.text((BASE_X, curr_y), item_code, fill=0, font=f_code)
         curr_y += 22
 
         # 3. Barcode
@@ -186,23 +188,21 @@ class ImagePrinter:
             rv.seek(0)
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
-            # Barcode should be wide enough but not too tall
             th = 40
-            tw = min(int(bw * th / bh), W - PAD * 2)
+            tw = min(int(bw * th / bh), 280) # Keep barcode within sticker width
             bc = bc.resize((tw, th))
-            image.paste(bc, (PAD, curr_y))
+            image.paste(bc, (BASE_X, curr_y))
             curr_y += th + 2
         except Exception as e:
             print(f"Barcode render error: {e}")
-            draw.text((PAD, curr_y), barcode_value, fill=0, font=f_name)
+            draw.text((BASE_X, curr_y), barcode_value, fill=0, font=f_name)
             curr_y += 20
 
         # 4. Item Name (Description)
         desc = data.get('description', '')
-        # Wrap description
-        wrapped_desc = textwrap.wrap(desc, width=30)
-        for line in wrapped_desc[:2]: # Show max 2 lines
-            draw.text((PAD, curr_y), line, fill=0, font=f_name)
+        wrapped_desc = textwrap.wrap(desc, width=25) # Narrower wrap for 35mm
+        for line in wrapped_desc[:2]:
+            draw.text((BASE_X, curr_y), line, fill=0, font=f_name)
             curr_y += 18
 
         # 5. Price
@@ -210,8 +210,7 @@ class ImagePrinter:
         if price.startswith("RM "):
             price = price[3:]
         price_text = f"RM {price}"
-        # Draw price large at the bottom
-        draw.text((PAD, H - 40), price_text, fill=0, font=f_price)
+        draw.text((BASE_X, H - 45), price_text, fill=0, font=f_price)
 
         image = image.rotate(180)
         return image
