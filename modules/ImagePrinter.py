@@ -140,8 +140,8 @@ class ImagePrinter:
         import platform
         # Wider canvas to accommodate printer offsets. 
         # Increase MARGIN to move content RIGHT, decrease to move LEFT.
-        W, H = 600, 250 
-        MARGIN = 260 
+        W, H = 500, 200 
+        MARGIN = 100 
         PAD = 10
         BASE_X = MARGIN + PAD
 
@@ -157,9 +157,9 @@ class ImagePrinter:
 
         try:
             f_comp  = ImageFont.truetype(fb, 18) # Company Name
-            f_code  = ImageFont.truetype(fb, 18) # Item Code
-            f_name  = ImageFont.truetype(fp, 16) # Item Name
-            f_price = ImageFont.truetype(fb, 28) # Price
+            f_code  = ImageFont.truetype(fb, 16) # Item Code (slightly smaller)
+            f_name  = ImageFont.truetype(fp, 14) # Item Name (slightly smaller)
+            f_price = ImageFont.truetype(fb, 26) # Price (slightly smaller)
         except:
             d = ImageFont.load_default()
             f_comp = f_code = f_name = f_price = d
@@ -169,12 +169,12 @@ class ImagePrinter:
         # 1. Company Name
         comp_name = data.get('company_name', '').upper()
         draw.text((BASE_X, curr_y), comp_name, fill=0, font=f_comp)
-        curr_y += 22
+        curr_y += 20
 
         # 2. Item Code
         item_code = data.get('item_code', '')
         draw.text((BASE_X, curr_y), item_code, fill=0, font=f_code)
-        curr_y += 22
+        curr_y += 18
 
         # 3. Barcode
         barcode_value = data.get('barcode_value', '000000')
@@ -182,35 +182,36 @@ class ImagePrinter:
             from barcode import Code128
             rv = io.BytesIO()
             Code128(barcode_value, writer=ImageWriter()).write(rv, options={
-                "write_text": False, "module_height": 5.0, "module_width": 0.2,
+                "write_text": False, "module_height": 4.0, "module_width": 0.2,
                 "quiet_zone": 1.0, "background": "white", "foreground": "black"
             })
             rv.seek(0)
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
-            th = 40
-            tw = min(int(bw * th / bh), 280) # Keep barcode within sticker width
+            th = 35 # Shorter barcode to save space
+            tw = min(int(bw * th / bh), 260) 
             bc = bc.resize((tw, th))
             image.paste(bc, (BASE_X, curr_y))
-            curr_y += th + 2
+            curr_y += th + 4
         except Exception as e:
             print(f"Barcode render error: {e}")
             draw.text((BASE_X, curr_y), barcode_value, fill=0, font=f_name)
-            curr_y += 20
+            curr_y += 18
 
         # 4. Item Name (Description)
         desc = data.get('description', '')
-        wrapped_desc = textwrap.wrap(desc, width=25) # Narrower wrap for 35mm
+        wrapped_desc = textwrap.wrap(desc, width=28) 
         for line in wrapped_desc[:2]:
             draw.text((BASE_X, curr_y), line, fill=0, font=f_name)
-            curr_y += 18
+            curr_y += 15
 
         # 5. Price
         price = data.get('unit_price_integer', '0.00')
         if price.startswith("RM "):
             price = price[3:]
         price_text = f"RM {price}"
-        draw.text((BASE_X, H - 45), price_text, fill=0, font=f_price)
+        # Position price near the bottom
+        draw.text((BASE_X, H - 35), price_text, fill=0, font=f_price)
 
         image = image.rotate(180)
         return image
