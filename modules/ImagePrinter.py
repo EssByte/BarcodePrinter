@@ -200,7 +200,7 @@ class ImagePrinter:
 
         # 4. Item Name (Description)
         desc = data.get('description', '')
-        wrapped_desc = textwrap.wrap(desc, width=28) 
+        wrapped_desc = textwrap.wrap(desc, width=25) 
         for line in wrapped_desc[:2]:
             draw.text((BASE_X, curr_y), line, fill=0, font=f_name)
             curr_y += 15
