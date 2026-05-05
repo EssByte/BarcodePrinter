@@ -204,7 +204,7 @@ class BarcodeApp(QMainWindow):
         self.item_table.setHorizontalHeaderLabels(["*", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost", "Barcode", "Location", "Price", "Remark", "Copies"])
         self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.item_table.setSelectionMode(QTableWidget.NoSelection)
-        self.item_table.verticalHeader().setDefaultSectionSize(45)
+        self.item_table.verticalHeader().setDefaultSectionSize(60)
         self.item_table.setColumnWidth(0, 50)
         self.item_table.setColumnWidth(9, 150) # Remark
         self.item_table.setColumnWidth(10, 80) # Copies
