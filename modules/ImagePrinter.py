@@ -140,8 +140,8 @@ class ImagePrinter:
         import platform
         # Wider canvas to accommodate printer offsets. 
         # Increase MARGIN to move content RIGHT, decrease to move LEFT.
-        W, H = 500, 200 
-        MARGIN = 100 
+        W, H = 300, 200 
+        MARGIN = 10 
         PAD = 10
         BASE_X = MARGIN + PAD
 
