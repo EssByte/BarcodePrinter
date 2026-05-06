@@ -209,10 +209,10 @@ class ImagePrinter:
             draw.text((BASE_X, curr_y), line, fill=0, font=f_name)
             curr_y += 15
 
-        # 4b. Remark (below description)
+        # 4b. Remark (below description, right side)
         remark = data.get('remark', '')
         if remark:
-            draw.text((BASE_X, curr_y), remark, fill=0, font=f_name)
+            draw.text((350, curr_y), remark, fill=0, font=f_name)
             curr_y += 15
 
         # 5. Price
