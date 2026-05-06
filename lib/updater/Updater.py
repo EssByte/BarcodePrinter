@@ -49,7 +49,7 @@ class UpdateThread(QThread):
 class Updater(QWidget):
     def __init__(self):
         super().__init__()
-        self.repo_owner = "PersonX-46"
+        self.repo_owner = "EssByte"
         self.repo_name = "BarcodePrinter"
         self.install_path = r"C:\barcode"
         self.thread = None
