@@ -479,7 +479,6 @@ class BarcodeApp(QMainWindow):
                     if "35x25" in sz or "Size 1" in sz:
                         item_code = self.item_table.item(row, 1).text()
                         remark = self.item_table.item(row, 9).text()
-                        print(f"[DEBUG] Remark field value: '{remark}'")
                         im = image_printer.render_35x25_label({
                             'company_name': self.config.get_company_name(),
                             'item_code': item_code,
