@@ -26,17 +26,37 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
-    - name: Build Barcode Printer
+    - name: Clean up previous builds
       run: |
-        pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --add-data "ui;ui" --add-data "images;images" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
+        if (Test-Path "dist") { Remove-Item "dist" -Recurse -Force }
+        if (Test-Path "build") { Remove-Item "build" -Recurse -Force }
+        "BarcodePrinter.spec", "Updater.spec", "InstallationWizard.spec" | ForEach-Object { if (Test-Path $_) { Remove-Item $_ -Force } }
 
     - name: Get Version
       id: get_version
       run: |
-        $version = (Get-Content version.py) -replace '__version__ = "', '' -replace '"', ''
+        $version = (Get-Content version.py) -replace '__version__ = "', '' -replace '".*$', ''
         echo "VERSION=$version" >> $env:GITHUB_ENV
 
+    - name: Build Barcode Printer
+      run: |
+        pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --add-data "modules;modules" --add-data "ui;ui" --add-data "images;images" --add-data "lib;lib" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
+
+    - name: Build Updater
+      run: |
+        pyinstaller --noconfirm --onefile --console --name "Updater" --icon=images/logo.ico --add-data "lib/updater;lib/updater" --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
+
+    - name: Build Installation Wizard
+      run: |
+        pyinstaller --noconfirm --onefile --console --name "InstallationWizard" --icon=images/logo.ico --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests InstallationWizard.py
+
+    - name: Copy DLL to dist
+      run: |
+        New-Item -ItemType Directory -Force -Path dist | Out-Null
+        Copy-Item "libusb-1.0.dll" "dist\libusb-1.0.dll"
+
     - name: Create Release
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
@@ -46,12 +66,18 @@ jobs:
         prerelease: false
         files: |
           dist/BarcodePrinter.exe
-          libusb-1.0.dll
+          dist/Updater.exe
+          dist/InstallationWizard.exe
+          dist/libusb-1.0.dll
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Upload Artifact
+    - name: Upload All Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: BarcodePrinter-EXE
-        path: dist/BarcodePrinter.exe
+        name: BarcodePrinter-Build-Artifacts
+        path: |
+          dist/BarcodePrinter.exe
+          dist/Updater.exe
+          dist/InstallationWizard.exe
+          dist/libusb-1.0.dll
