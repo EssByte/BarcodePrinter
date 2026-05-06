@@ -15,8 +15,8 @@ class InstallerWizard(QWizard):
         uic.loadUi(self.resource_path("qwizard.ui"), self)  # Load the .ui file
 
         # GitHub file URLs (Replace these with your actual URLs)
-        self.main_exe_url = "https://github.com/PersonX-46/BarcodePrinter/releases/latest/download/BarcodePrinter.exe"
-        self.updater_exe_url = "https://github.com/PersonX-46/BarcodePrinter/releases/latest/download/Updater.exe"
+        self.main_exe_url = "https://github.com/EssByte/BarcodePrinter/releases/latest/download/BarcodePrinter.exe"
+        self.updater_exe_url = "https://github.com/EssByte/BarcodePrinter/releases/latest/download/Updater.exe"
 
         self.setWindowIcon(QIcon(self.resource_path("logo.ico")))
 
