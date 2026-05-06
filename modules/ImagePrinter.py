@@ -37,12 +37,12 @@ class ImagePrinter:
         #   75mm  → 75  × (203/25.4) ≈ 601 px wide
         #   50mm  → 50  × (203/25.4) ≈ 400 px tall
         # Canvas was previously 735px wide (≈98 DPI), making everything ~22% too wide.
-        W, H = 601, 400
+        W, H = 650, 400
 
         # The pre-printed header occupies roughly the top 27% of the label.
         # We leave that area blank (white = no heat = pre-print shows through).
         HEADER_SKIP = 108   # px of blank space at top matching the header height
-        COL          = 301  # x of vertical divider between barcode and price columns (proportional to 735→601)
+        COL          = 326  # x of vertical divider between barcode and price columns (proportional to 735→650)
         PAD          = 8    # inner horizontal padding
 
         NAME_Y = HEADER_SKIP
