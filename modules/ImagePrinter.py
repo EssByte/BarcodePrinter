@@ -211,6 +211,7 @@ class ImagePrinter:
 
         # 4b. Remark (below description, right side)
         remark = data.get('remark', '')
+        print(f"[DEBUG] render_35x25_label received remark: '{remark}'")
         if remark:
             draw.text((350, curr_y), remark, fill=0, font=f_name)
             curr_y += 15
