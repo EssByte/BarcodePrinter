@@ -209,6 +209,12 @@ class ImagePrinter:
             draw.text((BASE_X, curr_y), line, fill=0, font=f_name)
             curr_y += 15
 
+        # 4b. Remark (below description)
+        remark = data.get('remark', '')
+        if remark:
+            draw.text((BASE_X, curr_y), remark, fill=0, font=f_name)
+            curr_y += 15
+
         # 5. Price
         price = data.get('unit_price_integer', '0.00')
         if price.startswith("RM "):
