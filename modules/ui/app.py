@@ -482,6 +482,7 @@ class BarcodeApp(QMainWindow):
                             'company_name': self.config.get_company_name(),
                             'item_code': item_code,
                             'description': desc, 
+                            'remark': remark_text,
                             'barcode_value': bc, 
                             'unit_price_integer': price
                         })
