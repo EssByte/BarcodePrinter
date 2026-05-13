@@ -164,20 +164,24 @@ class SettingsWindow(QMainWindow):
         # We'll add it to each page manually or in a global bottom bar.
         # Let's add a global bottom bar to the content stack area.
         
-        self.content_layout_wrapper = QVBoxLayout()
-        self.content_layout_wrapper.addWidget(self.content_stack)
-        
+        # Top action bar
+        self.top_bar = QFrame()
+        self.top_bar.setStyleSheet("background-color: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px;")
+        self.top_layout = QHBoxLayout(self.top_bar)
+        self.top_layout.addStretch()
+        self.top_layout.addWidget(self.btn_cancel)
+        self.top_layout.addWidget(self.btn_save_all)
+
         self.bottom_bar = QFrame()
         self.bottom_bar.setStyleSheet("background-color: white; border-top: 1px solid #e2e8f0; padding: 10px;")
         self.bottom_layout = QHBoxLayout(self.bottom_bar)
         self.bottom_layout.addStretch()
-        self.bottom_layout.addWidget(self.btn_cancel)
-        self.bottom_layout.addWidget(self.btn_save_all)
-        
+
         # Re-organize layout
         self.content_container = QWidget()
         self.content_container_layout = QVBoxLayout(self.content_container)
         self.content_container_layout.setContentsMargins(0,0,0,0)
+        self.content_container_layout.addWidget(self.top_bar)
         self.content_container_layout.addWidget(self.content_stack)
         self.content_container_layout.addWidget(self.bottom_bar)
         
