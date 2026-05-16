@@ -135,13 +135,13 @@ class CanvasView(QGraphicsView):
 
     def __init__(self):
         super().__init__()
-        self.scene = QGraphicsScene(0, 0, 800, 300) # Default canvas size approx 75x50
+        self.scene = QGraphicsScene(0, 0, 750, 550) # Canvas size for 75x55mm label
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
         self.scene.selectionChanged.connect(self.on_selection_changed)
 
         # Boundary
-        self.boundary = QGraphicsRectItem(0, 0, 800, 300)
+        self.boundary = QGraphicsRectItem(0, 0, 750, 550)
         self.boundary.setPen(QPen(QColor("#cbd5e1"), 2, Qt.DashLine))
         self.scene.addItem(self.boundary)
 
@@ -377,8 +377,8 @@ class BarcodeDesigner(QWidget):
                 "remark": "Test Remark"
             }
             
-            img = ip.render_custom_label(test_data, layout_dict, W=600, H=400)
-            print_data = ip.get_full_command(img, copies=1, width_mm=75, height_mm=50)
+            img = ip.render_custom_label(test_data, layout_dict, W=750, H=550)
+            print_data = ip.get_full_command(img, copies=1, width_mm=75, height_mm=55)
 
             # 2. Send Command
             sc = SendCommand()
