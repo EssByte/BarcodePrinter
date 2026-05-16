@@ -166,14 +166,16 @@ class SettingsWindow(QMainWindow):
         
         # Top action bar
         self.top_bar = QFrame()
-        self.top_bar.setStyleSheet("background-color: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px;")
+        self.top_bar.setObjectName("top_bar")
+        self.top_bar.setStyleSheet("QFrame#top_bar { background-color: white; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; }")
         self.top_layout = QHBoxLayout(self.top_bar)
         self.top_layout.addStretch()
         self.top_layout.addWidget(self.btn_cancel)
         self.top_layout.addWidget(self.btn_save_all)
 
         self.bottom_bar = QFrame()
-        self.bottom_bar.setStyleSheet("background-color: white; border-top: 1px solid #e2e8f0; padding: 10px;")
+        self.bottom_bar.setObjectName("bottom_bar")
+        self.bottom_bar.setStyleSheet("QFrame#bottom_bar { background-color: white; border-top: 1px solid #e2e8f0; padding: 10px; }")
         self.bottom_layout = QHBoxLayout(self.bottom_bar)
         self.bottom_layout.addStretch()
 
@@ -230,6 +232,7 @@ class SettingsWindow(QMainWindow):
         self.password = self.add_field(layout, "Authentication Password", "password")
         
         lbl_driver = QLabel("SQL Driver Name (e.g. ODBC Driver 17 for SQL Server)"); lbl_driver.setObjectName("field_label")
+        lbl_driver.setWordWrap(True)
         layout.addWidget(lbl_driver)
         h_driver_box = QHBoxLayout()
         self.dbDriverName = QLineEdit()
@@ -267,7 +270,8 @@ class SettingsWindow(QMainWindow):
         left_panel = QVBoxLayout()
         self.printers_qlist = QListWidget()
         self.printers_qlist.setFixedWidth(250)
-        self.printers_qlist.setStyleSheet("background: white; border: 1px solid #e2e8f0; border-radius: 8px;")
+        self.printers_qlist.setObjectName("printers_qlist")
+        self.printers_qlist.setStyleSheet("QListWidget#printers_qlist { background: white; border: 1px solid #e2e8f0; border-radius: 8px; }")
         left_panel.addWidget(self.printers_qlist)
 
         btn_hbox = QHBoxLayout()
@@ -303,7 +307,8 @@ class SettingsWindow(QMainWindow):
         
         # Details group
         details_frame = QFrame()
-        details_frame.setStyleSheet("background: white; border: 1px solid #e2e8f0; border-radius: 10px;")
+        details_frame.setObjectName("details_frame")
+        details_frame.setStyleSheet("QFrame#details_frame { background: white; border: 1px solid #e2e8f0; border-radius: 10px; }")
         det_layout = QGridLayout(details_frame)
         det_layout.setContentsMargins(20, 20, 20, 20)
         
@@ -420,7 +425,8 @@ class SettingsWindow(QMainWindow):
 
         # Designer Container
         designer_frame = QFrame()
-        designer_frame.setStyleSheet("background: white; border-radius: 15px; border: 1px solid #e2e8f0;")
+        designer_frame.setObjectName("designer_frame")
+        designer_frame.setStyleSheet("QFrame#designer_frame { background: white; border-radius: 15px; border: 1px solid #e2e8f0; }")
         designer_layout = QVBoxLayout(designer_frame)
         designer_layout.setContentsMargins(10, 10, 10, 10)
 

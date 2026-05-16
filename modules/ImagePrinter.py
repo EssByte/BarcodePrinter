@@ -168,17 +168,17 @@ class ImagePrinter:
             d = ImageFont.load_default()
             f_comp = f_code = f_name = f_price = d
 
-        curr_y = 15
+        curr_y = 10
         
         # 1. Company Name
         comp_name = data.get('company_name', '').upper()
         draw.text((BASE_X, curr_y), comp_name, fill=0, font=f_comp)
-        curr_y += 20
+        curr_y += 18
 
         # 2. Item Code
         item_code = data.get('item_code', '')
         draw.text((BASE_X, curr_y), item_code, fill=0, font=f_code)
-        curr_y += 18
+        curr_y += 16
 
         # 3. Barcode
         barcode_value = data.get('barcode_value', '000000')
@@ -192,8 +192,8 @@ class ImagePrinter:
             rv.seek(0)
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
-            th = 45 # Increased height
-            tw = min(int(bw * th / bh), 260) 
+            th = 60 # Increased height for larger barcode
+            tw = min(int(bw * th / bh), 300) # Increased max width
             bc = bc.resize((tw, th))
             image.paste(bc, (BASE_X, curr_y))
             curr_y += th + 4
