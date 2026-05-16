@@ -4,7 +4,7 @@ import uuid
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
                              QGraphicsView, QGraphicsScene, QGraphicsTextItem, 
                              QGraphicsRectItem, QGraphicsLineItem, QGraphicsItem,
-                             QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox)
+                             QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox, QMessageBox)
 from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF
 
@@ -67,6 +67,7 @@ class CustomRectItem(QGraphicsRectItem, BaseElement):
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.box_width = width
         self.box_height = height
+        self.barcode_value = "{{barcode_value}}"
         self._update_rect()
         
         if e_type == "barcode":
@@ -83,13 +84,15 @@ class CustomRectItem(QGraphicsRectItem, BaseElement):
         d = super().to_dict()
         d.update({"width": self.box_width, "height": self.box_height})
         if self.element_type == "barcode":
-            d.update({"value": "{{barcode_value}}"})
+            d.update({"value": self.barcode_value})
         return d
 
     def load_dict(self, data):
         super().load_dict(data)
         self.box_width = data.get("width", 100)
         self.box_height = data.get("height", 50)
+        if self.element_type == "barcode":
+            self.barcode_value = data.get("value", "{{barcode_value}}")
         self._update_rect()
 
 class CustomLineItem(QGraphicsLineItem, BaseElement):
@@ -191,6 +194,20 @@ class BarcodeDesigner(QWidget):
 
         for btn in [btn_text, btn_barcode, btn_line, btn_block, btn_delete, btn_save]:
             tool_layout.addWidget(btn)
+        
+        # Printing Section
+        tool_layout.addSpacing(20)
+        tool_layout.addWidget(QLabel("<b>Printer</b>"))
+        
+        self.printer_combo = QComboBox()
+        self.load_printers()
+        tool_layout.addWidget(self.printer_combo)
+        
+        btn_print = QPushButton("Print Layout")
+        btn_print.setStyleSheet("background-color: #3b82f6; color: white; padding: 10px; font-weight: bold;")
+        btn_print.clicked.connect(self.print_layout)
+        tool_layout.addWidget(btn_print)
+        
         tool_layout.addStretch()
 
         # 2. Canvas (Center)
@@ -248,6 +265,11 @@ class BarcodeDesigner(QWidget):
 
             self.prop_layout.addRow("Width:", self.w_edit)
             self.prop_layout.addRow("Height:", self.h_edit)
+            
+            if item.element_type == "barcode":
+                self.val_edit = QLineEdit(item.barcode_value)
+                self.val_edit.textChanged.connect(self.apply_properties)
+                self.prop_layout.addRow("Value:", self.val_edit)
 
         elif isinstance(item, CustomLineItem):
             self.l_edit = QSpinBox(); self.l_edit.setRange(10, 800); self.l_edit.setValue(item.length)
@@ -274,6 +296,8 @@ class BarcodeDesigner(QWidget):
         elif isinstance(item, CustomRectItem):
             item.box_width = self.w_edit.value()
             item.box_height = self.h_edit.value()
+            if item.element_type == "barcode" and hasattr(self, 'val_edit'):
+                item.barcode_value = self.val_edit.text()
             item._update_rect()
         elif isinstance(item, CustomLineItem):
             item.length = self.l_edit.value()
@@ -320,3 +344,78 @@ class BarcodeDesigner(QWidget):
                 self.canvas.scene.addItem(item)
         except Exception as e:
             print("Failed to load design:", e)
+
+    def load_printers(self):
+        from modules.Configurations import BarcodeConfig
+        self.config = BarcodeConfig()
+        printers = self.config.get_printers_list()
+        for p in printers:
+            self.printer_combo.addItem(p.get("name", "Unknown"), p)
+
+    def print_layout(self):
+        printer_data = self.printer_combo.currentData()
+        if not printer_data:
+            QMessageBox.warning(self, "No Printer", "Please select a printer first.")
+            return
+            
+        from modules.ImagePrinter import ImagePrinter
+        from modules.SendCommand import SendCommand
+        import usb.core
+        import usb.backend.libusb1
+        import sys
+        
+        try:
+            # 1. Render Image
+            ip = ImagePrinter()
+            layout_dict = self.get_design_dict()
+            
+            # Create some dummy data or grab real data. Here we can use generic placeholders for a test print
+            test_data = {
+                "barcode_value": "1234567890",
+                "description": "Custom Print Test",
+                "unit_price_integer": "99.90",
+                "remark": "Test Remark"
+            }
+            
+            img = ip.render_custom_label(test_data, layout_dict, W=600, H=400)
+            print_data = ip.get_full_command(img, copies=1, width_mm=75, height_mm=50)
+
+            # 2. Send Command
+            sc = SendCommand()
+            mode = printer_data.get('mode', 'USB')
+            
+            if mode == 'USB':
+                vid = int(printer_data['vid'], 16) if '0x' in printer_data['vid'] else int(printer_data['vid'])
+                pid = int(printer_data['pid'], 16) if '0x' in printer_data['pid'] else int(printer_data['pid'])
+                
+                def resource_path(relative_path):
+                    try:
+                        base_path = sys._MEIPASS
+                    except Exception:
+                        base_path = os.path.abspath(".")
+                    return os.path.join(base_path, relative_path)
+
+                backend = usb.backend.libusb1.get_backend(find_library=resource_path('libusb-1.0.ddl'))
+                usb_printer = usb.core.find(idVendor=vid, idProduct=pid, backend=backend)
+                
+                if not usb_printer:
+                    QMessageBox.warning(self, "Printer Error", "Could not find USB printer.")
+                    return
+                
+                usb_printer.set_configuration()
+                ep = int(printer_data.get('endpoint', '0x01'), 16)
+                usb_printer.write(ep, print_data)
+                usb.util.dispose_resources(usb_printer)
+                
+            elif mode == 'Network':
+                ip_full = printer_data.get('ip_address', '127.0.0.1:9100')
+                ip_addr, port = ip_full.split(":") if ":" in ip_full else (ip_full, "9100")
+                sc.send_wireless_command(ip_addr, port, b"CLS", print_data)
+            else: # System
+                sys_name = printer_data.get('system_name', '')
+                sc.send_win32print(sys_name, b"CLS")
+                sc.send_win32print(sys_name, print_data)
+
+            QMessageBox.information(self, "Success", "Custom layout sent to printer successfully!")
+        except Exception as e:
+            QMessageBox.critical(self, "Print Error", f"Failed to print: {e}")
