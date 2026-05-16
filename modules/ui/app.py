@@ -145,6 +145,11 @@ class BarcodeApp(QMainWindow):
         settings_action.triggered.connect(self.open_settings)
         file_menu.addAction(settings_action)
 
+        layout_menu = menu_bar.addMenu('Layout Designer')
+        layout_action = QAction('Open Custom Layout Designer', self)
+        layout_action.triggered.connect(self.open_layout_designer)
+        layout_menu.addAction(layout_action)
+
         # Search UI
         search_layout = QHBoxLayout()
         search_label = QLabel("Search:")
@@ -545,6 +550,14 @@ class BarcodeApp(QMainWindow):
     def open_dashboard(self): 
         self.dashboard_window = DashboardWindow()
         self.dashboard_window.show()
+
+    def open_layout_designer(self):
+        from modules.barcode_designer import BarcodeDesigner
+        # Open the widget as a standalone window
+        self.designer_window = BarcodeDesigner()
+        self.designer_window.setWindowTitle("Custom Layout Designer")
+        self.designer_window.resize(1000, 600)
+        self.designer_window.show()
 
     def closeEvent(self, e): 
         self.save_column_widths()
