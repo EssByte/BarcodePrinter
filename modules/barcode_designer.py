@@ -222,9 +222,18 @@ class BarcodeDesigner(QWidget):
         tool_layout.addSpacing(20)
         tool_layout.addWidget(QLabel("<b>Printer</b>"))
         
+        printer_layout = QHBoxLayout()
         self.printer_combo = QComboBox()
         self.load_printers()
-        tool_layout.addWidget(self.printer_combo)
+        self.printer_combo.currentIndexChanged.connect(self.handle_printer_selection)
+        
+        self.btn_refresh_printers = QPushButton("🔄")
+        self.btn_refresh_printers.setFixedWidth(40)
+        self.btn_refresh_printers.clicked.connect(self.load_printers)
+        
+        printer_layout.addWidget(self.printer_combo)
+        printer_layout.addWidget(self.btn_refresh_printers)
+        tool_layout.addLayout(printer_layout)
         
         btn_print = QPushButton("Print Layout")
         btn_print.setStyleSheet("background-color: #3b82f6; color: white; padding: 10px; font-weight: bold;")
@@ -371,17 +380,26 @@ class BarcodeDesigner(QWidget):
     def load_printers(self):
         from modules.Configurations import BarcodeConfig
         self.config = BarcodeConfig()
+        
+        self.printer_combo.blockSignals(True)
+        self.printer_combo.clear()
         printers = self.config.get_printers_list()
         active_id = self.config.get_active_printer_id()
         
         for i, p in enumerate(printers):
-            self.printer_combo.addItem(p.get("name", "Unknown"), p)
+            self.printer_combo.addItem(p.get("name", "Unknown"), p.get("id"))
             if p.get("id") == active_id:
                 self.printer_combo.setCurrentIndex(i)
+        self.printer_combo.blockSignals(False)
+
+    def handle_printer_selection(self, index):
+        if index < 0: return
+        printer_id = self.printer_combo.itemData(index)
+        self.config.set_active_printer_id(printer_id)
 
     def print_layout(self):
-        printer_data = self.printer_combo.currentData()
-        if not printer_data:
+        printer_config = self.config.get_active_printer_config()
+        if not printer_config:
             QMessageBox.warning(self, "No Printer", "Please select a printer first.")
             return
             
@@ -409,11 +427,11 @@ class BarcodeDesigner(QWidget):
 
             # 2. Send Command
             sc = SendCommand()
-            mode = printer_data.get('mode', 'USB')
+            mode = printer_config.get('mode', 'USB')
             
             if mode == 'USB':
-                vid = int(printer_data['vid'], 16) if '0x' in printer_data['vid'] else int(printer_data['vid'])
-                pid = int(printer_data['pid'], 16) if '0x' in printer_data['pid'] else int(printer_data['pid'])
+                vid = int(printer_config['vid'], 16) if '0x' in printer_config['vid'] else int(printer_config['vid'])
+                pid = int(printer_config['pid'], 16) if '0x' in printer_config['pid'] else int(printer_config['pid'])
                 
                 def resource_path(relative_path):
                     try:
