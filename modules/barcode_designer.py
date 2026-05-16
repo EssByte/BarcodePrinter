@@ -4,7 +4,7 @@ import uuid
 from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
                              QGraphicsView, QGraphicsScene, QGraphicsTextItem, 
                              QGraphicsRectItem, QGraphicsLineItem, QGraphicsItem,
-                             QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox)
+                             QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox)
 from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF
 
@@ -170,16 +170,16 @@ class BarcodeDesigner(QWidget):
         tool_layout.addWidget(QLabel("<b>Tools</b>"))
         
         btn_text = QPushButton("Add Text")
-        btn_text.clicked.connect(lambda: self.add_element(CustomTextItem("New Text", (20, 20))))
+        btn_text.clicked.connect(lambda *args: self.add_element(CustomTextItem("New Text", (20, 20))))
         
         btn_barcode = QPushButton("Add Barcode")
-        btn_barcode.clicked.connect(lambda: self.add_element(CustomRectItem(200, 50, (20, 20), "barcode")))
+        btn_barcode.clicked.connect(lambda *args: self.add_element(CustomRectItem(200, 50, (20, 20), "barcode")))
         
         btn_line = QPushButton("Add Line")
-        btn_line.clicked.connect(lambda: self.add_element(CustomLineItem(150, (20, 20))))
+        btn_line.clicked.connect(lambda *args: self.add_element(CustomLineItem(150, (20, 20))))
         
         btn_block = QPushButton("Add Block")
-        btn_block.clicked.connect(lambda: self.add_element(CustomRectItem(100, 100, (20, 20), "block")))
+        btn_block.clicked.connect(lambda *args: self.add_element(CustomRectItem(100, 100, (20, 20), "block")))
         
         btn_delete = QPushButton("Delete Selected")
         btn_delete.setStyleSheet("background-color: #ef4444; color: white;")
