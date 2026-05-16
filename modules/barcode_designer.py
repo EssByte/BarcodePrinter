@@ -69,16 +69,39 @@ class CustomRectItem(QGraphicsRectItem, BaseElement):
         self.box_height = height
         self.barcode_value = "{{barcode_value}}"
         self._update_rect()
-        
-        if e_type == "barcode":
-            self.setPen(QPen(Qt.blue, 2, Qt.DashLine))
-            self.setBrush(QBrush(QColor(0, 0, 255, 30)))
+
+    def _update_rect(self):
+        self.setRect(0, 0, self.box_width, self.box_height)
+        if self.element_type == "barcode":
+            self.update_barcode_pixmap()
         else:
             self.setPen(QPen(Qt.black, 1))
             self.setBrush(QBrush(Qt.black))
 
-    def _update_rect(self):
-        self.setRect(0, 0, self.box_width, self.box_height)
+    def update_barcode_pixmap(self):
+        try:
+            from barcode import Code128
+            from barcode.writer import ImageWriter
+            import io
+            from PyQt5.QtGui import QImage
+            
+            rv = io.BytesIO()
+            Code128(self.barcode_value, writer=ImageWriter()).write(rv, options={
+                "write_text": False, "module_height": 5.0, "module_width": 0.22,
+                "quiet_zone": 1.0, "background": "white", "foreground": "black"
+            })
+            rv.seek(0)
+            
+            img = QImage()
+            img.loadFromData(rv.read())
+            img = img.scaled(int(self.box_width), int(self.box_height), Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
+            
+            self.setBrush(QBrush(img))
+            self.setPen(QPen(Qt.transparent))
+        except Exception as e:
+            print("Barcode preview error:", e)
+            self.setPen(QPen(Qt.blue, 2, Qt.DashLine))
+            self.setBrush(QBrush(QColor(0, 0, 255, 30)))
 
     def to_dict(self):
         d = super().to_dict()
