@@ -54,7 +54,8 @@ class SettingsWindow(QMainWindow):
                 background-color: white; 
                 border: 1px solid #e2e8f0; 
                 border-radius: 8px; 
-                padding: 10px; 
+                padding: 6px 12px; 
+                min-height: 24px;
                 font-size: 14px;
                 color: #1e293b;
             }
@@ -66,7 +67,8 @@ class SettingsWindow(QMainWindow):
                 background-color: #3b82f6; 
                 color: white; 
                 border-radius: 8px; 
-                padding: 12px 25px; 
+                padding: 8px 20px; 
+                min-height: 24px;
                 font-weight: 700; 
             }
             QPushButton#btn_primary:hover { background-color: #2563eb; }
@@ -75,7 +77,8 @@ class SettingsWindow(QMainWindow):
                 background-color: white; 
                 border: 1px solid #e2e8f0; 
                 border-radius: 8px; 
-                padding: 12px 25px; 
+                padding: 8px 20px; 
+                min-height: 24px;
                 font-weight: 600; 
                 color: #475569;
             }
