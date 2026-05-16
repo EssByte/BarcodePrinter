@@ -227,6 +227,79 @@ class ImagePrinter:
         image = image.rotate(180)
         return image
 
+    def render_custom_label(self, data, layout_data, W=750, H=500):
+        import platform
+        import re
+
+        image = Image.new('1', (W, H), 1)
+        draw = ImageDraw.Draw(image)
+
+        if platform.system() == "Windows":
+            fp = "C:\\Windows\\Fonts\\msyh.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyh.ttc") else "arial.ttf"
+            fb = "C:\\Windows\\Fonts\\msyhbd.ttc" if os.path.exists("C:\\Windows\\Fonts\\msyhbd.ttc") else fp
+        else:
+            fp = "/usr/share/fonts/google-droid-sans-fonts/DroidSansFallbackFull.ttf"
+            fb = fp
+
+        def replace_placeholders(text):
+            for match in re.finditer(r'\{\{([^}]+)\}\}', text):
+                key = match.group(1)
+                text = text.replace(match.group(0), str(data.get(key, '')))
+            return text
+
+        elements = layout_data.get("elements", [])
+        for el in elements:
+            e_type = el.get("type")
+            x = int(el.get("x", 0))
+            y = int(el.get("y", 0))
+
+            if e_type == "text":
+                val = replace_placeholders(el.get("value", ""))
+                f_size = int(el.get("font_size", 14))
+                is_bold = el.get("bold", False)
+                try:
+                    font = ImageFont.truetype(fb if is_bold else fp, f_size)
+                except:
+                    font = ImageFont.load_default()
+                draw.text((x, y), val, fill=0, font=font)
+
+            elif e_type == "line":
+                length = int(el.get("length", 100))
+                thickness = int(el.get("thickness", 2))
+                is_vertical = el.get("vertical", False)
+                if is_vertical:
+                    draw.line([(x, y), (x, y + length)], fill=0, width=thickness)
+                else:
+                    draw.line([(x, y), (x + length, y)], fill=0, width=thickness)
+
+            elif e_type == "block":
+                w = int(el.get("width", 100))
+                h = int(el.get("height", 50))
+                draw.rectangle([(x, y), (x + w, y + h)], fill=0)
+
+            elif e_type == "barcode":
+                val = data.get("barcode_value", "000000")
+                w = int(el.get("width", 200))
+                h = int(el.get("height", 50))
+                try:
+                    from barcode import Code128
+                    rv = io.BytesIO()
+                    Code128(val, writer=ImageWriter()).write(rv, options={
+                        "write_text": False, "module_height": 5.0, "module_width": 0.22,
+                        "quiet_zone": 1.0, "background": "white", "foreground": "black"
+                    })
+                    rv.seek(0)
+                    bc = Image.open(rv).convert('1')
+                    bc = bc.resize((w, h))
+                    image.paste(bc, (x, y))
+                except Exception as e:
+                    print("Barcode error:", e)
+                    draw.rectangle([(x, y), (x + w, y + h)], outline=0)
+                    draw.text((x + 5, y + 5), val, fill=0)
+
+        image = image.rotate(180)
+        return image
+
     def to_tpsl_bitmap(self, image, x=0, y=0):
         """
         Converts a Pillow image to a GW (Graphic Write) command.
