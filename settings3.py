@@ -646,7 +646,7 @@ class SettingsWindow(QMainWindow):
             self.config.set_password(self.password.text())
             self.config.set_database_driver_name(self.dbDriverName.text())
             self.config.set_trusted_connection(self.cb_trusted_connection.isChecked())
-            self.config.set_sqlPath(self.sqlite_path.text())
+            self.config.set_sqlitePath(self.sqlite_path.text())
             
             self.config.set_printers_list(self.printers_data)
             active_row = self.printers_qlist.currentRow()
