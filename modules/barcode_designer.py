@@ -372,8 +372,12 @@ class BarcodeDesigner(QWidget):
         from modules.Configurations import BarcodeConfig
         self.config = BarcodeConfig()
         printers = self.config.get_printers_list()
-        for p in printers:
+        active_id = self.config.get_active_printer_id()
+        
+        for i, p in enumerate(printers):
             self.printer_combo.addItem(p.get("name", "Unknown"), p)
+            if p.get("id") == active_id:
+                self.printer_combo.setCurrentIndex(i)
 
     def print_layout(self):
         printer_data = self.printer_combo.currentData()
