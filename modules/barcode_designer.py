@@ -9,7 +9,7 @@ from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF
 
 class BaseElement:
-    def __init__(self, element_type):
+    def init_element(self, element_type):
         self.element_type = element_type
         self.element_id = str(uuid.uuid4())
 
@@ -28,8 +28,8 @@ class BaseElement:
 
 class CustomTextItem(QGraphicsTextItem, BaseElement):
     def __init__(self, text="Text", pos=(0,0)):
-        QGraphicsTextItem.__init__(self, text)
-        BaseElement.__init__(self, "text")
+        super().__init__(text)
+        self.init_element("text")
         self.setPos(pos[0], pos[1])
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.font_size = 14
@@ -61,8 +61,8 @@ class CustomTextItem(QGraphicsTextItem, BaseElement):
 
 class CustomRectItem(QGraphicsRectItem, BaseElement):
     def __init__(self, width=100, height=50, pos=(0,0), e_type="block"):
-        QGraphicsRectItem.__init__(self, 0, 0, width, height)
-        BaseElement.__init__(self, e_type)
+        super().__init__(0, 0, width, height)
+        self.init_element(e_type)
         self.setPos(pos[0], pos[1])
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.box_width = width
@@ -94,8 +94,8 @@ class CustomRectItem(QGraphicsRectItem, BaseElement):
 
 class CustomLineItem(QGraphicsLineItem, BaseElement):
     def __init__(self, length=100, pos=(0,0)):
-        QGraphicsLineItem.__init__(self, 0, 0, length, 0)
-        BaseElement.__init__(self, "line")
+        super().__init__(0, 0, length, 0)
+        self.init_element("line")
         self.setPos(pos[0], pos[1])
         self.setFlags(QGraphicsItem.ItemIsMovable | QGraphicsItem.ItemIsSelectable | QGraphicsItem.ItemSendsGeometryChanges)
         self.length = length
