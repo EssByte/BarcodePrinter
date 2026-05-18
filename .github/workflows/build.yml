@@ -1,11 +1,10 @@
 name: Build Executable
 
 on:
-  # Temporarily disabled automatic builds per user request
-  # push:
-  #   branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -55,6 +54,15 @@ jobs:
       run: |
         New-Item -ItemType Directory -Force -Path dist | Out-Null
         Copy-Item "libusb-1.0.dll" "dist\libusb-1.0.dll"
+
+    - name: Commit and Push Build Artifacts
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        git config --local user.email "github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git add dist/
+        git diff --staged --quiet || git commit -m "ci: auto-commit build artifacts [skip ci]"
+        git push
 
     - name: Create Release
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
