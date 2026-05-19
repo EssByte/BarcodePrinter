@@ -206,13 +206,13 @@ class BarcodeApp(QMainWindow):
         # Table UI
         self.item_table = QTableWidget(self)
         self.item_table.setColumnCount(11)
-        self.item_table.setHorizontalHeaderLabels(["*", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost", "Barcode", "Location", "Price", "Remark", "Copies"])
+        self.item_table.setHorizontalHeaderLabels(["*", "Remark", "Copies", "Item Code", "Description", "UOM", "Unit Price", "Unit Cost", "Barcode", "Location", "Price"])
         self.item_table.setSelectionBehavior(QTableWidget.SelectRows)
         self.item_table.setSelectionMode(QTableWidget.NoSelection)
         self.item_table.verticalHeader().setDefaultSectionSize(60)
         self.item_table.setColumnWidth(0, 50)
-        self.item_table.setColumnWidth(9, 150) # Remark
-        self.item_table.setColumnWidth(10, 80) # Copies
+        self.item_table.setColumnWidth(1, 150) # Remark
+        self.item_table.setColumnWidth(2, 80) # Copies
         self.item_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
         grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
 
@@ -400,15 +400,16 @@ class BarcodeApp(QMainWindow):
 
             safe_float = lambda x: float(x) if x not in (None, "") else 0.0
             values = [item_code, name, uom, f"RM {safe_float(unit_price):.2f}", '***' if barcode_config.get_hide_cost() else f"RM {safe_float(unit_cost):.2f}", bc, loc, f"RM {safe_float(loc_p):.2f}"]
-            for col, val in enumerate(values, start=1):
-                ti = QTableWidgetItem(str(val)); ti.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled); ti.setTextAlignment(Qt.AlignCenter)
-                self.item_table.setItem(row, col, ti)
             
             rmk = QTableWidgetItem(""); rmk.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled); rmk.setTextAlignment(Qt.AlignCenter)
-            self.item_table.setItem(row, 9, rmk)
+            self.item_table.setItem(row, 1, rmk)
 
             cp = QTableWidgetItem("1"); cp.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled); cp.setTextAlignment(Qt.AlignCenter)
-            self.item_table.setItem(row, 10, cp)
+            self.item_table.setItem(row, 2, cp)
+
+            for col, val in enumerate(values, start=3):
+                ti = QTableWidgetItem(str(val)); ti.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled); ti.setTextAlignment(Qt.AlignCenter)
+                self.item_table.setItem(row, col, ti)
             if row % 2 == 0:
                 for c in range(11): self.item_table.item(row, c).setBackground(QBrush(QColor(248, 250, 252)))
 
@@ -468,11 +469,11 @@ class BarcodeApp(QMainWindow):
                     ip, port = ip_full, "9100"
 
             for row in selected_rows:
-                desc = self.item_table.item(row, 2).text().replace('"', '')
-                price = self.item_table.item(row, 8).text()
-                bc = self.item_table.item(row, 6).text()
-                remark_text = self.item_table.item(row, 9).text()
-                qty = self.item_table.item(row, 10).text()
+                desc = self.item_table.item(row, 4).text().replace('"', '')
+                price = self.item_table.item(row, 10).text()
+                bc = self.item_table.item(row, 8).text()
+                remark_text = self.item_table.item(row, 1).text()
+                qty = self.item_table.item(row, 2).text()
                 
                 d1, d2 = split_description(desc)
                 sz = self.barcode_size.currentText()
@@ -482,8 +483,8 @@ class BarcodeApp(QMainWindow):
                 if "Graphic" in sz:
                     image_printer = ImagePrinter()
                     if "35x25" in sz or "Size 1" in sz:
-                        item_code = self.item_table.item(row, 1).text()
-                        remark = self.item_table.item(row, 9).text()
+                        item_code = self.item_table.item(row, 3).text()
+                        remark = self.item_table.item(row, 1).text()
                         im = image_printer.render_35x25_label({
                             'company_name': self.config.get_company_name(),
                             'item_code': item_code,
