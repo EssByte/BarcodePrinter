@@ -339,7 +339,8 @@ class ImagePrinter:
             "SPEED 2.0\r\n"
             "DENSITY 7\r\n"
             "DIRECTION 0\r\n"
-            f"SIZE {width_mm}MM, {height_mm}MM\r\n"
+            f"SIZE {width_mm} mm, {height_mm} mm\r\n"
+            "GAP 2 mm, 0 mm\r\n"
             "REFERENCE 0,0\r\n"
             "CLS\r\n"
         ).encode('utf-8')
