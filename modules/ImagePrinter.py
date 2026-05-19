@@ -340,6 +340,7 @@ class ImagePrinter:
             "DENSITY 7\r\n"
             "DIRECTION 0\r\n"
             f"SIZE {width_mm}MM, {height_mm}MM\r\n"
+            "GAP 2MM, 0MM\r\n"
             "REFERENCE 0,0\r\n"
             "CLS\r\n"
         ).encode('utf-8')
