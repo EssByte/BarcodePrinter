@@ -55,8 +55,17 @@ jobs:
         New-Item -ItemType Directory -Force -Path dist | Out-Null
         Copy-Item "libusb-1.0.dll" "dist\libusb-1.0.dll"
 
+    - name: Add SignTool to PATH
+      shell: pwsh
+      run: |
+        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Filter "signtool.exe" -Recurse | Sort-Object -Descending LastWriteTime | Select-Object -First 1
+        if ($signtool) {
+            $signtoolDir = $signtool.DirectoryName
+            echo "$signtoolDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        }
+
     - name: Sign Executables
-      shell: powershell
+      shell: pwsh
       run: |
         $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Mozillio Team" -KeyUsage DigitalSignature -FriendlyName "Mozillio Code Signing" -CertStoreLocation "Cert:\CurrentUser\My"
         $password = ConvertTo-SecureString -String "Mozillio123!" -Force -AsPlainText
