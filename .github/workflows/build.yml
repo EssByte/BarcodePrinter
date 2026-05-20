@@ -58,7 +58,7 @@ jobs:
     - name: Add SignTool to PATH
       shell: pwsh
       run: |
-        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\*" -Filter "signtool.exe" -Recurse | Sort-Object -Descending LastWriteTime | Select-Object -First 1
+        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\*\bin\*\x64" -Filter "signtool.exe" -Recurse | Sort-Object -Descending LastWriteTime | Select-Object -First 1
         if ($signtool) {
             $signtoolDir = $signtool.DirectoryName
             echo "$signtoolDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
