@@ -19,15 +19,14 @@ VSVersionInfo(
       [
       StringTable(
         '040904B0',
-        [StringValues(
-          CompanyName='Mozillio Team',
-          FileDescription='Barcode Printer Utility',
-          FileVersion='3.3.5',
-          InternalName='BarcodePrinter',
-          LegalCopyright='Copyright (c) 2026 Mozillio Team',
-          OriginalFilename='BarcodePrinter.exe',
-          ProductName='Barcode Printer',
-          ProductVersion='3.3.5')])
+        [StringStruct('CompanyName', 'Mozillio Team'),
+        StringStruct('FileDescription', 'Barcode Printer Utility'),
+        StringStruct('FileVersion', '3.3.5'),
+        StringStruct('InternalName', 'BarcodePrinter'),
+        StringStruct('LegalCopyright', 'Copyright (c) 2026 Mozillio Team'),
+        StringStruct('OriginalFilename', 'BarcodePrinter.exe'),
+        StringStruct('ProductName', 'Barcode Printer'),
+        StringStruct('ProductVersion', '3.3.5')])
       ]), 
     VarFileInfo([VarTuple('Translation', [1033, 1200])])
   ]
