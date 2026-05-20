@@ -72,7 +72,7 @@ jobs:
         Export-PfxCertificate -Cert $cert -FilePath "mozillio_cert.pfx" -Password $password
         
         "BarcodePrinter.exe", "Updater.exe", "InstallationWizard.exe" | ForEach-Object {
-          signtool sign /f mozillio_cert.pfx /p Mozillio123! /t http://timestamp.sectigo.com /v "dist\$_"
+          signtool sign /f mozillio_cert.pfx /p Mozillio123! /fd SHA256 /t http://timestamp.sectigo.com /v "dist\$_"
         }
 
     - name: Commit and Push Build Artifacts
