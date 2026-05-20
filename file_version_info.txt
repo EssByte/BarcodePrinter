@@ -28,6 +28,6 @@ VSVersionInfo(
         StringStruct('ProductName', 'Barcode Printer'),
         StringStruct('ProductVersion', '3.3.5')])
       ]), 
-    VarFileInfo([VarTuple('Translation', [1033, 1200])])
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]
 )
