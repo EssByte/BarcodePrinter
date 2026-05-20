@@ -40,20 +40,31 @@ jobs:
 
     - name: Build Barcode Printer
       run: |
-        pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --add-data "modules;modules" --add-data "ui;ui" --add-data "images;images" --add-data "lib;lib" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
+        pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "modules;modules" --add-data "ui;ui" --add-data "images;images" --add-data "lib;lib" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
 
     - name: Build Updater
       run: |
-        pyinstaller --noconfirm --onefile --console --name "Updater" --icon=images/logo.ico --add-data "lib/updater;lib/updater" --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
+        pyinstaller --noconfirm --onefile --console --name "Updater" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "lib/updater;lib/updater" --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
 
     - name: Build Installation Wizard
       run: |
-        pyinstaller --noconfirm --onefile --console --name "InstallationWizard" --icon=images/logo.ico --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests InstallationWizard.py
+        pyinstaller --noconfirm --onefile --console --name "InstallationWizard" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests InstallationWizard.py
 
     - name: Copy DLL to dist
       run: |
         New-Item -ItemType Directory -Force -Path dist | Out-Null
         Copy-Item "libusb-1.0.dll" "dist\libusb-1.0.dll"
+
+    - name: Sign Executables
+      shell: powershell
+      run: |
+        $cert = New-SelfSignedCertificate -Type CodeSigningCert -Subject "CN=Mozillio Team" -KeyUsage DigitalSignature -FriendlyName "Mozillio Code Signing" -CertStoreLocation "Cert:\CurrentUser\My"
+        $password = ConvertTo-SecureString -String "Mozillio123!" -Force -AsPlainText
+        Export-PfxCertificate -Cert $cert -FilePath "mozillio_cert.pfx" -Password $password
+        
+        "BarcodePrinter.exe", "Updater.exe", "InstallationWizard.exe" | ForEach-Object {
+          signtool sign /f mozillio_cert.pfx /p Mozillio123! /t http://timestamp.digicert.com /v "dist\$_"
+        }
 
     - name: Commit and Push Build Artifacts
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'

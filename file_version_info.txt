@@ -1,0 +1,34 @@
+# UTF-8
+#
+# For more details see:
+# https://pyinstaller.org/en/stable/usage.html#capturing-windows-version-data
+#
+VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers=(3, 3, 5, 0),
+    prodvers=(3, 3, 5, 0),
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+    ),
+  kids=[
+    StringFileInfo(
+      [
+      StringTable(
+        '040904B0',
+        [StringValues(
+          CompanyName='Mozillio Team',
+          FileDescription='Barcode Printer Utility',
+          FileVersion='3.3.5',
+          InternalName='BarcodePrinter',
+          LegalCopyright='Copyright (c) 2026 Mozillio Team',
+          OriginalFilename='BarcodePrinter.exe',
+          ProductName='Barcode Printer',
+          ProductVersion='3.3.5')])
+      ]), 
+    VarFileInfo([VarTuple('Translation', [1033, 1200])])
+  ]
+)
