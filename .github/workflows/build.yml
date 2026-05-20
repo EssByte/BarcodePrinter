@@ -58,7 +58,7 @@ jobs:
     - name: Add SignTool to PATH
       shell: pwsh
       run: |
-        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\10\bin" -Filter "signtool.exe" -Recurse | Sort-Object -Descending LastWriteTime | Select-Object -First 1
+        $signtool = Get-ChildItem -Path "C:\Program Files (x86)\Windows Kits\*" -Filter "signtool.exe" -Recurse | Sort-Object -Descending LastWriteTime | Select-Object -First 1
         if ($signtool) {
             $signtoolDir = $signtool.DirectoryName
             echo "$signtoolDir" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -72,7 +72,7 @@ jobs:
         Export-PfxCertificate -Cert $cert -FilePath "mozillio_cert.pfx" -Password $password
         
         "BarcodePrinter.exe", "Updater.exe", "InstallationWizard.exe" | ForEach-Object {
-          signtool sign /f mozillio_cert.pfx /p Mozillio123! /t http://timestamp.digicert.com /v "dist\$_"
+          signtool sign /f mozillio_cert.pfx /p Mozillio123! /t http://timestamp.sectigo.com /v "dist\$_"
         }
 
     - name: Commit and Push Build Artifacts
