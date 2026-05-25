@@ -339,11 +339,12 @@ class ImagePrinter:
             "SPEED 2.0\r\n"
             "DENSITY 7\r\n"
             "DIRECTION 0\r\n"
-            f"SIZE {width_mm}MM, {height_mm}MM\r\n"
+            f"SIZE {width_mm}MM,{height_mm}MM\r\n"
+            "OFFSET 0.000\r\n"
             "REFERENCE 0,0\r\n"
             "CLS\r\n"
         ).encode('utf-8')
         
-        footer = f"\r\nPRINT {copies}\r\n".encode('utf-8')
+        footer = f"\r\nPRINT {copies}\r\nEOP\r\n".encode('utf-8')
         
         return header + bitmap_data + footer
