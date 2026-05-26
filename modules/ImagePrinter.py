@@ -141,11 +141,10 @@ class ImagePrinter:
           PRICE (RM XX.XX)
         """
         import platform
-        # Wider canvas to accommodate printer offsets. 
-        # Increase MARGIN to move content RIGHT, decrease to move LEFT.
-        W, H = 600, 200 
-        MARGIN = 50 
-        PAD = 10
+        # Standard physical canvas for 35mm x 25mm at 203 DPI (8 dots/mm)
+        W, H = 280, 200 
+        MARGIN = 10 
+        PAD = 5
         BASE_X = MARGIN + PAD
 
         image = Image.new('1', (W, H), 1)
@@ -192,7 +191,7 @@ class ImagePrinter:
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
             th = 60 # Increased height for larger barcode
-            tw = min(int(bw * th / bh), 300) # Increased max width
+            tw = min(int(bw * th / bh), 250) # Reduced max width to fit 280px width
             bc = bc.resize((tw, th))
             image.paste(bc, (BASE_X, curr_y))
             curr_y += th + 4
@@ -212,7 +211,7 @@ class ImagePrinter:
         remark = data.get('remark', '')
         if remark:
             curr_y += 8  # extra gap below description
-            draw.text((200, curr_y), remark, fill=0, font=f_name)
+            draw.text((BASE_X, curr_y), remark, fill=0, font=f_name)
             curr_y += 15
 
         # 5. Price
