@@ -329,7 +329,13 @@ class ImagePrinter:
             # but we log it to console
             print(f"Warning: Failed to save debug image to 'images/' folder: {e}")
 
-        bitmap_data = self.to_tpsl_bitmap(image, 0, 0)
+        # Calculate horizontal offset to center-align the graphic on the TSC printer carriage.
+        # TSC TA200 has a 104mm center-aligned print head (approx 832 dots at 203 DPI).
+        carriage_width_dots = int(104 * self.dpmm)  # ~832 dots
+        image_width_dots = image.size[0]
+        x_offset = max(0, (carriage_width_dots - image_width_dots) // 2)
+
+        bitmap_data = self.to_tpsl_bitmap(image, x_offset, 0)
         
         header = (
             "SPEED 2.0\r\n"
