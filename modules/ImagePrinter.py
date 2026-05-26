@@ -298,19 +298,22 @@ class ImagePrinter:
 
     def to_tpsl_bitmap(self, image, x=0, y=0):
         """
-        Converts a Pillow image to a GW (Graphic Write) command.
+        Converts a Pillow image to a classic TSPL BITMAP command.
+        Older printers like the TA200 have buggy/no support for the newer GW command,
+        but support the standard BITMAP command perfectly.
         """
         image = image.convert('1')
         
-        # Some printers interpret bits differently. Removing inversion to fix the black background issue.
-        # image = Image.eval(image, lambda val: 0 if val == 1 else 1)
+        # TSPL BITMAP expects 1 for black (heat) and 0 for white.
+        # Pillow '1' mode uses 0 for black and 1 for white. So we MUST invert.
+        image = Image.eval(image, lambda val: 0 if val == 1 else 1)
         
         width, height = image.size
         width_bytes = (width + 7) // 8
         data = image.tobytes()
         
-        # GW Header: No space after comma, binary data follows immediately
-        header = f"GW {x},{y},{width_bytes},{height},".encode('utf-8')
+        # BITMAP Header: mode 0 (Overwrite)
+        header = f"BITMAP {x},{y},{width_bytes},{height},0,".encode('utf-8')
         
         return header + data
 
@@ -329,18 +332,12 @@ class ImagePrinter:
             # but we log it to console
             print(f"Warning: Failed to save debug image to 'images/' folder: {e}")
 
-        # Calculate horizontal offset to center-align the graphic on the TSC printer carriage.
-        # TSC TA200 has a 104mm center-aligned print head (approx 832 dots at 203 DPI).
-        carriage_width_dots = int(104 * self.dpmm)  # ~832 dots
-        image_width_dots = image.size[0]
-        x_offset = max(0, (carriage_width_dots - image_width_dots) // 2)
-
-        bitmap_data = self.to_tpsl_bitmap(image, x_offset, 0)
+        bitmap_data = self.to_tpsl_bitmap(image, 0, 0)
         
         header = (
             "SPEED 2.0\r\n"
             "DENSITY 7\r\n"
-            "DIRECTION 1\r\n"
+            "DIRECTION 0\r\n"
             f"SIZE {width_mm}MM,{height_mm}MM\r\n"
             "OFFSET 0.000\r\n"
             "REFERENCE 0,0\r\n"
