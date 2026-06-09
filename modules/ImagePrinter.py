@@ -339,6 +339,7 @@ class ImagePrinter:
             "DENSITY 7\r\n"
             "DIRECTION 0\r\n"
             f"SIZE {width_mm}MM,{height_mm}MM\r\n"
+            "GAP 3 mm,0 mm\r\n"
             "OFFSET 0.000\r\n"
             "REFERENCE 0,0\r\n"
             "CLS\r\n"
