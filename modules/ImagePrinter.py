@@ -130,7 +130,7 @@ class ImagePrinter:
 
         return image
 
-    def render_35x25_label(self, data, x_offset=60):
+    def render_35x25_label(self, data):
         """
         Renders a simple label for 35mm x 25mm stickers.
         Layout:
@@ -143,7 +143,7 @@ class ImagePrinter:
         import platform
         # Wider canvas to accommodate printer offsets.
         W, H = 600, 200 
-        BASE_X = x_offset
+        BASE_X = 60
 
         image = Image.new('1', (W, H), 1)
         draw = ImageDraw.Draw(image)
