@@ -130,7 +130,7 @@ class ImagePrinter:
 
         return image
 
-    def render_35x25_label(self, data, x_offset=10):
+    def render_35x25_label(self, data, x_offset=60):
         """
         Renders a simple label for 35mm x 25mm stickers.
         Layout:
@@ -141,8 +141,8 @@ class ImagePrinter:
           PRICE (RM XX.XX)
         """
         import platform
-        # Standard physical canvas for 35mm x 25mm at 203 DPI (8 dots/mm)
-        W, H = 280, 200 
+        # Wider canvas to accommodate printer offsets.
+        W, H = 600, 200 
         BASE_X = x_offset
 
         image = Image.new('1', (W, H), 1)
@@ -164,17 +164,17 @@ class ImagePrinter:
             d = ImageFont.load_default()
             f_comp = f_code = f_name = f_price = d
 
-        curr_y = 10
+        curr_y = 15
         
         # 1. Company Name
         comp_name = data.get('company_name', '').upper()
         draw.text((BASE_X, curr_y), comp_name, fill=0, font=f_comp)
-        curr_y += 18
+        curr_y += 20
 
         # 2. Item Code
         item_code = data.get('item_code', '')
         draw.text((BASE_X, curr_y), item_code, fill=0, font=f_code)
-        curr_y += 16
+        curr_y += 18
 
         # 3. Barcode
         barcode_value = data.get('barcode_value', '000000')
@@ -188,10 +188,10 @@ class ImagePrinter:
             rv.seek(0)
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
-            th = 60 # Increased height for larger barcode
-            tw = min(int(bw * th / bh), 250) # Reduced max width to fit 280px width
+            th = 45
+            tw = min(int(bw * th / bh), 260)
             bc = bc.resize((tw, th))
-            image.paste(bc, ((W - tw) // 2, curr_y))
+            image.paste(bc, (BASE_X, curr_y))
             curr_y += th + 4
         except Exception as e:
             print(f"Barcode render error: {e}")
