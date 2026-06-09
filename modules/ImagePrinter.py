@@ -128,6 +128,7 @@ class ImagePrinter:
         # ── outer border (full label) ──────────────────────────────────────
         draw.rectangle([(0, 0), (W - 1, H - 1)], outline=0)
 
+        image = image.rotate(180)
         return image
 
     def render_35x25_label(self, data):
@@ -143,7 +144,7 @@ class ImagePrinter:
         import platform
         # Wider canvas to accommodate printer offsets.
         W, H = 600, 200 
-        BASE_X = 60
+        BASE_X = 50
 
         image = Image.new('1', (W, H), 1)
         draw = ImageDraw.Draw(image)
