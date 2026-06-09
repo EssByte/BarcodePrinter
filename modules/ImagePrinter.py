@@ -43,7 +43,7 @@ class ImagePrinter:
         # We leave that area blank (white = no heat = pre-print shows through).
         HEADER_SKIP = 108   # px of blank space at top matching the header height
         COL          = 366  # x of vertical divider between barcode and price columns (scaled from 368 @ W=735)
-        PAD          = 8    # inner horizontal padding
+        PAD          = 15    # inner horizontal padding
 
         NAME_Y = HEADER_SKIP
         MID_Y  = NAME_Y + 90
