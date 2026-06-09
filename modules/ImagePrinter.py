@@ -193,7 +193,7 @@ class ImagePrinter:
             th = 60 # Increased height for larger barcode
             tw = min(int(bw * th / bh), 250) # Reduced max width to fit 280px width
             bc = bc.resize((tw, th))
-            image.paste(bc, (BASE_X, curr_y))
+            image.paste(bc, ((W - tw) // 2, curr_y))
             curr_y += th + 4
         except Exception as e:
             print(f"Barcode render error: {e}")
