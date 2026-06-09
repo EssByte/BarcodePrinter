@@ -203,7 +203,7 @@ class BarcodeApp(QMainWindow):
         self.x_offset_spin = QSpinBox()
         self.x_offset_spin.setRange(0, 200)
         self.x_offset_spin.setValue(int(self.settings.value("label_x_offset", 30)))
-        self.x_offset_spin.setFixedWidth(50)
+        self.x_offset_spin.setFixedWidth(80)
         self.x_offset_spin.valueChanged.connect(lambda v: self.settings.setValue("label_x_offset", v))
         search_layout.addWidget(self.x_offset_spin)
         search_layout.addWidget(self.search_for_uom)
