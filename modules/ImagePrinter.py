@@ -144,7 +144,7 @@ class ImagePrinter:
         import platform
         # Wider canvas to accommodate printer offsets.
         W, H = 600, 200 
-        BASE_X = 50
+        BASE_X = 30
 
         image = Image.new('1', (W, H), 1)
         draw = ImageDraw.Draw(image)
