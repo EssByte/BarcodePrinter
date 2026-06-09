@@ -143,7 +143,7 @@ class ImagePrinter:
         import platform
         # Standard physical canvas for 35mm x 25mm at 203 DPI (8 dots/mm)
         W, H = 280, 200 
-        BASE_X = 10
+        BASE_X = 30
 
         image = Image.new('1', (W, H), 1)
         draw = ImageDraw.Draw(image)
