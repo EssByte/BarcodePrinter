@@ -128,7 +128,6 @@ class ImagePrinter:
         # ── outer border (full label) ──────────────────────────────────────
         draw.rectangle([(0, 0), (W - 1, H - 1)], outline=0)
 
-        image = image.rotate(180)
         return image
 
     def render_35x25_label(self, data):
@@ -335,7 +334,7 @@ class ImagePrinter:
         header = (
             "SPEED 2.0\r\n"
             "DENSITY 7\r\n"
-            "DIRECTION 0\r\n"
+            "DIRECTION 1\r\n"
             f"SIZE {width_mm} mm,{height_mm} mm\r\n"
             "OFFSET 0.000\r\n"
             "REFERENCE 0,0\r\n"
