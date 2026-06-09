@@ -8,7 +8,7 @@ import requests
 import pyodbc
 import sqlite3
 import subprocess
-from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView, QFrame, QVBoxLayout, QSpinBox
+from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView, QFrame, QVBoxLayout
 from PyQt5.QtCore import Qt, QTimer, QSettings
 from PyQt5.QtGui import QIcon, QBrush, QColor
 
@@ -195,13 +195,6 @@ class BarcodeApp(QMainWindow):
         search_layout.addWidget(self.printer_selector)
         search_layout.addWidget(QLabel("Size:"))
         search_layout.addWidget(self.barcode_size)
-        search_layout.addWidget(QLabel("X:"))
-        self.x_offset_spin = QSpinBox()
-        self.x_offset_spin.setRange(0, 200)
-        self.x_offset_spin.setValue(int(self.settings.value("label_x_offset", 30)))
-        self.x_offset_spin.setFixedWidth(80)
-        self.x_offset_spin.valueChanged.connect(lambda v: self.settings.setValue("label_x_offset", v))
-        search_layout.addWidget(self.x_offset_spin)
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
         grid_layout.addLayout(search_layout, 0, 0, 1, 3)
@@ -495,7 +488,7 @@ class BarcodeApp(QMainWindow):
                             'remark': remark,
                             'barcode_value': bc, 
                             'unit_price_integer': price
-                        }, x_offset=self.x_offset_spin.value())
+                        })
                         print_data = image_printer.get_full_command(im, copies=int(qty), width_mm=35, height_mm=25)
                     else: # Assume Fun Bake 75x55
                         im = image_printer.render_fun_bake_label({
