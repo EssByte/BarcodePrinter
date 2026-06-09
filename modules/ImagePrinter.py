@@ -304,9 +304,8 @@ class ImagePrinter:
         """
         image = image.convert('1')
         
-        # TSPL BITMAP expects 1 for black (heat) and 0 for white.
-        # Pillow '1' mode uses 0 for black and 1 for white. So we MUST invert.
-        image = Image.eval(image, lambda val: 0 if val == 1 else 1)
+        # TE200 expects 0 for black (heat) and 1 for white in BITMAP data.
+        # PIL '1' mode already uses 0=black, 1=white, so no inversion needed.
         
         width, height = image.size
         width_bytes = (width + 7) // 8
