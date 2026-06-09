@@ -39,6 +39,7 @@ class BarcodeApp(QMainWindow):
         self.items = []
         self.all_items = []
         self.loading_overlay = None
+        self.settings = QSettings("MyCompany", "MyApp")
     
         self.initUI()
         self.input_timer = QTimer()
@@ -52,7 +53,6 @@ class BarcodeApp(QMainWindow):
         
         self.setWindowIcon(QIcon(resource_path("images/logo.ico")))
         self.db_connected = False # Kept for UI legacy checks if any
-        self.settings = QSettings("MyCompany", "MyApp")
         self.restore_column_widths() 
         self.loadStylesheet()
         self.showMaximized()
