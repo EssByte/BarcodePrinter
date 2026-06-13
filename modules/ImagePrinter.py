@@ -188,8 +188,8 @@ class ImagePrinter:
             rv.seek(0)
             bc = Image.open(rv).convert('1')
             bw, bh = bc.size
-            th = 45
-            tw = min(int(bw * th / bh), 260)
+            th = 55
+            tw = min(int(bw * th / bh), 300)
             bc = bc.resize((tw, th))
             image.paste(bc, (BASE_X, curr_y))
             curr_y += th + 4
