@@ -145,11 +145,6 @@ class BarcodeApp(QMainWindow):
         settings_action.triggered.connect(self.open_settings)
         file_menu.addAction(settings_action)
 
-        layout_menu = menu_bar.addMenu('Layout Designer')
-        layout_action = QAction('Open Custom Layout Designer', self)
-        layout_action.triggered.connect(self.open_layout_designer)
-        layout_menu.addAction(layout_action)
-
         # Search UI
         search_layout = QHBoxLayout()
         search_label = QLabel("Search:")
