@@ -396,7 +396,13 @@ class SettingsWindow(QMainWindow):
         self.template_stack.addWidget(zpl_p)
         
         layout.addWidget(self.template_stack)
-        
+
+        layout.addSpacing(20)
+        btn_layout_designer = QPushButton("Open Custom Layout Designer")
+        btn_layout_designer.setObjectName("btn_primary")
+        btn_layout_designer.clicked.connect(self.open_layout_designer)
+        layout.addWidget(btn_layout_designer)
+
         self.options = ["size1", "size2", "size3", "75x55 (Graphic)"]
         self.combo_tpsl_size.addItems(self.options)
         self.combo_zpl_size.addItems(self.options)
@@ -706,6 +712,13 @@ class SettingsWindow(QMainWindow):
     def send_command(self):
         # Ported logic
         pass
+
+    def open_layout_designer(self):
+        from modules.barcode_designer import BarcodeDesigner
+        self.designer_window = BarcodeDesigner()
+        self.designer_window.setWindowTitle("Custom Layout Designer")
+        self.designer_window.resize(1000, 600)
+        self.designer_window.show()
 
     def resource_path(self, relative_path):
         try: base_path = sys._MEIPASS
