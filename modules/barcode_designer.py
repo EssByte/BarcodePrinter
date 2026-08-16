@@ -1,3 +1,7 @@
+"""
+Barcode Label Designer - Visual layout editor for barcode printing.
+Supports multiple sticker sizes with WYSIWYG editing and mm-based grid.
+"""
 import json
 import os
 import uuid
@@ -7,6 +11,11 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLa
                              QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox, QMessageBox)
 from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF
+
+try:
+    from .size_converter import SizeConverter
+except ImportError:
+    SizeConverter = None
 
 class BaseElement:
     def init_element(self, element_type):
@@ -156,17 +165,53 @@ class CustomLineItem(QGraphicsLineItem, BaseElement):
 class CanvasView(QGraphicsView):
     selection_changed = pyqtSignal(object)
 
-    def __init__(self):
+    def __init__(self, size_converter=None):
         super().__init__()
-        self.scene = QGraphicsScene(0, 0, 750, 550) # Canvas size for 75x55mm label
+        self.size_converter = size_converter
+        
+        # Calculate canvas size based on label size
+        if size_converter and SizeConverter:
+            width_px, height_px = size_converter.get_label_size_pixels("75 x 50 mm")
+        else:
+            width_px, height_px = 750, 500
+        
+        self.scene = QGraphicsScene(0, 0, width_px, height_px)
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
+        self.setRenderHint(QPainter.SmoothPixmapTransform)
         self.scene.selectionChanged.connect(self.on_selection_changed)
 
-        # Boundary
-        self.boundary = QGraphicsRectItem(0, 0, 750, 550)
-        self.boundary.setPen(QPen(QColor("#cbd5e1"), 2, Qt.DashLine))
+        # Professional boundary
+        self.boundary = QGraphicsRectItem(0, 0, width_px, height_px)
+        self.boundary.setPen(QPen(QColor("#3b82f6"), 2))
+        self.boundary.setBrush(QBrush(QColor(255, 255, 255)))
         self.scene.addItem(self.boundary)
+        
+        # Draw grid if size converter available
+        if size_converter and SizeConverter:
+            self._draw_grid(width_px, height_px)
+
+    def _draw_grid(self, width, height):
+        """Draw mm grid for visual reference (every 5mm)."""
+        if not self.size_converter or not SizeConverter:
+            return
+        
+        grid_pen = QPen(QColor("#e2e8f0"), 0.5)
+        step = self.size_converter.mm_to_pixels(5)
+        
+        # Vertical lines
+        x = 0
+        while x <= width:
+            line = self.scene.addLine(x, 0, x, height, grid_pen)
+            line.setZValue(-1)
+            x += step
+        
+        # Horizontal lines
+        y = 0
+        while y <= height:
+            line = self.scene.addLine(0, y, width, y, grid_pen)
+            line.setZValue(-1)
+            y += step
 
     def on_selection_changed(self):
         items = self.scene.selectedItems()
@@ -174,13 +219,26 @@ class CanvasView(QGraphicsView):
             self.selection_changed.emit(items[0])
         else:
             self.selection_changed.emit(None)
+    
+    def set_label_size(self, size_name):
+        """Change canvas to match label size."""
+        if not self.size_converter or not SizeConverter or size_name not in self.size_converter.get_all_sizes():
+            return
+        
+        width_px, height_px = self.size_converter.get_label_size_pixels(size_name)
+        self.scene.setSceneRect(0, 0, width_px, height_px)
+        self.boundary.setRect(0, 0, width_px, height_px)
+        self._draw_grid(width_px, height_px)
 
 class BarcodeDesigner(QWidget):
     def __init__(self, config_path=os.path.join(os.path.expanduser("~"), ".barcode_custom_layout.json")):
         super().__init__()
         self.config_path = config_path
+        self.size_converter = SizeConverter() if SizeConverter else None
         self.init_ui()
         self.load_design()
+        if self.size_converter:
+            self.canvas.set_label_size("75 x 50 mm")
 
     def init_ui(self):
         main_layout = QHBoxLayout(self)
@@ -243,7 +301,7 @@ class BarcodeDesigner(QWidget):
         tool_layout.addStretch()
 
         # 2. Canvas (Center)
-        self.canvas = CanvasView()
+        self.canvas = CanvasView(self.size_converter)
         self.canvas.selection_changed.connect(self.update_properties_panel)
 
         # 3. Properties Panel (Right)
