@@ -2,10 +2,19 @@ import os
 import subprocess
 import sys
 import requests
-from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout, 
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,
                              QLabel, QPushButton, QProgressBar, QFrame, QMessageBox, QStackedWidget)
 from PyQt5.QtCore import Qt, QTimer, QThread, pyqtSignal, QPropertyAnimation, QEasingCurve
 from PyQt5.QtGui import QIcon, QFont, QColor, QPainter, QLinearGradient
+
+# Same "label stock" identity used across the rest of the app.
+UPD_INK = "#191b1f"
+UPD_INK_LIGHT = "#262930"
+UPD_BORDER = "#2f3238"
+UPD_TEXT_MUTED = "#9a9d9f"
+UPD_ACCENT = "#c81d31"
+UPD_ACCENT_HOVER = "#a91729"
+UPD_DANGER = "#c81d31"
 
 class UpdateThread(QThread):
     progress = pyqtSignal(int)
@@ -64,82 +73,94 @@ class Updater(QWidget):
         self.setFixedSize(500, 350)
         
         # Main Background
+        # NOTE: QLabel and QStackedWidget both inherit from QFrame in Qt, so
+        # a bare "QFrame { ... }" selector here would cascade this frame's
+        # background/border onto every label and the page stack too --
+        # scope it to this widget specifically via objectName instead.
         self.main_frame = QFrame(self)
+        self.main_frame.setObjectName("main_frame")
         self.main_frame.setGeometry(0, 0, 500, 350)
-        self.main_frame.setStyleSheet("""
-            QFrame { 
-                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #0f172a, stop:1 #1e293b);
-                border-radius: 15px; border: 1px solid #334155;
-            }
+        self.main_frame.setStyleSheet(f"""
+            QFrame#main_frame {{
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {UPD_INK}, stop:1 {UPD_INK_LIGHT});
+                border-radius: 15px; border: 1px solid {UPD_BORDER};
+            }}
         """)
-        
+
         self.layout = QVBoxLayout(self.main_frame)
-        self.layout.setContentsMargins(30, 30, 30, 30)
-        
+        self.layout.setContentsMargins(30, 28, 30, 28)
+
         # Header
+        self.lbl_logo = QLabel()
+        self.lbl_logo.setPixmap(QIcon(self.resource_path("images/logo.ico")).pixmap(32, 32))
+        self.lbl_logo.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.lbl_logo)
+        self.layout.addSpacing(8)
+
         self.header = QLabel("System Updater")
-        self.header.setStyleSheet("color: #3b82f6; font-size: 22px; font-weight: 800;")
+        self.header.setStyleSheet(f"color: {UPD_ACCENT}; font-family: 'Segoe UI Semibold'; font-size: 19px; font-weight: 700;")
         self.header.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.header)
-        
-        self.layout.addSpacing(20)
-        
+
+        self.layout.addSpacing(18)
+
         # Stacked Widget
         self.stack = QStackedWidget()
-        
+
         # Page 1: Checking/Info
         self.page_info = QWidget()
         info_lay = QVBoxLayout(self.page_info)
         info_lay.setAlignment(Qt.AlignCenter)
-        
+
         self.lbl_status = QLabel("Checking for updates...")
-        self.lbl_status.setStyleSheet("color: #94a3b8; font-size: 16px;")
+        self.lbl_status.setStyleSheet(f"color: {UPD_TEXT_MUTED}; font-family: 'Segoe UI'; font-size: 14px; font-weight: 600;")
         self.lbl_status.setAlignment(Qt.AlignCenter)
         info_lay.addWidget(self.lbl_status)
-        
+
         self.lbl_version = QLabel("")
-        self.lbl_version.setStyleSheet("color: #3b82f6; font-weight: bold; font-size: 14px;")
+        self.lbl_version.setStyleSheet(f"color: {UPD_ACCENT}; font-family: 'Segoe UI'; font-weight: 700; font-size: 13px;")
         self.lbl_version.setAlignment(Qt.AlignCenter)
         info_lay.addWidget(self.lbl_version)
-        
+
         self.stack.addWidget(self.page_info)
-        
+
         # Page 2: Downloading
         self.page_dl = QWidget()
         dl_lay = QVBoxLayout(self.page_dl)
         dl_lay.setAlignment(Qt.AlignCenter)
-        
+
         self.lbl_dl_status = QLabel("Downloading...")
-        self.lbl_dl_status.setStyleSheet("color: #3b82f6; font-weight: bold;")
+        self.lbl_dl_status.setStyleSheet(f"color: {UPD_ACCENT}; font-family: 'Segoe UI'; font-weight: 700; font-size: 13px;")
         self.lbl_dl_status.setAlignment(Qt.AlignCenter)
         dl_lay.addWidget(self.lbl_dl_status)
-        
+
         self.pbar = QProgressBar()
         self.pbar.setFixedHeight(10)
-        self.pbar.setStyleSheet("""
-            QProgressBar { border: none; border-radius: 5px; background: #334155; text-align: center; color: transparent; }
-            QProgressBar::chunk { background: #3b82f6; border-radius: 5px; }
+        self.pbar.setStyleSheet(f"""
+            QProgressBar {{ border: none; border-radius: 5px; background: {UPD_INK_LIGHT}; text-align: center; color: transparent; }}
+            QProgressBar::chunk {{ background: {UPD_ACCENT}; border-radius: 5px; }}
         """)
         dl_lay.addWidget(self.pbar)
-        
+
         self.stack.addWidget(self.page_dl)
-        
+
         self.layout.addWidget(self.stack)
-        
+
         # Footer
         self.footer = QHBoxLayout()
         self.btn_close = QPushButton("Later")
-        self.btn_close.setStyleSheet("QPushButton { background: transparent; color: #64748b; border: 1px solid #334155; padding: 10px 20px; border-radius: 8px; } QPushButton:hover { color: white; border-color: #475569; }")
+        self.btn_close.setStyleSheet(f"QPushButton {{ background: transparent; color: {UPD_TEXT_MUTED}; border: 1px solid {UPD_BORDER}; padding: 10px 20px; border-radius: 7px; font-family: 'Segoe UI'; font-weight: 600; }} QPushButton:hover {{ color: #f1f0ec; border-color: #3a3d44; }}")
         self.btn_close.clicked.connect(self.close)
-        
+
         self.btn_action = QPushButton("Check Now")
         self.btn_action.setEnabled(False)
-        self.btn_action.setStyleSheet("""
-            QPushButton { 
-                background: #3b82f6; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold;
-            }
-            QPushButton:hover { background: #2563eb; }
-            QPushButton:disabled { background: #334155; color: #64748b; }
+        self.btn_action.setStyleSheet(f"""
+            QPushButton {{
+                background: {UPD_ACCENT}; color: white; border: none; padding: 10px 25px; border-radius: 7px;
+                font-family: 'Segoe UI'; font-weight: 700; font-size: 13px;
+            }}
+            QPushButton:hover {{ background: {UPD_ACCENT_HOVER}; }}
+            QPushButton:disabled {{ background: {UPD_INK_LIGHT}; color: {UPD_TEXT_MUTED}; }}
         """)
         self.btn_action.clicked.connect(self.handle_action)
         
@@ -169,7 +190,7 @@ class Updater(QWidget):
         self.btn_action.setEnabled(True)
         self.lbl_version.setText(f"Latest: {tag}")
         self.lbl_status.setText("Update Available")
-        self.lbl_status.setStyleSheet("color: #f1f5f9; font-size: 18px; font-weight: bold;")
+        self.lbl_status.setStyleSheet("color: #f1f0ec; font-family: 'Segoe UI'; font-size: 15px; font-weight: 700;")
         self.btn_action.setText("Update Now")
         self.is_checked = True
 
@@ -190,10 +211,17 @@ class Updater(QWidget):
     def on_error(self, message):
         self.stack.setCurrentIndex(0)
         self.lbl_status.setText(f"Error: {message}")
-        self.lbl_status.setStyleSheet("color: #ef4444; font-size: 14px;")
+        self.lbl_status.setStyleSheet(f"color: {UPD_DANGER}; font-family: 'Segoe UI'; font-size: 13px; font-weight: 700;")
         self.btn_action.setEnabled(True)
         self.btn_action.setText("Retry")
         self.btn_close.setVisible(True)
+
+    def resource_path(self, relative_path):
+        try:
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+        return os.path.join(base_path, relative_path)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

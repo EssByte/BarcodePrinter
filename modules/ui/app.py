@@ -8,7 +8,7 @@ import requests
 import pyodbc
 import sqlite3
 import subprocess
-from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QGridLayout, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView, QFrame, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow, QWidget, QLabel, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem, QMessageBox, QHBoxLayout, QAction, QProgressBar, QComboBox, QCheckBox, QHeaderView, QFrame, QVBoxLayout
 from PyQt5.QtCore import Qt, QTimer, QSettings
 from PyQt5.QtGui import QIcon, QBrush, QColor
 
@@ -25,6 +25,20 @@ from remark import RemarkDialog
 from dashboard import DashboardWindow
 from check_password import PasswordCheck
 from version import __version__
+
+# Same "label stock" identity used in the layout designer and settings
+# window: warm paper canvas, deep charcoal chrome, stamped price-tag red
+# accent. Kept as literal values here (rather than importing from
+# settings3.py) to avoid pulling that module's heavier import chain into
+# every app.py load.
+APP_INK = "#191b1f"
+APP_CANVAS = "#f5f3ef"
+APP_SURFACE = "#ffffff"
+APP_BORDER = "#e6e2d9"
+APP_TEXT = "#1f2226"
+APP_TEXT_MUTED = "#74716a"
+APP_ACCENT = "#c81d31"
+APP_ACCENT_HOVER = "#a91729"
 
 class BarcodeApp(QMainWindow):
     def __init__(self):
@@ -136,7 +150,16 @@ class BarcodeApp(QMainWindow):
         central_widget.setObjectName("central_widget")
         self.setCentralWidget(central_widget)
 
-        grid_layout = QGridLayout(central_widget)
+        # Every section below spans the full width anyway (the old
+        # QGridLayout had every addWidget/addLayout call span all 3
+        # columns), so this is really just a vertical stack. A plain
+        # QVBoxLayout stretches its children to the window's actual width;
+        # the grid's unused column math was capping the table's width to
+        # the search row's natural content size, leaving a large empty
+        # gutter on wide windows.
+        grid_layout = QVBoxLayout(central_widget)
+        grid_layout.setContentsMargins(16, 12, 16, 12)
+        grid_layout.setSpacing(10)
         menu_bar = self.menuBar()
 
         dashboard_menu = menu_bar.addMenu("Dashboard")
@@ -151,6 +174,17 @@ class BarcodeApp(QMainWindow):
 
         # Search UI
         search_layout = QHBoxLayout()
+
+        # Brand lockup at the far left of the search row, matching the
+        # same logo + wordmark treatment used in the Settings sidebar.
+        brand_logo = QLabel()
+        brand_logo.setPixmap(QIcon(resource_path("images/logo.ico")).pixmap(26, 26))
+        brand_name = QLabel("BARCODE PRO")
+        brand_name.setObjectName("brand_name")
+        search_layout.addWidget(brand_logo)
+        search_layout.addWidget(brand_name)
+        search_layout.addSpacing(16)
+
         search_label = QLabel("Search:")
         self.item_code_input = QLineEdit(self)
         self.item_code_input.setPlaceholderText('Enter Item Code')
@@ -195,7 +229,7 @@ class BarcodeApp(QMainWindow):
         search_layout.addWidget(self.barcode_size)
         search_layout.addWidget(self.search_for_uom)
         search_layout.addWidget(self.search_by_description)
-        grid_layout.addLayout(search_layout, 0, 0, 1, 3)
+        grid_layout.addLayout(search_layout)
 
         # Table UI
         self.item_table = QTableWidget(self)
@@ -208,7 +242,8 @@ class BarcodeApp(QMainWindow):
         self.item_table.setColumnWidth(1, 150) # Remark
         self.item_table.setColumnWidth(2, 80) # Copies
         self.item_table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
-        grid_layout.addWidget(self.item_table, 1, 0, 1, 3)
+        self.item_table.horizontalHeader().setStretchLastSection(True)
+        grid_layout.addWidget(self.item_table, 1)
 
         # Pagination & Action Buttons
         pagination_layout = QHBoxLayout()
@@ -238,7 +273,7 @@ class BarcodeApp(QMainWindow):
         pagination_layout.addSpacing(20)
         pagination_layout.addWidget(self.reload_button)
         pagination_layout.addWidget(self.print_button)
-        grid_layout.addLayout(pagination_layout, 2, 0, 1, 3)
+        grid_layout.addLayout(pagination_layout)
 
         # Bottom Bar
         buttons_layout = QHBoxLayout()
@@ -246,7 +281,7 @@ class BarcodeApp(QMainWindow):
         self.update_button.clicked.connect(self.runUpdater)
         buttons_layout.addWidget(self.update_button)
         buttons_layout.addStretch(1)
-        grid_layout.addLayout(buttons_layout, 3, 0, 1, 3)
+        grid_layout.addLayout(buttons_layout)
 
         self.check_version()
         self.update_pagination_buttons()
@@ -254,20 +289,20 @@ class BarcodeApp(QMainWindow):
     def setup_loading_overlay(self, msg="SCANNING DATABASE..."):
         if not self.loading_overlay:
             self.loading_overlay = QFrame(self)
-            self.loading_overlay.setStyleSheet("background-color: rgba(15, 23, 42, 0.9); border-radius: 20px; border: 2px solid #3b82f6;")
+            self.loading_overlay.setStyleSheet(f"background-color: rgba(25, 27, 31, 0.94); border-radius: 16px; border: 2px solid {APP_ACCENT};")
             self.loading_overlay.setFixedSize(400, 120)
-            
+
             overlay_layout = QVBoxLayout(self.loading_overlay)
             self.lbl_loading_msg = QLabel(msg)
-            self.lbl_loading_msg.setStyleSheet("color: white; font-weight: 800; font-size: 14px; letter-spacing: 1px; border: none;")
+            self.lbl_loading_msg.setStyleSheet("color: white; font-weight: 800; font-size: 14px; border: none;")
             self.lbl_loading_msg.setAlignment(Qt.AlignCenter)
-            
+
             self.loading_pbar = QProgressBar()
             self.loading_pbar.setRange(0, 0)
             self.loading_pbar.setTextVisible(False)
-            self.loading_pbar.setStyleSheet("""
-                QProgressBar { border: 1px solid #334155; border-radius: 5px; height: 8px; background: #1e293b; }
-                QProgressBar::chunk { background-color: #3b82f6; border-radius: 4px; }
+            self.loading_pbar.setStyleSheet(f"""
+                QProgressBar {{ border: 1px solid #2a2d33; border-radius: 5px; height: 8px; background: #262930; }}
+                QProgressBar::chunk {{ background-color: {APP_ACCENT}; border-radius: 4px; }}
             """)
             overlay_layout.addStretch()
             overlay_layout.addWidget(self.lbl_loading_msg)
@@ -290,24 +325,68 @@ class BarcodeApp(QMainWindow):
 
     def loadStylesheet(self):
         try:
-            stylesheet = """
-            QMainWindow { background-color: #f0f2f5; }
-            QWidget#central_widget { background-color: #f0f2f5; }
-            QLabel { font-family: 'Segoe UI'; color: #2c3e50; font-size: 14px; font-weight: 500; }
-            QLineEdit { background-color: #ffffff; border: 2px solid #e0e6ed; border-radius: 8px; padding: 10px 15px; font-size: 14px; }
-            QLineEdit:focus { border: 2px solid #3498db; }
-            QTableWidget { background-color: #ffffff; border: 1px solid #e0e6ed; border-radius: 12px; gridline-color: transparent; }
-            QTableWidget::item { padding: 10px; border-bottom: 1px solid #f1f3f5; }
-            QHeaderView::section { background-color: #f8fafc; padding: 12px; border: none; border-bottom: 2px solid #3498db; font-weight: bold; }
-            QHeaderView::section:vertical { border-right: 2px solid #3498db; padding: 5px; }
-            QPushButton { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 16px; font-weight: 600; }
-            QPushButton:hover { background-color: #f9fafb; border-color: #3498db; color: #3498db; }
-            QPushButton#btn_print { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3498db, stop:1 #2980b9); color: white; border: none; }
-            QPushButton#btn_search { background-color: #2ecc71; color: white; border: none; }
-            QComboBox { background-color: #ffffff; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px; }
-            QProgressBar { border: 1px solid #d1d5db; border-radius: 5px; text-align: center; }
-            QProgressBar::chunk { background-color: #3498db; border-radius: 4px; }
-            QMenuBar { background-color: #ffffff; border-bottom: 1px solid #e0e6ed; padding: 5px; }
+            stylesheet = f"""
+            QMainWindow {{ background-color: {APP_CANVAS}; }}
+            QWidget#central_widget {{ background-color: {APP_CANVAS}; }}
+
+            QMenuBar {{ background-color: {APP_INK}; color: #ffffff; padding: 6px 8px; font-family: 'Segoe UI'; font-weight: 600; }}
+            QLabel#brand_name {{ color: {APP_INK}; font-family: 'Segoe UI Semibold'; font-weight: 700; font-size: 14px; }}
+            QMenuBar::item {{ background: transparent; padding: 6px 14px; border-radius: 6px; }}
+            QMenuBar::item:selected {{ background-color: #2a2d33; }}
+            QMenu {{ background-color: {APP_SURFACE}; border: 1px solid {APP_BORDER}; padding: 4px; }}
+            QMenu::item {{ padding: 7px 18px; border-radius: 5px; color: {APP_TEXT}; }}
+            QMenu::item:selected {{ background-color: {APP_ACCENT}; color: white; }}
+
+            QLabel {{ font-family: 'Segoe UI'; color: {APP_TEXT}; font-size: 13px; font-weight: 600; }}
+
+            QLineEdit, QComboBox {{
+                background-color: {APP_SURFACE}; border: 1px solid {APP_BORDER}; border-radius: 7px;
+                padding: 8px 12px; font-family: 'Segoe UI'; font-size: 13px; color: {APP_TEXT}; min-height: 20px;
+            }}
+            QLineEdit:hover, QComboBox:hover {{ border-color: #cfc9ba; }}
+            QLineEdit:focus, QComboBox:focus {{ border: 1.5px solid {APP_ACCENT}; }}
+            QComboBox::drop-down {{ border: none; width: 22px; }}
+            QComboBox QAbstractItemView {{ background-color: {APP_SURFACE}; border: 1px solid {APP_BORDER}; selection-background-color: {APP_ACCENT}; selection-color: white; outline: none; }}
+
+            QCheckBox {{ font-family: 'Segoe UI'; font-weight: 600; color: {APP_TEXT}; font-size: 13px; spacing: 8px; }}
+            QCheckBox::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cfc9ba; background: {APP_SURFACE}; }}
+            QCheckBox::indicator:hover {{ border-color: {APP_ACCENT}; }}
+            QCheckBox::indicator:checked {{ background: {APP_ACCENT}; border-color: {APP_ACCENT}; }}
+
+            QTableWidget {{
+                background-color: {APP_SURFACE}; border: 1px solid {APP_BORDER}; border-radius: 10px;
+                gridline-color: transparent; font-family: 'Segoe UI'; font-size: 13px; color: {APP_TEXT};
+                selection-background-color: transparent; selection-color: {APP_TEXT};
+            }}
+            QTableWidget::item {{ padding: 8px; border-bottom: 1px solid {APP_BORDER}; }}
+            QTableWidget::indicator {{ width: 16px; height: 16px; border-radius: 4px; border: 1.5px solid #cfc9ba; background: {APP_SURFACE}; }}
+            QTableWidget::indicator:checked {{ background: {APP_ACCENT}; border-color: {APP_ACCENT}; }}
+            QHeaderView::section {{
+                background-color: {APP_SURFACE}; color: {APP_TEXT_MUTED}; padding: 10px 8px; border: none;
+                border-bottom: 2px solid {APP_ACCENT}; font-family: 'Segoe UI'; font-weight: 700; font-size: 11px;
+            }}
+            QHeaderView::section:vertical {{ border-right: 1px solid {APP_BORDER}; border-bottom: 1px solid {APP_BORDER}; padding: 5px; }}
+
+            QPushButton {{
+                background-color: {APP_SURFACE}; border: 1px solid {APP_BORDER}; border-radius: 7px;
+                padding: 9px 18px; font-family: 'Segoe UI'; font-weight: 600; font-size: 13px; color: {APP_TEXT};
+            }}
+            QPushButton:hover {{ background-color: {APP_CANVAS}; border-color: #cfc9ba; }}
+            QPushButton:disabled {{ color: #b3b0a7; background-color: {APP_CANVAS}; }}
+            QPushButton#btn_print {{
+                background-color: {APP_ACCENT}; color: white; border: none; font-weight: 700; padding: 10px 24px;
+            }}
+            QPushButton#btn_print:hover {{ background-color: {APP_ACCENT_HOVER}; }}
+            QPushButton#btn_search {{ background-color: {APP_INK}; color: white; border: none; }}
+            QPushButton#btn_search:hover {{ background-color: #2a2d33; }}
+
+            QProgressBar {{ border: 1px solid {APP_BORDER}; border-radius: 5px; text-align: center; background: {APP_SURFACE}; }}
+            QProgressBar::chunk {{ background-color: {APP_ACCENT}; border-radius: 4px; }}
+
+            QScrollBar:vertical {{ background: transparent; width: 10px; margin: 2px; }}
+            QScrollBar::handle:vertical {{ background: #d8d3c5; border-radius: 5px; min-height: 24px; }}
+            QScrollBar::handle:vertical:hover {{ background: #c7c1b1; }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {{ height: 0; }}
             """
             self.setStyleSheet(stylesheet)
         except Exception as e:
@@ -427,7 +506,7 @@ class BarcodeApp(QMainWindow):
                 ti = QTableWidgetItem(str(val)); ti.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled); ti.setTextAlignment(Qt.AlignCenter)
                 self.item_table.setItem(row, col, ti)
             if row % 2 == 0:
-                for c in range(11): self.item_table.item(row, c).setBackground(QBrush(QColor(248, 250, 252)))
+                for c in range(11): self.item_table.item(row, c).setBackground(QBrush(QColor(APP_CANVAS)))
 
         self.update_pagination_buttons()
         self.restore_column_widths()

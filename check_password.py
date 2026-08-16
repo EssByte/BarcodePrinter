@@ -1,10 +1,20 @@
-from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QFrame, QLabel, QLineEdit, QPushButton, QHBoxLayout, QGraphicsDropShadowEffect
-from PyQt5.QtGui import QPixmap, QIcon, QFont, QColor
-from PyQt5.QtCore import Qt, QSize, pyqtSignal
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QFrame, QLabel, QLineEdit, QPushButton
+from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt, pyqtSignal
 from datetime import datetime
 from settings3 import SettingsWindow
 import sys
 import os
+
+# Same "label stock" identity used across the rest of the app.
+PW_INK = "#191b1f"
+PW_CANVAS = "#f5f3ef"
+PW_SURFACE = "#ffffff"
+PW_BORDER = "#e6e2d9"
+PW_TEXT = "#1f2226"
+PW_TEXT_MUTED = "#74716a"
+PW_ACCENT = "#c81d31"
+PW_ACCENT_HOVER = "#a91729"
 
 class PasswordCheck(QMainWindow):
     closed = pyqtSignal()
@@ -13,13 +23,13 @@ class PasswordCheck(QMainWindow):
         super().__init__()
         self.config = config
         self.setWindowTitle("Authorization")
-        self.setFixedSize(450, 400)
-        
+        self.setFixedSize(450, 420)
+
         # Main container with background color
         self.central_widget = QWidget()
         self.central_widget.setObjectName("central_widget")
         self.setCentralWidget(self.central_widget)
-        self.central_widget.setStyleSheet("QWidget#central_widget { background-color: #f0f2f5; }")
+        self.central_widget.setStyleSheet(f"QWidget#central_widget {{ background-color: {PW_CANVAS}; }}")
 
         # Layout for centering the card
         self.main_layout = QVBoxLayout(self.central_widget)
@@ -28,76 +38,74 @@ class PasswordCheck(QMainWindow):
         # The Login Card
         self.card = QFrame()
         self.card.setObjectName("card")
-        self.card.setFixedSize(350, 320)
-        self.card.setStyleSheet("""
-            QFrame#card {
-                background-color: white;
-                border-radius: 15px;
-            }
+        self.card.setFixedSize(350, 340)
+        self.card.setStyleSheet(f"""
+            QFrame#card {{
+                background-color: {PW_SURFACE};
+                border: 1px solid {PW_BORDER};
+                border-radius: 12px;
+            }}
         """)
-        
-        # Shadow effect for the card
-        shadow = QGraphicsDropShadowEffect()
-        shadow.setBlurRadius(20)
-        shadow.setXOffset(0)
-        shadow.setYOffset(4)
-        shadow.setColor(QColor(0, 0, 0, 40))
-        self.card.setGraphicsEffect(shadow)
 
         self.card_layout = QVBoxLayout(self.card)
-        self.card_layout.setContentsMargins(30, 40, 30, 40)
-        self.card_layout.setSpacing(20)
+        self.card_layout.setContentsMargins(34, 36, 34, 36)
+        self.card_layout.setSpacing(6)
 
         # Header
+        self.label_logo = QLabel()
+        self.label_logo.setPixmap(QIcon(self.resource_path("images/logo.ico")).pixmap(40, 40))
+        self.label_logo.setAlignment(Qt.AlignCenter)
+        self.card_layout.addWidget(self.label_logo)
+        self.card_layout.addSpacing(12)
+
         self.label_title = QLabel("Admin Access")
         self.label_title.setAlignment(Qt.AlignCenter)
-        self.label_title.setStyleSheet("font-family: 'Segoe UI'; font-size: 22px; font-weight: bold; color: #2c3e50;")
+        self.label_title.setStyleSheet(f"font-family: 'Segoe UI Semibold'; font-size: 20px; font-weight: 700; color: {PW_INK};")
         self.card_layout.addWidget(self.label_title)
 
-        self.label_subtitle = QLabel("Please enter password to continue")
+        self.label_subtitle = QLabel("Enter the password to continue")
         self.label_subtitle.setAlignment(Qt.AlignCenter)
-        self.label_subtitle.setStyleSheet("font-family: 'Segoe UI'; font-size: 13px; color: #7f8c8d;")
+        self.label_subtitle.setStyleSheet(f"font-family: 'Segoe UI'; font-size: 12.5px; color: {PW_TEXT_MUTED};")
         self.card_layout.addWidget(self.label_subtitle)
-        
-        self.card_layout.addSpacing(10)
+
+        self.card_layout.addSpacing(18)
 
         # Password Input
         self.et_password = QLineEdit()
         self.et_password.setEchoMode(QLineEdit.Password)
         self.et_password.setPlaceholderText("Password")
-        self.et_password.setFixedSize(290, 45)
-        self.et_password.setStyleSheet("""
-            QLineEdit {
-                border: 2px solid #e0e6ed;
-                border-radius: 8px;
-                padding: 10px;
-                font-size: 14px;
-                color: #2c3e50;
-            }
-            QLineEdit:focus {
-                border-color: #3498db;
-            }
+        self.et_password.setFixedSize(282, 42)
+        self.et_password.setStyleSheet(f"""
+            QLineEdit {{
+                background-color: {PW_SURFACE};
+                border: 1px solid {PW_BORDER};
+                border-radius: 7px;
+                padding: 0 12px;
+                font-family: 'Segoe UI';
+                font-size: 13px;
+                color: {PW_TEXT};
+            }}
+            QLineEdit:hover {{ border-color: #cfc9ba; }}
+            QLineEdit:focus {{ border: 1.5px solid {PW_ACCENT}; }}
         """)
         self.card_layout.addWidget(self.et_password)
+        self.card_layout.addSpacing(8)
 
         # Check Button
         self.btn_checkPassword = QPushButton("Authorize")
-        self.btn_checkPassword.setFixedSize(290, 45)
+        self.btn_checkPassword.setFixedSize(282, 42)
         self.btn_checkPassword.setCursor(Qt.PointingHandCursor)
-        self.btn_checkPassword.setStyleSheet("""
-            QPushButton {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #3498db, stop:1 #2980b9);
+        self.btn_checkPassword.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {PW_ACCENT};
                 color: white;
-                border-radius: 8px;
-                font-size: 15px;
-                font-weight: bold;
-            }
-            QPushButton:hover {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #2980b9, stop:1 #1f6391);
-            }
-            QPushButton:pressed {
-                background-color: #1f6391;
-            }
+                border: none;
+                border-radius: 7px;
+                font-family: 'Segoe UI';
+                font-size: 14px;
+                font-weight: 700;
+            }}
+            QPushButton:hover {{ background-color: {PW_ACCENT_HOVER}; }}
         """)
         self.card_layout.addWidget(self.btn_checkPassword)
 
