@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from PyQt5.QtCore import QSettings, pyqtSignal, QObject
 
 class BarcodeConfig(QObject):
@@ -24,6 +25,18 @@ class BarcodeConfig(QObject):
         self.settings = QSettings("AlphaDigital", "BarcodePrinter")
         self.json_path = "C:/barcode/barcode.json"
         self._ensure_default_printer()
+        self._ensure_default_custom_size()
+
+    def _ensure_default_custom_size(self):
+        """Ensures at least one custom label size profile exists if none are configured."""
+        if not self.get_custom_label_sizes():
+            self.set_custom_label_sizes([{
+                "id": str(uuid.uuid4()),
+                "name": "My First Label",
+                "width_mm": 75.0,
+                "height_mm": 50.0,
+                "elements": []
+            }])
 
     def _ensure_default_printer(self):
         """Ensures at least one printer exists if none are configured."""
@@ -72,6 +85,20 @@ class BarcodeConfig(QObject):
             if p["id"] == active_id:
                 return p
         return printers[0] if printers else None
+
+    def get_custom_label_sizes(self):
+        val = self.settings.value("custom_label_sizes")
+        if not val: return []
+        if isinstance(val, list): return val
+        try:
+            return json.loads(str(val))
+        except Exception:
+            return []
+
+    def set_custom_label_sizes(self, sizes):
+        self.settings.setValue("custom_label_sizes", json.dumps(sizes))
+        self.settings.sync()
+        self.setting_changed.emit("custom_label_sizes", sizes)
 
     # Getters and Setters
     def get_server(self):

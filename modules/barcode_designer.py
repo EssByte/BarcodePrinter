@@ -2,15 +2,17 @@
 Barcode Label Designer - Visual layout editor for barcode printing.
 Supports multiple sticker sizes with WYSIWYG editing and mm-based grid.
 """
-import json
 import os
 import uuid
-from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, 
-                             QGraphicsView, QGraphicsScene, QGraphicsTextItem, 
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
+                             QGraphicsView, QGraphicsScene, QGraphicsTextItem,
                              QGraphicsRectItem, QGraphicsLineItem, QGraphicsItem,
-                             QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox, QMessageBox)
+                             QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox, QMessageBox,
+                             QInputDialog)
 from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF
+
+from modules.Configurations import BarcodeConfig
 
 try:
     from .size_converter import SizeConverter
@@ -169,9 +171,10 @@ class CanvasView(QGraphicsView):
         super().__init__()
         self.size_converter = size_converter
         
-        # Calculate canvas size based on label size
+        # Calculate canvas size based on label size (default 75x50mm placeholder;
+        # BarcodeDesigner resizes this immediately to the selected profile's size)
         if size_converter and SizeConverter:
-            width_px, height_px = size_converter.get_label_size_pixels("75 x 50 mm")
+            width_px, height_px = size_converter.mm_to_pixels(75), size_converter.mm_to_pixels(50)
         else:
             width_px, height_px = 750, 500
         
@@ -179,6 +182,7 @@ class CanvasView(QGraphicsView):
         self.setScene(self.scene)
         self.setRenderHint(QPainter.Antialiasing)
         self.setRenderHint(QPainter.SmoothPixmapTransform)
+        self.setStyleSheet("QGraphicsView { border: none; background: #f1f5f9; }")
         self.scene.selectionChanged.connect(self.on_selection_changed)
 
         # Professional boundary
@@ -186,7 +190,9 @@ class CanvasView(QGraphicsView):
         self.boundary.setPen(QPen(QColor("#3b82f6"), 2))
         self.boundary.setBrush(QBrush(QColor(255, 255, 255)))
         self.scene.addItem(self.boundary)
-        
+
+        self.grid_lines = []
+
         # Draw grid if size converter available
         if size_converter and SizeConverter:
             self._draw_grid(width_px, height_px)
@@ -195,22 +201,29 @@ class CanvasView(QGraphicsView):
         """Draw mm grid for visual reference (every 5mm)."""
         if not self.size_converter or not SizeConverter:
             return
-        
+
+        # Clear any grid lines left over from a previous size
+        for line in self.grid_lines:
+            self.scene.removeItem(line)
+        self.grid_lines = []
+
         grid_pen = QPen(QColor("#e2e8f0"), 0.5)
         step = self.size_converter.mm_to_pixels(5)
-        
+
         # Vertical lines
         x = 0
         while x <= width:
             line = self.scene.addLine(x, 0, x, height, grid_pen)
             line.setZValue(-1)
+            self.grid_lines.append(line)
             x += step
-        
+
         # Horizontal lines
         y = 0
         while y <= height:
             line = self.scene.addLine(0, y, width, y, grid_pen)
             line.setZValue(-1)
+            self.grid_lines.append(line)
             y += step
 
     def on_selection_changed(self):
@@ -220,25 +233,109 @@ class CanvasView(QGraphicsView):
         else:
             self.selection_changed.emit(None)
     
-    def set_label_size(self, size_name):
-        """Change canvas to match label size."""
-        if not self.size_converter or not SizeConverter or size_name not in self.size_converter.get_all_sizes():
+    def set_label_size_mm(self, width_mm, height_mm):
+        """Resize canvas to arbitrary mm dimensions using the current size_converter's dpi."""
+        if not self.size_converter or not SizeConverter:
             return
-        
-        width_px, height_px = self.size_converter.get_label_size_pixels(size_name)
+
+        width_px = self.size_converter.mm_to_pixels(width_mm)
+        height_px = self.size_converter.mm_to_pixels(height_mm)
         self.scene.setSceneRect(0, 0, width_px, height_px)
         self.boundary.setRect(0, 0, width_px, height_px)
         self._draw_grid(width_px, height_px)
 
+DESIGNER_STYLE = """
+QWidget#toolboxPanel {
+    background: #f8fafc;
+}
+QGroupBox {
+    font-weight: 600;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    background: white;
+}
+QGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 4px;
+}
+QPushButton#toolBtn {
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px 10px;
+    text-align: left;
+    color: #1e293b;
+}
+QPushButton#toolBtn:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+}
+QPushButton#toolBtn:pressed {
+    background: #dbeafe;
+}
+QPushButton#dangerBtn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-weight: 600;
+}
+QPushButton#dangerBtn:hover { background: #dc2626; }
+QPushButton#successBtn {
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-weight: 600;
+}
+QPushButton#successBtn:hover { background: #059669; }
+QPushButton#primaryBtn {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 10px;
+    font-weight: 700;
+}
+QPushButton#primaryBtn:hover { background: #2563eb; }
+QPushButton#iconBtn {
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
+QPushButton#iconBtn:hover { border-color: #3b82f6; }
+QComboBox, QLineEdit, QSpinBox {
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 4px 6px;
+    background: white;
+}
+QComboBox:hover, QLineEdit:hover, QSpinBox:hover {
+    border-color: #94a3b8;
+}
+QSplitter::handle {
+    background: #e2e8f0;
+}
+QSplitter::handle:hover {
+    background: #cbd5e1;
+}
+"""
+
 class BarcodeDesigner(QWidget):
-    def __init__(self, config_path=os.path.join(os.path.expanduser("~"), ".barcode_custom_layout.json")):
+    def __init__(self):
         super().__init__()
-        self.config_path = config_path
-        self.size_converter = SizeConverter() if SizeConverter else None
+        self.config = BarcodeConfig()
+        self.current_profile_id = None
+        self.size_converter = SizeConverter(dpi=SizeConverter.PRINTER_DPI) if SizeConverter else None
+        self.setStyleSheet(DESIGNER_STYLE)
         self.init_ui()
-        self.load_design()
-        if self.size_converter:
-            self.canvas.set_label_size("75 x 50 mm")
 
     def init_ui(self):
         main_layout = QHBoxLayout(self)
@@ -250,54 +347,98 @@ class BarcodeDesigner(QWidget):
 
         # 1. Toolbox Panel (Left)
         toolbox = QWidget()
+        toolbox.setObjectName("toolboxPanel")
         tool_layout = QVBoxLayout(toolbox)
-        tool_layout.addWidget(QLabel("<b>Tools</b>"))
-        
-        btn_text = QPushButton("Add Text")
+        tool_layout.setContentsMargins(10, 10, 10, 10)
+        tool_layout.setSpacing(4)
+
+        # Label size
+        size_group = QGroupBox("Label Size")
+        size_layout = QVBoxLayout(size_group)
+        self.size_combo = QComboBox()
+        self.size_combo.currentIndexChanged.connect(self.handle_size_change)
+        size_layout.addWidget(self.size_combo)
+
+        size_btn_row = QHBoxLayout()
+        btn_new_size = QPushButton("+ New")
+        btn_new_size.setObjectName("toolBtn")
+        btn_new_size.clicked.connect(self.create_new_size)
+        btn_rename_size = QPushButton("Rename")
+        btn_rename_size.setObjectName("toolBtn")
+        btn_rename_size.clicked.connect(self.rename_current_size)
+        btn_delete_size = QPushButton("Delete")
+        btn_delete_size.setObjectName("dangerBtn")
+        btn_delete_size.clicked.connect(self.delete_current_size)
+        size_btn_row.addWidget(btn_new_size)
+        size_btn_row.addWidget(btn_rename_size)
+        size_btn_row.addWidget(btn_delete_size)
+        size_layout.addLayout(size_btn_row)
+        tool_layout.addWidget(size_group)
+
+        # Elements
+        elements_group = QGroupBox("Elements")
+        elements_layout = QVBoxLayout(elements_group)
+
+        btn_text = QPushButton("🔤  Add Text")
+        btn_text.setObjectName("toolBtn")
         btn_text.clicked.connect(lambda *args: self.add_element(CustomTextItem("New Text", (20, 20))))
-        
-        btn_barcode = QPushButton("Add Barcode")
+
+        btn_barcode = QPushButton("▤  Add Barcode")
+        btn_barcode.setObjectName("toolBtn")
         btn_barcode.clicked.connect(lambda *args: self.add_element(CustomRectItem(200, 50, (20, 20), "barcode")))
-        
-        btn_line = QPushButton("Add Line")
+
+        btn_line = QPushButton("╱  Add Line")
+        btn_line.setObjectName("toolBtn")
         btn_line.clicked.connect(lambda *args: self.add_element(CustomLineItem(150, (20, 20))))
-        
-        btn_block = QPushButton("Add Block")
+
+        btn_block = QPushButton("▭  Add Block")
+        btn_block.setObjectName("toolBtn")
         btn_block.clicked.connect(lambda *args: self.add_element(CustomRectItem(100, 100, (20, 20), "block")))
-        
+
+        for btn in [btn_text, btn_barcode, btn_line, btn_block]:
+            elements_layout.addWidget(btn)
+        tool_layout.addWidget(elements_group)
+
+        # Actions
+        actions_group = QGroupBox("Actions")
+        actions_layout = QVBoxLayout(actions_group)
+
         btn_delete = QPushButton("Delete Selected")
-        btn_delete.setStyleSheet("background-color: #ef4444; color: white;")
+        btn_delete.setObjectName("dangerBtn")
         btn_delete.clicked.connect(self.delete_selected)
 
         btn_save = QPushButton("Save Layout")
-        btn_save.setStyleSheet("background-color: #10b981; color: white;")
+        btn_save.setObjectName("successBtn")
         btn_save.clicked.connect(self.save_design)
 
-        for btn in [btn_text, btn_barcode, btn_line, btn_block, btn_delete, btn_save]:
-            tool_layout.addWidget(btn)
-        
+        actions_layout.addWidget(btn_delete)
+        actions_layout.addWidget(btn_save)
+        tool_layout.addWidget(actions_group)
+
         # Printing Section
-        tool_layout.addSpacing(20)
-        tool_layout.addWidget(QLabel("<b>Printer</b>"))
-        
+        printer_group = QGroupBox("Printer")
+        printer_group_layout = QVBoxLayout(printer_group)
+
         printer_layout = QHBoxLayout()
         self.printer_combo = QComboBox()
         self.load_printers()
         self.printer_combo.currentIndexChanged.connect(self.handle_printer_selection)
-        
+
         self.btn_refresh_printers = QPushButton("🔄")
-        self.btn_refresh_printers.setFixedWidth(40)
+        self.btn_refresh_printers.setObjectName("iconBtn")
+        self.btn_refresh_printers.setFixedWidth(36)
         self.btn_refresh_printers.clicked.connect(self.load_printers)
-        
+
         printer_layout.addWidget(self.printer_combo)
         printer_layout.addWidget(self.btn_refresh_printers)
-        tool_layout.addLayout(printer_layout)
-        
+        printer_group_layout.addLayout(printer_layout)
+
         btn_print = QPushButton("Print Layout")
-        btn_print.setStyleSheet("background-color: #3b82f6; color: white; padding: 10px; font-weight: bold;")
+        btn_print.setObjectName("primaryBtn")
         btn_print.clicked.connect(self.print_layout)
-        tool_layout.addWidget(btn_print)
-        
+        printer_group_layout.addWidget(btn_print)
+        tool_layout.addWidget(printer_group)
+
         tool_layout.addStretch()
 
         # 2. Canvas (Center)
@@ -308,11 +449,121 @@ class BarcodeDesigner(QWidget):
         self.prop_panel = QGroupBox("Properties")
         self.prop_layout = QFormLayout(self.prop_panel)
         self.current_item = None
+        self.update_properties_panel(None)
 
         splitter.addWidget(toolbox)
         splitter.addWidget(self.canvas)
         splitter.addWidget(self.prop_panel)
         splitter.setSizes([150, 600, 250])
+
+        self.populate_size_combo()
+
+    def populate_size_combo(self):
+        self.size_combo.blockSignals(True)
+        self.size_combo.clear()
+        profiles = self.config.get_custom_label_sizes()
+        for p in profiles:
+            self.size_combo.addItem(p["name"], p["id"])
+        self.size_combo.blockSignals(False)
+        if profiles:
+            self.size_combo.setCurrentIndex(0)
+            self.load_profile(profiles[0])
+
+    def get_profile_by_id(self, profile_id):
+        for p in self.config.get_custom_label_sizes():
+            if p["id"] == profile_id:
+                return p
+        return None
+
+    def load_profile(self, profile):
+        self.current_profile_id = profile["id"]
+        for item in list(self.canvas.scene.items()):
+            if isinstance(item, BaseElement):
+                self.canvas.scene.removeItem(item)
+        self.canvas.set_label_size_mm(profile["width_mm"], profile["height_mm"])
+        for item_data in profile.get("elements", []):
+            e_type = item_data.get("type")
+            if e_type == "text":
+                item = CustomTextItem()
+            elif e_type in ("barcode", "block"):
+                item = CustomRectItem(e_type=e_type)
+            elif e_type == "line":
+                item = CustomLineItem()
+            else:
+                continue
+            item.load_dict(item_data)
+            self.canvas.scene.addItem(item)
+
+    def handle_size_change(self, index):
+        if index < 0:
+            return
+        profile_id = self.size_combo.itemData(index)
+        profile = self.get_profile_by_id(profile_id)
+        if profile:
+            self.load_profile(profile)
+
+    def create_new_size(self):
+        name, ok = QInputDialog.getText(self, "New Label Size", "Name:")
+        if not ok or not name.strip():
+            return
+        width_mm, ok = QInputDialog.getDouble(self, "New Label Size", "Width (mm):", 50.0, 1.0, 500.0, 1)
+        if not ok:
+            return
+        height_mm, ok = QInputDialog.getDouble(self, "New Label Size", "Height (mm):", 30.0, 1.0, 500.0, 1)
+        if not ok:
+            return
+
+        profiles = self.config.get_custom_label_sizes()
+        new_profile = {
+            "id": str(uuid.uuid4()),
+            "name": name.strip(),
+            "width_mm": width_mm,
+            "height_mm": height_mm,
+            "elements": []
+        }
+        profiles.append(new_profile)
+        self.config.set_custom_label_sizes(profiles)
+        self.populate_size_combo()
+        idx = self.size_combo.findData(new_profile["id"])
+        if idx >= 0:
+            self.size_combo.setCurrentIndex(idx)
+
+    def rename_current_size(self):
+        if not self.current_profile_id:
+            return
+        target_id = self.current_profile_id
+        profile = self.get_profile_by_id(target_id)
+        if not profile:
+            return
+        new_name, ok = QInputDialog.getText(self, "Rename Label Size", "Name:", text=profile["name"])
+        if not ok or not new_name.strip():
+            return
+
+        profiles = self.config.get_custom_label_sizes()
+        for p in profiles:
+            if p["id"] == target_id:
+                p["name"] = new_name.strip()
+        self.config.set_custom_label_sizes(profiles)
+        self.populate_size_combo()
+        idx = self.size_combo.findData(target_id)
+        if idx >= 0:
+            self.size_combo.setCurrentIndex(idx)
+
+    def delete_current_size(self):
+        if not self.current_profile_id:
+            return
+        profiles = self.config.get_custom_label_sizes()
+        if len(profiles) <= 1:
+            QMessageBox.warning(self, "Cannot Delete", "At least one label size must exist.")
+            return
+        reply = QMessageBox.question(self, "Delete Size", "Delete this label size and its design?")
+        if reply != QMessageBox.Yes:
+            return
+
+        profiles = [p for p in profiles if p["id"] != self.current_profile_id]
+        self.config.set_custom_label_sizes(profiles)
+        self.current_profile_id = None
+        self.populate_size_combo()
 
     def add_element(self, item):
         self.canvas.scene.addItem(item)
@@ -331,7 +582,19 @@ class BarcodeDesigner(QWidget):
             child = self.prop_layout.takeAt(0)
             if child.widget(): child.widget().deleteLater()
 
-        if not item: return
+        if not item:
+            placeholder = QLabel("Select an element on the canvas to edit its properties.")
+            placeholder.setWordWrap(True)
+            placeholder.setStyleSheet("color: #94a3b8; padding: 8px 0;")
+            self.prop_layout.addRow(placeholder)
+            return
+
+        self.x_edit = QSpinBox(); self.x_edit.setRange(-2000, 4000); self.x_edit.setValue(int(item.pos().x()))
+        self.y_edit = QSpinBox(); self.y_edit.setRange(-2000, 4000); self.y_edit.setValue(int(item.pos().y()))
+        self.x_edit.valueChanged.connect(self.apply_properties)
+        self.y_edit.valueChanged.connect(self.apply_properties)
+        self.prop_layout.addRow("X:", self.x_edit)
+        self.prop_layout.addRow("Y:", self.y_edit)
 
         if isinstance(item, CustomTextItem):
             self.val_edit = QLineEdit(item.text_value)
@@ -347,8 +610,8 @@ class BarcodeDesigner(QWidget):
             self.prop_layout.addRow("", self.bold_check)
 
         elif isinstance(item, CustomRectItem):
-            self.w_edit = QSpinBox(); self.w_edit.setRange(10, 800); self.w_edit.setValue(item.box_width)
-            self.h_edit = QSpinBox(); self.h_edit.setRange(5, 800); self.h_edit.setValue(item.box_height)
+            self.w_edit = QSpinBox(); self.w_edit.setRange(10, 4000); self.w_edit.setValue(item.box_width)
+            self.h_edit = QSpinBox(); self.h_edit.setRange(5, 4000); self.h_edit.setValue(item.box_height)
             
             self.w_edit.valueChanged.connect(self.apply_properties)
             self.h_edit.valueChanged.connect(self.apply_properties)
@@ -362,7 +625,7 @@ class BarcodeDesigner(QWidget):
                 self.prop_layout.addRow("Value:", self.val_edit)
 
         elif isinstance(item, CustomLineItem):
-            self.l_edit = QSpinBox(); self.l_edit.setRange(10, 800); self.l_edit.setValue(item.length)
+            self.l_edit = QSpinBox(); self.l_edit.setRange(10, 4000); self.l_edit.setValue(item.length)
             self.t_edit = QSpinBox(); self.t_edit.setRange(1, 20); self.t_edit.setValue(item.thickness)
             self.v_check = QCheckBox("Vertical"); self.v_check.setChecked(item.is_vertical)
 
@@ -377,6 +640,9 @@ class BarcodeDesigner(QWidget):
     def apply_properties(self):
         if not self.current_item: return
         item = self.current_item
+
+        if hasattr(self, 'x_edit') and hasattr(self, 'y_edit'):
+            item.setPos(self.x_edit.value(), self.y_edit.value())
 
         if isinstance(item, CustomTextItem):
             item.text_value = self.val_edit.text()
@@ -405,40 +671,16 @@ class BarcodeDesigner(QWidget):
         return {"elements": elements}
 
     def save_design(self):
-        data = self.get_design_dict()
-        try:
-            os.makedirs(os.path.dirname(self.config_path), exist_ok=True)
-            with open(self.config_path, 'w') as f:
-                json.dump(data, f, indent=4)
-        except Exception as e:
-            print("Failed to save design:", e)
-
-    def load_design(self):
-        if not os.path.exists(self.config_path): return
-        try:
-            with open(self.config_path, 'r') as f:
-                data = json.load(f)
-            
-            for item_data in data.get("elements", []):
-                e_type = item_data.get("type")
-                if e_type == "text":
-                    item = CustomTextItem()
-                elif e_type in ["barcode", "block"]:
-                    item = CustomRectItem(e_type=e_type)
-                elif e_type == "line":
-                    item = CustomLineItem()
-                else:
-                    continue
-                
-                item.load_dict(item_data)
-                self.canvas.scene.addItem(item)
-        except Exception as e:
-            print("Failed to load design:", e)
+        if not self.current_profile_id:
+            return
+        elements = [item.to_dict() for item in self.canvas.scene.items() if isinstance(item, BaseElement)]
+        profiles = self.config.get_custom_label_sizes()
+        for p in profiles:
+            if p["id"] == self.current_profile_id:
+                p["elements"] = elements
+        self.config.set_custom_label_sizes(profiles)
 
     def load_printers(self):
-        from modules.Configurations import BarcodeConfig
-        self.config = BarcodeConfig()
-        
         self.printer_combo.blockSignals(True)
         self.printer_combo.clear()
         printers = self.config.get_printers_list()
@@ -467,11 +709,16 @@ class BarcodeDesigner(QWidget):
         import usb.backend.libusb1
         import sys
         
+        profile = self.get_profile_by_id(self.current_profile_id)
+        if not profile:
+            QMessageBox.warning(self, "No Size", "Please select a label size first.")
+            return
+
         try:
             # 1. Render Image
             ip = ImagePrinter()
             layout_dict = self.get_design_dict()
-            
+
             # Create some dummy data or grab real data. Here we can use generic placeholders for a test print
             test_data = {
                 "barcode_value": "1234567890",
@@ -479,9 +726,11 @@ class BarcodeDesigner(QWidget):
                 "unit_price_integer": "99.90",
                 "remark": "Test Remark"
             }
-            
-            img = ip.render_custom_label(test_data, layout_dict, W=750, H=550)
-            print_data = ip.get_full_command(img, copies=1, width_mm=75, height_mm=55)
+
+            W = self.size_converter.mm_to_pixels(profile["width_mm"])
+            H = self.size_converter.mm_to_pixels(profile["height_mm"])
+            img = ip.render_custom_label(test_data, layout_dict, W=W, H=H)
+            print_data = ip.get_full_command(img, copies=1, width_mm=profile["width_mm"], height_mm=profile["height_mm"])
 
             # 2. Send Command
             sc = SendCommand()
@@ -506,16 +755,16 @@ class BarcodeDesigner(QWidget):
                     return
                 
                 usb_printer.set_configuration()
-                ep = int(printer_data.get('endpoint', '0x01'), 16)
+                ep = int(printer_config.get('endpoint', '0x01'), 16)
                 usb_printer.write(ep, print_data)
                 usb.util.dispose_resources(usb_printer)
-                
+
             elif mode == 'Network':
-                ip_full = printer_data.get('ip_address', '127.0.0.1:9100')
+                ip_full = printer_config.get('ip_address', '127.0.0.1:9100')
                 ip_addr, port = ip_full.split(":") if ":" in ip_full else (ip_full, "9100")
                 sc.send_wireless_command(ip_addr, port, b"CLS", print_data)
             else: # System
-                sys_name = printer_data.get('system_name', '')
+                sys_name = printer_config.get('system_name', '')
                 sc.send_win32print(sys_name, b"CLS")
                 sc.send_win32print(sys_name, print_data)
 

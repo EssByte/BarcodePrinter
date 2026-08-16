@@ -1,12 +1,14 @@
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox, QWidget, QVBoxLayout, QFrame, QLabel, QLineEdit, QPushButton, QHBoxLayout, QGraphicsDropShadowEffect
 from PyQt5.QtGui import QPixmap, QIcon, QFont, QColor
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, pyqtSignal
 from datetime import datetime
 from settings3 import SettingsWindow
 import sys
 import os
 
 class PasswordCheck(QMainWindow):
+    closed = pyqtSignal()
+
     def __init__(self, config=None):
         super().__init__()
         self.config = config
@@ -138,6 +140,7 @@ class PasswordCheck(QMainWindow):
     def open_main_window(self):
         self.close()
         self.main_window = SettingsWindow(self.config)
+        self.main_window.closed.connect(self.closed.emit)
         self.main_window.show()
 
 

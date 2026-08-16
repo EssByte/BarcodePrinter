@@ -17,6 +17,7 @@ from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
 from modules.Configurations import BarcodeConfig
 from modules.ImagePrinter import ImagePrinter
+from modules.size_converter import SizeConverter
 from modules.label_details_dialog import LabelDetailsDialog
 from modules.threads import FetchItemsThread, FilterItemsBinaryThread
 from modules.utils import resource_path, split_description, replace_placeholders
@@ -163,8 +164,7 @@ class BarcodeApp(QMainWindow):
         self.search_by_description.clicked.connect(lambda: self.filter_items(False))
 
         self.barcode_size = QComboBox(self)
-        self.options = ["Size 1 (35x25 Graphic)", "Size 2", "Size 3", "75x55 (Graphic)"]
-        self.barcode_size.addItems(self.options)
+        self.populate_barcode_sizes()
         self.barcode_size.currentIndexChanged.connect(self.handle_barcode_size)
         
         self.printer_selector = QComboBox(self)
@@ -334,6 +334,28 @@ class BarcodeApp(QMainWindow):
     def toggle_database_mode(self):
         self.config.set_useSqlite(self.sqlite_switch.isChecked())
 
+    def populate_barcode_sizes(self):
+        current_data = self.barcode_size.currentData() if self.barcode_size.count() else None
+        current_text = self.barcode_size.currentText() if self.barcode_size.count() else None
+
+        self.barcode_size.blockSignals(True)
+        self.barcode_size.clear()
+        self.options = ["Size 1 (35x25 Graphic)", "Size 2", "Size 3", "75x55 (Graphic)"]
+        for opt in self.options:
+            self.barcode_size.addItem(opt, None)
+        for profile in self.config.get_custom_label_sizes():
+            self.barcode_size.addItem(profile["name"], profile["id"])
+        self.barcode_size.blockSignals(False)
+
+        if current_data is not None:
+            idx = self.barcode_size.findData(current_data)
+            if idx >= 0:
+                self.barcode_size.setCurrentIndex(idx)
+        elif current_text:
+            idx = self.barcode_size.findText(current_text)
+            if idx >= 0:
+                self.barcode_size.setCurrentIndex(idx)
+
     def handle_barcode_size(self):
         selected_item = self.barcode_size.currentText()
         if not self.config.get_use_zpl():
@@ -468,10 +490,35 @@ class BarcodeApp(QMainWindow):
                 
                 d1, d2 = split_description(desc)
                 sz = self.barcode_size.currentText()
+                custom_profile_id = self.barcode_size.currentData()
                 printer_clear = "CLS"
                 print_data = ""
-                
-                if "Graphic" in sz:
+
+                if custom_profile_id is not None:
+                    profile = next((p for p in self.config.get_custom_label_sizes() if p["id"] == custom_profile_id), None)
+                    if not profile:
+                        raise Exception(f"Custom label size '{sz}' no longer exists.")
+
+                    image_printer = ImagePrinter()
+                    sc = SizeConverter(dpi=SizeConverter.PRINTER_DPI)
+                    W = sc.mm_to_pixels(profile["width_mm"])
+                    H = sc.mm_to_pixels(profile["height_mm"])
+                    data = {
+                        "companyName": self.config.get_company_name(),
+                        "description": desc,
+                        "description_1": d1,
+                        "description_2": d2,
+                        "remark": remark_text,
+                        "barcode_value": bc,
+                        "unit_price_integer": price,
+                        "weight": net_weight_val,
+                        "batch": batch_val,
+                        "copies": qty,
+                    }
+                    im = image_printer.render_custom_label(data, {"elements": profile["elements"]}, W=W, H=H)
+                    print_data = image_printer.get_full_command(im, copies=int(qty), width_mm=profile["width_mm"], height_mm=profile["height_mm"])
+                    printer_clear = b""
+                elif "Graphic" in sz:
                     image_printer = ImagePrinter()
                     if "35x25" in sz or "Size 1" in sz:
                         item_code = self.item_table.item(row, 3).text()
@@ -539,14 +586,15 @@ class BarcodeApp(QMainWindow):
         self.settings_window = PasswordCheck(self.config)
         # Connect signal to reload templates when settings are closed
         # This ensures any template changes in settings are reflected in the print table
-        self.settings_window.finished.connect(self.on_settings_closed)
-    
+        self.settings_window.closed.connect(self.on_settings_closed)
+        self.settings_window.show()
+
     def on_settings_closed(self):
         """Called when settings window closes - reload templates and UI"""
         self.logger.info("Settings closed, refreshing template cache...")
         # The templates will be reloaded automatically when get_current_template() is called
         # No need to clear anything - QSettings handles the persistence
-        self.settings_window.show()
+        self.populate_barcode_sizes()
 
     def open_dashboard(self): 
         self.dashboard_window = DashboardWindow()

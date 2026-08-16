@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                              QButtonGroup, QComboBox, QTextEdit, QGraphicsDropShadowEffect,
                              QFileDialog, QMessageBox, QSpacerItem, QSizePolicy, QGridLayout)
 from PyQt5.QtGui import QIcon, QFont, QColor, QPixmap
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 from modules.barcode_designer import BarcodeDesigner
 
 from modules.logger_config import setup_logger
@@ -18,6 +18,8 @@ from modules import CheckDriver, SendCommand, Configurations
 from modules.InstallDriver import DriverInstaller
 
 class SettingsWindow(QMainWindow):
+    closed = pyqtSignal()
+
     def __init__(self, config=None):
         super(SettingsWindow, self).__init__()
         self.logger = setup_logger('SettingsModern')
@@ -747,6 +749,10 @@ class SettingsWindow(QMainWindow):
         try: base_path = sys._MEIPASS
         except Exception: base_path = os.path.abspath(".")
         return os.path.join(base_path, relative_path)
+
+    def closeEvent(self, event):
+        self.closed.emit()
+        super().closeEvent(event)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
