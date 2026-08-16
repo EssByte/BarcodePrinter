@@ -93,6 +93,14 @@ class BarcodeConfig(QObject):
         self.setting_changed.emit("custom_label_sizes", sizes)
 
     # Getters and Setters
+    def get_license_key(self):
+        return self.settings.value("license_key", "")
+
+    def set_license_key(self, license_key):
+        self.settings.setValue("license_key", license_key)
+        self.settings.sync()
+        self.setting_changed.emit("license_key", license_key)
+
     def get_server(self):
         return self.settings.value("server", "localhost")
 
