@@ -6,3 +6,10 @@ __pycache__
 output/
 main.spec
 OUTPUT/
+
+# Dev-session scratch docs (planning notes, progress summaries) -- keep
+# these local, they tend to leak business/internal details.
+PROGRESS_SUMMARY.md
+BUGFIX_PLAN.md
+PROGRESS_*.md
+*_PLAN.md

@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLa
                              QFormLayout, QLineEdit, QSpinBox, QSplitter, QGroupBox, QComboBox, QCheckBox, QMessageBox,
                              QInputDialog)
 from PyQt5.QtGui import QFont, QColor, QPen, QBrush, QPainter
-from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF
+from PyQt5.QtCore import Qt, QRectF, pyqtSignal, QPointF, QTimer
 
 from modules.Configurations import BarcodeConfig
 
@@ -232,7 +232,16 @@ class CanvasView(QGraphicsView):
             self.selection_changed.emit(items[0])
         else:
             self.selection_changed.emit(None)
-    
+
+    def mouseReleaseEvent(self, event):
+        """Re-emit the current selection after a drag so the properties
+        panel's X/Y fields refresh to the item's post-drag position
+        (selectionChanged alone doesn't fire when the same item stays selected)."""
+        super().mouseReleaseEvent(event)
+        items = self.scene.selectedItems()
+        if items:
+            self.selection_changed.emit(items[0])
+
     def set_label_size_mm(self, width_mm, height_mm):
         """Resize canvas to arbitrary mm dimensions using the current size_converter's dpi."""
         if not self.size_converter or not SizeConverter:
@@ -329,10 +338,14 @@ QSplitter::handle:hover {
 """
 
 class BarcodeDesigner(QWidget):
-    def __init__(self):
+    def __init__(self, config=None):
         super().__init__()
-        self.config = BarcodeConfig()
+        self.config = config if config is not None else BarcodeConfig()
         self.current_profile_id = None
+        self._prompted_first_size = False
+        self._save_timer = QTimer(self)
+        self._save_timer.setSingleShot(True)
+        self._save_timer.timeout.connect(self.save_design)
         self.size_converter = SizeConverter(dpi=SizeConverter.PRINTER_DPI) if SizeConverter else None
         self.setStyleSheet(DESIGNER_STYLE)
         self.init_ui()
@@ -468,6 +481,11 @@ class BarcodeDesigner(QWidget):
         if profiles:
             self.size_combo.setCurrentIndex(0)
             self.load_profile(profiles[0])
+        else:
+            self.current_profile_id = None
+            if not self._prompted_first_size:
+                self._prompted_first_size = True
+                self.create_new_size()
 
     def get_profile_by_id(self, profile_id):
         for p in self.config.get_custom_label_sizes():
@@ -476,6 +494,11 @@ class BarcodeDesigner(QWidget):
         return None
 
     def load_profile(self, profile):
+        if self.current_profile_id and self.current_profile_id != profile["id"]:
+            # Flush any pending edits (including the debounced save from
+            # apply_properties) before we discard the current scene.
+            self._save_timer.stop()
+            self.save_design()
         self.current_profile_id = profile["id"]
         for item in list(self.canvas.scene.items()):
             if isinstance(item, BaseElement):
@@ -566,6 +589,9 @@ class BarcodeDesigner(QWidget):
         self.populate_size_combo()
 
     def add_element(self, item):
+        if not self.current_profile_id:
+            QMessageBox.information(self, "No Label Size", "Create a label size first (Label Size > + New).")
+            return
         self.canvas.scene.addItem(item)
         self.save_design()
 
@@ -591,8 +617,8 @@ class BarcodeDesigner(QWidget):
 
         self.x_edit = QSpinBox(); self.x_edit.setRange(-2000, 4000); self.x_edit.setValue(int(item.pos().x()))
         self.y_edit = QSpinBox(); self.y_edit.setRange(-2000, 4000); self.y_edit.setValue(int(item.pos().y()))
-        self.x_edit.valueChanged.connect(self.apply_properties)
-        self.y_edit.valueChanged.connect(self.apply_properties)
+        self.x_edit.valueChanged.connect(self.apply_position)
+        self.y_edit.valueChanged.connect(self.apply_position)
         self.prop_layout.addRow("X:", self.x_edit)
         self.prop_layout.addRow("Y:", self.y_edit)
 
@@ -637,12 +663,16 @@ class BarcodeDesigner(QWidget):
             self.prop_layout.addRow("Thickness:", self.t_edit)
             self.prop_layout.addRow("", self.v_check)
 
+    def apply_position(self):
+        """Wired only to the X/Y spinboxes, so it never clobbers a drag
+        that hasn't been reflected back into those spinboxes yet."""
+        if not self.current_item: return
+        self.current_item.setPos(self.x_edit.value(), self.y_edit.value())
+        self._save_timer.start(400)
+
     def apply_properties(self):
         if not self.current_item: return
         item = self.current_item
-
-        if hasattr(self, 'x_edit') and hasattr(self, 'y_edit'):
-            item.setPos(self.x_edit.value(), self.y_edit.value())
 
         if isinstance(item, CustomTextItem):
             item.text_value = self.val_edit.text()
@@ -660,8 +690,8 @@ class BarcodeDesigner(QWidget):
             item.thickness = self.t_edit.value()
             item.is_vertical = self.v_check.isChecked()
             item._update_line()
-        
-        self.save_design()
+
+        self._save_timer.start(400)
 
     def get_design_dict(self):
         elements = []
@@ -679,6 +709,12 @@ class BarcodeDesigner(QWidget):
             if p["id"] == self.current_profile_id:
                 p["elements"] = elements
         self.config.set_custom_label_sizes(profiles)
+
+    def closeEvent(self, event):
+        if self._save_timer.isActive():
+            self._save_timer.stop()
+            self.save_design()
+        super().closeEvent(event)
 
     def load_printers(self):
         self.printer_combo.blockSignals(True)

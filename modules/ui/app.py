@@ -15,7 +15,7 @@ from PyQt5.QtGui import QIcon, QBrush, QColor
 from modules import Configurations
 from modules.logger_config import setup_logger
 from modules.SendCommand import SendCommand
-from modules.Configurations import BarcodeConfig
+from modules.Configurations import BarcodeConfig, LEGACY_BARCODE_SIZE_OPTIONS
 from modules.ImagePrinter import ImagePrinter
 from modules.size_converter import SizeConverter
 from modules.label_details_dialog import LabelDetailsDialog
@@ -80,6 +80,9 @@ class BarcodeApp(QMainWindow):
             
             if key in [None, "printers_list", "active_printer_id"]:
                 self.populate_printers()
+
+            if key in [None, "custom_label_sizes"]:
+                self.populate_barcode_sizes()
         except Exception as e:
             self.hide_loading()
             self.logger.error(f"Failed to reload: {e}")
@@ -340,7 +343,7 @@ class BarcodeApp(QMainWindow):
 
         self.barcode_size.blockSignals(True)
         self.barcode_size.clear()
-        self.options = ["Size 1 (35x25 Graphic)", "Size 2", "Size 3", "75x55 (Graphic)"]
+        self.options = LEGACY_BARCODE_SIZE_OPTIONS
         for opt in self.options:
             self.barcode_size.addItem(opt, None)
         for profile in self.config.get_custom_label_sizes():
@@ -568,9 +571,13 @@ class BarcodeApp(QMainWindow):
         sz = self.barcode_size.currentText()
         if self.config.get_use_zpl():
             if "Graphic" in sz: return self.config.get_zpl_funbake_template()
+            if "Size 2" in sz: return self.config.get_zpl_size80_template()
+            if "Size 3" in sz: return self.config.get_zpl_size3_template()
             return self.config.get_zpl_template()
         else:
             if "Graphic" in sz: return self.config.get_tpsl_funbake_template()
+            if "Size 2" in sz: return self.config.get_tpsl_size80_template()
+            if "Size 3" in sz: return self.config.get_tpsl_size3_template()
             return self.config.get_tpsl_template()
 
     def save_column_widths(self):
@@ -603,7 +610,7 @@ class BarcodeApp(QMainWindow):
     def open_layout_designer(self):
         from modules.barcode_designer import BarcodeDesigner
         # Open the widget as a standalone window
-        self.designer_window = BarcodeDesigner()
+        self.designer_window = BarcodeDesigner(config=self.config)
         self.designer_window.setWindowTitle("Custom Layout Designer")
         self.designer_window.resize(1000, 600)
         self.designer_window.show()

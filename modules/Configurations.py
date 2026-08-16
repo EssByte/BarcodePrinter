@@ -1,7 +1,11 @@
 import json
 import os
-import uuid
 from PyQt5.QtCore import QSettings, pyqtSignal, QObject
+
+# Single source of truth for the 4 built-in label size presets, shared by
+# modules/ui/app.py (print table) and settings3.py (template editor) so
+# their combo boxes always agree on the same strings/order.
+LEGACY_BARCODE_SIZE_OPTIONS = ["Size 1 (35x25 Graphic)", "Size 2", "Size 3", "75x55 (Graphic)"]
 
 class BarcodeConfig(QObject):
 
@@ -25,18 +29,6 @@ class BarcodeConfig(QObject):
         self.settings = QSettings("AlphaDigital", "BarcodePrinter")
         self.json_path = "C:/barcode/barcode.json"
         self._ensure_default_printer()
-        self._ensure_default_custom_size()
-
-    def _ensure_default_custom_size(self):
-        """Ensures at least one custom label size profile exists if none are configured."""
-        if not self.get_custom_label_sizes():
-            self.set_custom_label_sizes([{
-                "id": str(uuid.uuid4()),
-                "name": "My First Label",
-                "width_mm": 75.0,
-                "height_mm": 50.0,
-                "elements": []
-            }])
 
     def _ensure_default_printer(self):
         """Ensures at least one printer exists if none are configured."""

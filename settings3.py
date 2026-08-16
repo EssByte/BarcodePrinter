@@ -405,7 +405,7 @@ class SettingsWindow(QMainWindow):
         btn_layout_designer.clicked.connect(self.open_layout_designer)
         layout.addWidget(btn_layout_designer)
 
-        self.options = ["size1", "size2", "size3", "75x55 (Graphic)"]
+        self.options = Configurations.LEGACY_BARCODE_SIZE_OPTIONS
         self.combo_tpsl_size.addItems(self.options)
         self.combo_zpl_size.addItems(self.options)
         
@@ -740,7 +740,7 @@ class SettingsWindow(QMainWindow):
 
     def open_layout_designer(self):
         from modules.barcode_designer import BarcodeDesigner
-        self.designer_window = BarcodeDesigner()
+        self.designer_window = BarcodeDesigner(config=self.config)
         self.designer_window.setWindowTitle("Custom Layout Designer")
         self.designer_window.resize(1000, 600)
         self.designer_window.show()
