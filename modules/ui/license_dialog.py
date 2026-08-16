@@ -1,5 +1,5 @@
 from PyQt5.QtWidgets import (QApplication, QDialog, QVBoxLayout, QHBoxLayout,
-                              QFrame, QLabel, QLineEdit, QPushButton)
+                              QFrame, QLabel, QLineEdit, QTextEdit, QPushButton)
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QTimer
 
@@ -25,7 +25,7 @@ class LicenseDialog(QDialog):
         self.hardware_id = get_hardware_id()
 
         self.setWindowTitle("Activate License")
-        self.setFixedSize(460, 520)
+        self.setFixedSize(460, 580)
         self.setWindowIcon(QIcon(resource_path("images/logo.ico")))
         self.setStyleSheet(f"QDialog {{ background-color: {LIC_CANVAS}; }}")
 
@@ -34,7 +34,7 @@ class LicenseDialog(QDialog):
 
         self.card = QFrame()
         self.card.setObjectName("card")
-        self.card.setFixedSize(370, 480)
+        self.card.setFixedSize(370, 540)
         self.card.setStyleSheet(f"""
             QFrame#card {{
                 background-color: {LIC_SURFACE};
@@ -88,16 +88,19 @@ class LicenseDialog(QDialog):
         card_layout.addLayout(hwid_row)
         card_layout.addSpacing(18)
 
-        # License key input
+        # License key input -- a multi-line paste target, not a single-line
+        # field: the key is a base64-encoded Ed25519 signature (~88 chars),
+        # not a short typed code, so customers will paste it from an email.
         lbl_key = QLabel("License Key")
         lbl_key.setStyleSheet(f"font-family: 'Segoe UI'; font-weight: 600; font-size: 12px; color: {LIC_TEXT};")
         card_layout.addWidget(lbl_key)
         card_layout.addSpacing(4)
 
-        self.et_license_key = QLineEdit()
-        self.et_license_key.setPlaceholderText("ALPHA-XXXX-XXXX-XXXX-XXXX")
-        self.et_license_key.setFixedHeight(42)
-        self.et_license_key.setStyleSheet(self._mono_field_style(editable=True))
+        self.et_license_key = QTextEdit()
+        self.et_license_key.setPlaceholderText("Paste the license key you received")
+        self.et_license_key.setFixedHeight(84)
+        self.et_license_key.setLineWrapMode(QTextEdit.WidgetWidth)
+        self.et_license_key.setStyleSheet(self._mono_textedit_style())
         card_layout.addWidget(self.et_license_key)
         card_layout.addSpacing(8)
 
@@ -125,7 +128,6 @@ class LicenseDialog(QDialog):
 
         outer.addWidget(self.card)
 
-        self.et_license_key.returnPressed.connect(self.activate)
         self.btn_activate.clicked.connect(self.activate)
 
     def _mono_field_style(self, editable=False):
@@ -147,6 +149,20 @@ class LicenseDialog(QDialog):
             """
         return base
 
+    def _mono_textedit_style(self):
+        return f"""
+            QTextEdit {{
+                background-color: {LIC_SURFACE};
+                border: 1px solid {LIC_BORDER};
+                border-radius: 7px;
+                padding: 8px 10px;
+                font-family: 'Consolas', 'Courier New', monospace;
+                font-size: 11.5px;
+                color: {LIC_TEXT};
+            }}
+            QTextEdit:focus {{ border: 1.5px solid {LIC_ACCENT}; }}
+        """
+
     def _secondary_button_style(self):
         return f"""
             QPushButton {{
@@ -162,7 +178,7 @@ class LicenseDialog(QDialog):
         QTimer.singleShot(1200, lambda: self.btn_copy.setText("Copy"))
 
     def activate(self):
-        key = self.et_license_key.text()
+        key = self.et_license_key.toPlainText()
         if activate_license(self.config, key):
             self.accept()
         else:

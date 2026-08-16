@@ -1,5 +1,6 @@
 """
-Offline, node-locked licensing.
+Offline, node-locked licensing -- verification side (this module ships
+inside the customer-facing .exe).
 
 Hardware ID: derived from the Windows MachineGuid (stable per-OS-install
 identifier), falling back to the MAC address only when MachineGuid can't be
@@ -9,29 +10,23 @@ path -- uuid.getnode() can return a non-deterministic random value when no
 real NIC is found, which would make a combined fingerprint unstable across
 runs on some VMs/sandboxes.
 
-License key: HMAC-SHA256 keyed with an app-embedded secret, over the
-hardware ID. This is integrity/forgery-resistant (the point of a license
-key), not confidentiality -- the hardware ID isn't sensitive. Known,
-accepted limitation of purely offline/symmetric schemes: the verification
-secret ships inside the .exe, so a determined attacker who decompiles the
-PyInstaller binary could in principle extract it and forge keys. This is
-the standard tradeoff for small-ISV offline licensing; asymmetric signing
-(ship only a public key) would close that gap but needs the `cryptography`
-package, which isn't in requirements.txt today. Documented upgrade path,
-not implemented now.
+License key: an Ed25519 signature (by the vendor's private key, held only
+in tools/generate_license.py -- never shipped) over the hardware ID,
+base64-encoded. This module only holds the PUBLIC key, so it can verify a
+signature but cannot produce a new one -- unlike the earlier HMAC-based
+scheme, decompiling this shipped module reveals nothing that lets an
+attacker mint a valid key for a different machine.
 """
 import base64
 import hashlib
-import hmac
 import uuid
 
-# Generated once with: python -c "import secrets; print(secrets.token_bytes(32).hex())"
-# Never regenerate after keys have been issued to customers -- that
-# invalidates every key already sold.
-_LICENSE_SECRET = bytes.fromhex("636b238ced4ea4ba449c1e0fe373361ad64eae85c5d1723801dc0819d5b4bdcd")
+from cryptography.exceptions import InvalidSignature
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
-_KEY_PREFIX = "ALPHA"
-_DIGEST_BYTES = 10  # -> 16 base32 chars, no padding, groups evenly into 4x4
+# Public half of the vendor's Ed25519 keypair. Safe to ship -- verification
+# only, cannot be used to generate new license keys.
+_PUBLIC_KEY_BYTES = bytes.fromhex("214d120a719627f85fb1d9733901aed33768c443cdcc83bcab70f4997a2dc97c")
 
 
 def _get_machine_guid():
@@ -59,10 +54,12 @@ def _fingerprint_source() -> str:
     return guid if guid else _get_mac_fallback()
 
 
-def _normalize(s: str) -> str:
+def normalize_hardware_id(hardware_id: str) -> str:
     """Strip whitespace/dashes and uppercase -- tolerant of however a user
-    pastes a hardware ID or license key."""
-    return (s or "").strip().upper().replace("-", "").replace(" ", "")
+    (or the vendor tool) types/pastes a hardware ID. Shared with
+    tools/generate_license.py so both sides sign/verify the exact same
+    normalized bytes."""
+    return (hardware_id or "").strip().upper().replace("-", "").replace(" ", "")
 
 
 def _group(s: str, size: int = 4, sep: str = "-") -> str:
@@ -76,26 +73,25 @@ def get_hardware_id() -> str:
     return _group(digest_hex)
 
 
-def generate_license_key(hardware_id: str) -> str:
-    """Vendor-side: compute the license key that matches a given hardware ID.
-    hardware_id may be pasted with or without dashes/whitespace/lowercase."""
-    normalized_hwid = _normalize(hardware_id)
-    digest = hmac.new(_LICENSE_SECRET, normalized_hwid.encode("utf-8"), hashlib.sha256).digest()
-    b32 = base64.b32encode(digest[:_DIGEST_BYTES]).decode("ascii").rstrip("=")
-    return f"{_KEY_PREFIX}-{_group(b32)}"
-
-
 def validate_license_key(license_key: str, hardware_id: str = None) -> bool:
-    """Recomputes the expected key for hardware_id (defaults to THIS machine's
-    current hardware ID -- never trust a stored hardware ID) and compares."""
+    """Verifies license_key is a valid Ed25519 signature (by the vendor's
+    private key) over hardware_id. hardware_id defaults to THIS machine's
+    current hardware ID -- never trust a stored hardware ID."""
     if not license_key:
         return False
     hardware_id = hardware_id or get_hardware_id()
-    expected = _normalize(generate_license_key(hardware_id).replace(_KEY_PREFIX, "", 1))
-    provided = _normalize(license_key)
-    if provided.startswith(_KEY_PREFIX):
-        provided = provided[len(_KEY_PREFIX):]
-    return hmac.compare_digest(expected, provided)
+    try:
+        signature = base64.b64decode("".join(license_key.split()), validate=True)
+    except (ValueError, base64.binascii.Error):
+        return False
+
+    public_key = Ed25519PublicKey.from_public_bytes(_PUBLIC_KEY_BYTES)
+    message = normalize_hardware_id(hardware_id).encode("utf-8")
+    try:
+        public_key.verify(signature, message)
+        return True
+    except InvalidSignature:
+        return False
 
 
 def is_licensed(config) -> bool:
@@ -110,7 +106,8 @@ def is_licensed(config) -> bool:
 def activate_license(config, license_key: str) -> bool:
     """Validates license_key against THIS machine and persists it if valid.
     Returns False (and does not persist) on an invalid key."""
-    if not validate_license_key(license_key, get_hardware_id()):
+    cleaned = "".join((license_key or "").split())
+    if not validate_license_key(cleaned, get_hardware_id()):
         return False
-    config.set_license_key(_normalize(license_key))
+    config.set_license_key(cleaned)
     return True

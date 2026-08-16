@@ -8,11 +8,15 @@ Prints a matching license key for the current (fallback) hardware ID so you
 can paste it into the dialog and prove the full activate loop end-to-end,
 or type garbage to exercise the inline-error path.
 """
+import os
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "tools"))
+
 from PyQt5.QtWidgets import QApplication
 from modules.Configurations import BarcodeConfig
-from modules.licensing import get_hardware_id, generate_license_key
+from modules.licensing import get_hardware_id
 from modules.ui.license_dialog import LicenseDialog
+from generate_license import generate_license_key  # vendor-only tool, dev/testing use only
 
 app = QApplication(sys.argv)
 
