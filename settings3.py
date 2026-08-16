@@ -636,9 +636,32 @@ class SettingsWindow(QMainWindow):
             
             self.config.set_use_zpl(self.use_zpl.isChecked())
             
-            # Templates
-            if self.config.get_tpslSize() == self.options[0]: self.config.set_tpsl_template(self.tpslCommand.toPlainText())
-            elif self.config.get_tpslSize() == self.options[1]: self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
+            # Templates - Save currently displayed template based on selected size
+            current_tpsl_size = self.combo_tpsl_size.currentText()
+            current_zpl_size = self.combo_zpl_size.currentText()
+            
+            # Save TPSL templates based on selected size
+            if current_tpsl_size == self.options[0]:
+                self.config.set_tpsl_template(self.tpslCommand.toPlainText())
+            elif current_tpsl_size == self.options[1]:
+                self.config.set_tpsl_size80_template(self.tpslCommand.toPlainText())
+            elif current_tpsl_size == self.options[2]:
+                self.config.set_tpsl_size3_template(self.tpslCommand.toPlainText())
+            elif current_tpsl_size == self.options[3]:
+                self.config.set_tpsl_funbake_template(self.tpslCommand.toPlainText())
+            
+            # Save ZPL templates based on selected size
+            if current_zpl_size == self.options[0]:
+                self.config.set_zpl_template(self.zplCommand.toPlainText())
+            elif current_zpl_size == self.options[1]:
+                self.config.set_zpl_size80_template(self.zplCommand.toPlainText())
+            elif current_zpl_size == self.options[2]:
+                self.config.set_zpl_size3_template(self.zplCommand.toPlainText())
+            elif current_zpl_size == self.options[3]:
+                self.config.set_zpl_funbake_template(self.zplCommand.toPlainText())
+            
+            self.logger.info(f"Saved TPSL template for size: {current_tpsl_size}")
+            self.logger.info(f"Saved ZPL template for size: {current_zpl_size}")
             
             QMessageBox.information(self, "Success", "All settings saved successfully.")
             self.close()

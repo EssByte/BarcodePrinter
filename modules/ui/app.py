@@ -537,6 +537,15 @@ class BarcodeApp(QMainWindow):
             
     def open_settings(self):
         self.settings_window = PasswordCheck(self.config)
+        # Connect signal to reload templates when settings are closed
+        # This ensures any template changes in settings are reflected in the print table
+        self.settings_window.finished.connect(self.on_settings_closed)
+    
+    def on_settings_closed(self):
+        """Called when settings window closes - reload templates and UI"""
+        self.logger.info("Settings closed, refreshing template cache...")
+        # The templates will be reloaded automatically when get_current_template() is called
+        # No need to clear anything - QSettings handles the persistence
         self.settings_window.show()
 
     def open_dashboard(self): 
