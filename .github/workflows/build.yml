@@ -2,9 +2,9 @@ name: Build Executable
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, fix/template-sync-and-licensing ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, fix/template-sync-and-licensing ]
   workflow_dispatch:
 
 jobs:
@@ -76,7 +76,7 @@ jobs:
         }
 
     - name: Commit and Push Build Artifacts
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix/template-sync-and-licensing')
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
@@ -85,7 +85,7 @@ jobs:
         git push
 
     - name: Create Release
-      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix/template-sync-and-licensing')
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
