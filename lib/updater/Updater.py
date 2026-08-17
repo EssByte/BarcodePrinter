@@ -16,6 +16,28 @@ UPD_ACCENT = "#c81d31"
 UPD_ACCENT_HOVER = "#a91729"
 UPD_DANGER = "#c81d31"
 
+
+def _grant_user_write_access(path):
+    """C:\\barcode lives at the system-drive root, which this updater can
+    only create/write into because it runs elevated (see --uac-admin in
+    the build). BarcodePrinter.exe itself does NOT run elevated on normal
+    day-to-day launches, but still writes its log/config files into this
+    same folder on every run -- without this, those writes would hit the
+    same Permission Denied error this updater just avoided. Grant the
+    standard Users group write access so non-elevated runs keep working.
+    Best-effort: a failure here shouldn't fail the whole update."""
+    try:
+        # S-1-5-32-545 is the well-known, locale-independent SID for the
+        # built-in "Users" group -- safer than the literal name "Users",
+        # which can differ on non-English Windows installs.
+        subprocess.run(
+            ["icacls", path, "/grant", "*S-1-5-32-545:(OI)(CI)M"],
+            check=False, capture_output=True
+        )
+    except Exception:
+        pass
+
+
 class UpdateThread(QThread):
     progress = pyqtSignal(int)
     status = pyqtSignal(str)
@@ -39,6 +61,7 @@ class UpdateThread(QThread):
                 self.version_found.emit(tag)
             else:
                 os.makedirs(self.install_path, exist_ok=True)
+                _grant_user_write_access(self.install_path)
                 files = ["BarcodePrinter.exe", "Updater.exe", "libusb-1.0.dll"]
                 for i, f_name in enumerate(files):
                     self.status.emit(f"Downloading {f_name}...")

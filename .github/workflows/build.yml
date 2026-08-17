@@ -43,12 +43,17 @@ jobs:
         pyinstaller --noconfirm --onefile --console --name "BarcodePrinter" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "modules;modules" --add-data "ui;ui" --add-data "images;images" --add-data "lib;lib" --add-binary "libusb-1.0.dll;." --hidden-import=win32print --hidden-import=pyodbc --hidden-import=PyQt5 --hidden-import=libusb --hidden-import=usb --hidden-import=pyusb main.py
 
     - name: Build Updater
+      # --uac-admin: this writes into C:\barcode (a system-drive-root folder
+      # regular processes can't write to without elevation), so it needs to
+      # request Administrator rights at launch via an embedded manifest.
       run: |
-        pyinstaller --noconfirm --onefile --console --name "Updater" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "lib/updater;lib/updater" --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
+        pyinstaller --noconfirm --onefile --console --uac-admin --name "Updater" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "lib/updater;lib/updater" --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests lib/updater/Updater.py
 
     - name: Build Installation Wizard
+      # --uac-admin: same reasoning as Updater above -- this is what
+      # actually creates C:\barcode and writes BarcodePrinter.exe into it.
       run: |
-        pyinstaller --noconfirm --onefile --console --name "InstallationWizard" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests InstallationWizard.py
+        pyinstaller --noconfirm --onefile --console --uac-admin --name "InstallationWizard" --icon=images/logo.ico --version-file=file_version_info.txt --add-data "images;images" --hidden-import=PyQt5 --hidden-import=requests InstallationWizard.py
 
     - name: Copy DLL to dist
       run: |
