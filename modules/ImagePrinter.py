@@ -316,6 +316,12 @@ class ImagePrinter:
 
     def get_full_command(self, image, copies=1, width_mm=75, height_mm=50):
         """Wraps the bitmap in standard TPSL start/end commands"""
+        # The printer feeds the bitmap upside down relative to how it's
+        # rendered here, so flip it before it goes out -- rotating here
+        # (rather than in each render_* method) fixes every image-printed
+        # label (35x25, Fun Bake, custom sizes) in one place.
+        image = image.transpose(Image.ROTATE_180)
+
         # Automatically save a copy of the image to the images/ folder for debugging
         try:
             if not os.path.exists('images'):
