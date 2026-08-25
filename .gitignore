@@ -14,7 +14,6 @@ BUGFIX_PLAN.md
 PROGRESS_*.md
 *_PLAN.md
 
-# License portal web app -- local credentials/session secret, never tracked.
-webtools/license_portal/users.json
+# License portal web app -- its venv only; credentials, session secret and
+# logs live outside the repo entirely, under ~/.barcodeprinter-portal/.
 webtools/license_portal/venv/
-webtools/license_portal/*.log

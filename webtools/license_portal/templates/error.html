@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block title %}License Portal{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>{{ message }}</h1>
+  <p class="subtitle"><a href="{{ url_for('generate') }}">Back to portal</a></p>
+</div>
+{% endblock %}

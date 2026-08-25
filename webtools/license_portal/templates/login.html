@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Sign in — License Portal{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="brand">
+    <span class="brand-mark">▣</span>
+    <span class="brand-name">Barcode Printer</span>
+  </div>
+  <h1>License Portal</h1>
+  <p class="subtitle">Sign in to issue a customer license key.</p>
+
+  {% if error %}
+    <div class="alert" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+    <button type="submit" class="btn-primary">Sign in</button>
+  </form>
+</div>
+{% endblock %}

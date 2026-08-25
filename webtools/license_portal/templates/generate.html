@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Generate License — License Portal{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="topbar">
+    <div class="brand">
+      <span class="brand-mark">▣</span>
+      <span class="brand-name">Barcode Printer</span>
+    </div>
+    <form method="post" action="{{ url_for('logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn-ghost">Sign out ({{ username }})</button>
+    </form>
+  </div>
+
+  <h1>Generate a license key</h1>
+  <p class="subtitle">Paste the customer's hardware ID exactly as they sent it.</p>
+
+  {% if error %}
+    <div class="alert" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label for="hardware_id">Hardware ID</label>
+    <input
+      id="hardware_id"
+      name="hardware_id"
+      type="text"
+      class="mono"
+      placeholder="A1B2-C3D4-E5F6-1234"
+      value="{{ hardware_id }}"
+      autocomplete="off"
+      autofocus
+      required
+    >
+    <button type="submit" class="btn-primary">Generate license key</button>
+  </form>
+
+  {% if license_key %}
+  <div class="result">
+    <label for="license_key">License key</label>
+    <div class="result-row">
+      <input id="license_key" class="mono" type="text" value="{{ license_key }}" readonly>
+      <button type="button" class="btn-secondary" data-copy-target="license_key">Copy</button>
+    </div>
+  </div>
+  {% endif %}
+</div>
+<script src="{{ url_for('static', filename='copy.js') }}"></script>
+{% endblock %}
