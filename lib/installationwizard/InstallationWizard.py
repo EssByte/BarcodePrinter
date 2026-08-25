@@ -2,7 +2,7 @@ import os
 import shutil
 import sys
 import ctypes
-import requests  # To download files from GitHub
+import requests  # To download files from the self-hosted release server
 from PyQt5.QtWidgets import QApplication, QWizard, QFileDialog, QMessageBox, QLabel
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5 import uic
@@ -14,9 +14,9 @@ class InstallerWizard(QWizard):
         super().__init__()
         uic.loadUi(self.resource_path("qwizard.ui"), self)  # Load the .ui file
 
-        # GitHub file URLs (Replace these with your actual URLs)
-        self.main_exe_url = "https://github.com/EssByte/BarcodePrinter/releases/latest/download/BarcodePrinter.exe"
-        self.updater_exe_url = "https://github.com/EssByte/BarcodePrinter/releases/latest/download/Updater.exe"
+        # Self-hosted release server (see webtools/release_server/)
+        self.main_exe_url = "https://releases.eswaran.dev/releases/latest/download/BarcodePrinter.exe"
+        self.updater_exe_url = "https://releases.eswaran.dev/releases/latest/download/Updater.exe"
 
         self.setWindowIcon(QIcon(self.resource_path("logo.ico")))
 

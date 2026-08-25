@@ -462,9 +462,7 @@ class BarcodeApp(QMainWindow):
         self.config.set_active_printer_id(printer_id)
     
     def check_version(self):
-        repo_owner = "PersonX-46"
-        repo_name = "BarcodePrinter"
-        api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
+        api_url = "https://releases.eswaran.dev/releases/latest"
         try:
             response = requests.get(api_url)
             response.raise_for_status()

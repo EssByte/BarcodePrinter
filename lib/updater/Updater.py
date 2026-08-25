@@ -55,7 +55,7 @@ class UpdateThread(QThread):
     def run(self):
         try:
             if self.mode == 'check':
-                api_url = f"https://api.github.com/repos/{self.repo_owner}/{self.repo_name}/releases/latest"
+                api_url = "https://releases.eswaran.dev/releases/latest"
                 res = requests.get(api_url).json()
                 tag = res.get("tag_name", "Unknown")
                 self.version_found.emit(tag)
@@ -65,7 +65,7 @@ class UpdateThread(QThread):
                 files = ["BarcodePrinter.exe", "Updater.exe", "libusb-1.0.dll"]
                 for i, f_name in enumerate(files):
                     self.status.emit(f"Downloading {f_name}...")
-                    url = f"https://github.com/{self.repo_owner}/{self.repo_name}/releases/latest/download/{f_name}"
+                    url = f"https://releases.eswaran.dev/releases/latest/download/{f_name}"
                     path = os.path.join(self.install_path, f_name)
                     resp = requests.get(url, stream=True)
                     resp.raise_for_status()

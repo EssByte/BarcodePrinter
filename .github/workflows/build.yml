@@ -89,22 +89,20 @@ jobs:
         git diff --staged --quiet || git commit -m "ci: auto-commit build artifacts [skip ci]"
         git push
 
-    - name: Create Release
+    - name: Upload Release to self-hosted server
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix/template-sync-and-licensing')
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v${{ env.VERSION }}-${{ github.run_number }}
-        name: Barcode Printer v${{ env.VERSION }} (Build ${{ github.run_number }})
-        draft: false
-        prerelease: false
-        files: |
-          dist/BarcodePrinter.exe
-          dist/Updater.exe
-          dist/InstallationWizard.exe
-          dist/libusb-1.0.dll
+      shell: pwsh
+      run: |
+        curl.exe --fail -sS `
+          -H "Authorization: Bearer $env:RELEASE_UPLOAD_TOKEN" `
+          -F "tag_name=v${env:VERSION}-${env:GITHUB_RUN_NUMBER}" `
+          -F "BarcodePrinter.exe=@dist/BarcodePrinter.exe" `
+          -F "Updater.exe=@dist/Updater.exe" `
+          -F "InstallationWizard.exe=@dist/InstallationWizard.exe" `
+          -F "libusb-1.0.dll=@dist/libusb-1.0.dll" `
+          https://releases.eswaran.dev/upload
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        RELEASE_UPLOAD_TOKEN: ${{ secrets.RELEASE_UPLOAD_TOKEN }}
 
     - name: Upload All Artifacts
       uses: actions/upload-artifact@v4
