@@ -67,34 +67,44 @@ def create_app() -> Flask:
             abort(404)
         return send_from_directory(CURRENT_DIR, filename, as_attachment=True)
 
-    @app.post("/upload")
-    def upload():
+    def _check_auth():
         auth = request.headers.get("Authorization", "")
         provided = auth[len("Bearer "):] if auth.startswith("Bearer ") else ""
         if not provided or not hmac.compare_digest(provided, _load_upload_token()):
             audit_log.info("upload rejected: bad/missing token, ip=%s", request.remote_addr)
             abort(401)
 
-        tag_name = (request.form.get("tag_name") or "").strip()
+    # One request per file (instead of one combined multipart body) --
+    # Cloudflare's edge caps request body size well under the ~50MB these
+    # onefile PyInstaller builds run, but a single combined upload of all
+    # four together exceeds it. CI uploads each file, then calls finalize.
+    @app.put("/upload/<filename>")
+    def upload_file(filename):
+        _check_auth()
+        if filename not in ALLOWED_FILENAMES:
+            abort(404)
+
+        staging = DATA_DIR / "staging"
+        staging.mkdir(parents=True, mode=0o700, exist_ok=True)
+        dest = staging / secure_filename(filename)
+        with open(dest, "wb") as out:
+            shutil.copyfileobj(request.stream, out)
+
+        checksum = hashlib.sha256(dest.read_bytes()).hexdigest()
+        audit_log.info("staged file=%s sha256=%s size=%d", filename, checksum, dest.stat().st_size)
+        return jsonify({"filename": filename, "sha256": checksum}), 200
+
+    @app.post("/upload/finalize")
+    def finalize_upload():
+        _check_auth()
+        tag_name = (request.form.get("tag_name") or (request.get_json(silent=True) or {}).get("tag_name") or "").strip()
         if not tag_name:
             return jsonify({"error": "tag_name is required"}), 400
 
-        missing = [name for name in ALLOWED_FILENAMES if name not in request.files]
-        if missing:
-            return jsonify({"error": f"missing files: {missing}"}), 400
-
         staging = DATA_DIR / "staging"
-        if staging.exists():
-            shutil.rmtree(staging)
-        staging.mkdir(parents=True, mode=0o700)
-
-        checksums = {}
-        for name in ALLOWED_FILENAMES:
-            f = request.files[name]
-            safe_name = secure_filename(name)
-            dest = staging / safe_name
-            f.save(dest)
-            checksums[name] = hashlib.sha256(dest.read_bytes()).hexdigest()
+        missing = [name for name in ALLOWED_FILENAMES if not (staging / name).exists()]
+        if missing:
+            return jsonify({"error": f"missing staged files: {missing}"}), 400
 
         # Atomic-ish swap: current/ only ever holds a fully-uploaded set.
         if CURRENT_DIR.exists():
@@ -103,8 +113,8 @@ def create_app() -> Flask:
 
         LATEST_JSON.write_text(json.dumps({"tag_name": tag_name}))
 
-        audit_log.info("release published tag=%s checksums=%s", tag_name, checksums)
-        return jsonify({"tag_name": tag_name, "checksums": checksums}), 200
+        audit_log.info("release published tag=%s", tag_name)
+        return jsonify({"tag_name": tag_name}), 200
 
     return app
 

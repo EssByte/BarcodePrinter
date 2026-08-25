@@ -90,17 +90,23 @@ jobs:
         git push
 
     - name: Upload Release to self-hosted server
+      # One request per file, not a single combined multipart body --
+      # Cloudflare's edge caps request body size below the ~140MB all four
+      # files add up to together, even though each file alone is well
+      # under that.
       if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/fix/template-sync-and-licensing')
       shell: pwsh
       run: |
-        curl.exe --fail -sS `
+        foreach ($f in "BarcodePrinter.exe", "Updater.exe", "InstallationWizard.exe", "libusb-1.0.dll") {
+          curl.exe --fail -sS -X PUT `
+            -H "Authorization: Bearer $env:RELEASE_UPLOAD_TOKEN" `
+            --data-binary "@dist/$f" `
+            "https://releases.eswaran.dev/upload/$f"
+        }
+        curl.exe --fail -sS -X POST `
           -H "Authorization: Bearer $env:RELEASE_UPLOAD_TOKEN" `
           -F "tag_name=v${env:VERSION}-${env:GITHUB_RUN_NUMBER}" `
-          -F "BarcodePrinter.exe=@dist/BarcodePrinter.exe" `
-          -F "Updater.exe=@dist/Updater.exe" `
-          -F "InstallationWizard.exe=@dist/InstallationWizard.exe" `
-          -F "libusb-1.0.dll=@dist/libusb-1.0.dll" `
-          https://releases.eswaran.dev/upload
+          https://releases.eswaran.dev/upload/finalize
       env:
         RELEASE_UPLOAD_TOKEN: ${{ secrets.RELEASE_UPLOAD_TOKEN }}
 
