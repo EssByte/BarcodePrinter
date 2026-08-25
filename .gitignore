@@ -13,3 +13,8 @@ PROGRESS_SUMMARY.md
 BUGFIX_PLAN.md
 PROGRESS_*.md
 *_PLAN.md
+
+# License portal web app -- local credentials/session secret, never tracked.
+webtools/license_portal/users.json
+webtools/license_portal/venv/
+webtools/license_portal/*.log
