@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
   if (!input) return;
 
   function format(value) {
-    var clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    var clean = value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16);
     var groups = clean.match(/.{1,4}/g) || [];
     return groups.join("-");
   }
